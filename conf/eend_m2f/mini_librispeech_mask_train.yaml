@@ -1,0 +1,46 @@
+# training options
+# data part
+sampling_rate: 8000
+frame_size: 200
+frame_shift: 80
+num_frames: 500   
+input_transform: logmel23_espnet
+context_size: 7 # input feat dim of backbone : num_mels*(2*context_size+1)
+subsampling: 1
+num_speakers: 2
+
+# model related
+model_type: eend_m2f
+backbone_encoder_type: conformer
+backbone_encoder_layers: 6
+backbone_ffn_dim: 1024
+backbone_conformer_depthwise_conv_kernel_size: 49
+backbone_num_heads: 4
+backbone_downsample_type: depthwise_pointwise_conv_downsample10
+backbone_output_feat_dim: 256
+transformer_decoder_name: OneScaleMaskedTransformerDecoder
+transformer_decoder_input_feat_dim: 256
+transformer_decoder_mask_classification: True
+transformer_decoder_num_classes: 20 # not is num_speakers, it should is max mumber of segments included speaker
+transformer_decoder_hidden_dim: 256
+transformer_decoder_num_queries: 50
+transformer_decoder_num_heads: 4
+transformer_decoder_ffn_dim: 1024
+transformer_decoder_num_layers: 6
+
+
+
+
+
+# train related
+max_epochs: 10
+gradclip: 5
+batchsize: 64
+optimizer: noam
+lr: 0.0001
+gradient_accumulation_steps: 1
+noam_warmup_steps: 25000
+seed: 777
+gpu: 1
+
+
