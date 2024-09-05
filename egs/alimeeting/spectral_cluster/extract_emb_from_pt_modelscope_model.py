@@ -1,0 +1,1 @@
+../umap_cluster/extract_emb_from_pt_modelscope_model.py

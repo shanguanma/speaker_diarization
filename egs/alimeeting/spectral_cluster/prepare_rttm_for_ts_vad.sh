@@ -1,0 +1,1 @@
+../ts_vad_ddp_phase1/prepare_rttm_for_ts_vad.sh
