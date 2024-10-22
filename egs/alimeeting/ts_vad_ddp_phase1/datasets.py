@@ -88,10 +88,8 @@ def load_dataset(cfg,split: str,
         raise Exception(
             f"The given dataset {cfg.dataset_name} is not supported."
         )
-    if cfg.speech_encoder_type == "WavLM":
-        fbank_input = False
-    else:
-        fbank_input = True
+    # we set fbank feature as input when we use classical speaker model arch as speech encoder.
+    fbank_input = True
     datasets = TSVADDataset(
         json_path=json_path,
         audio_path=audio_path,

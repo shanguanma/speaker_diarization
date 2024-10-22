@@ -140,7 +140,7 @@ class TSVADModel(nn.Module):
         sample_times = 16000 / task_cfg.sample_rate
         self.max_num_speaker = task_cfg.max_num_speaker
         ## create speech encoder
-        self.speech_encoder, self.speech_down_or_up = self.create_speech_encoder(sample_times,cfg,device)
+        self.speech_encoder, self.speech_down = self.create_speech_encoder(sample_times,cfg,device)
 
         # projection
         if cfg.speaker_embed_dim * 2 != cfg.transformer_embed_dim:
@@ -193,14 +193,14 @@ class TSVADModel(nn.Module):
         self.speech_encoder_path = cfg.speech_encoder_path
     def create_speech_encoder(self,sample_times,cfg, device):
         self.speech_encoder: Optional[nn.Module]=None
-        self.speech_down_or_up: Optional[nn.Module]=None
+        self.speech_down: Optional[nn.Module]=None
         if self.speech_encoder_type == "CAM++":
             self.speech_encoder = CAMPPlus(feat_dim=80, embedding_size=192)
             self.speech_encoder.train()
             self.load_speaker_encoder(cfg.speech_encoder_path,device=device, module_name="speech_encoder")
             stride = int(2 // sample_times) if self.label_rate == 25 else 1
             pretrain_speech_encoder_dim=512
-            self.speech_down_or_up = nn.Sequential(
+            self.speech_down = nn.Sequential(
                nn.Conv1d(pretrain_speech_encoder_dim, cfg.speaker_embed_dim, 5, stride=stride, padding=2),
 
                BatchNorm1D(num_features=cfg.speaker_embed_dim),
@@ -225,7 +225,7 @@ class TSVADModel(nn.Module):
             upsample = 2
             ## the input shape of self.speech_up except is (B,T,F)
             # self.speech_up = SpeechFeatUpsample(speaker_embed_dim=cfg.speaker_embed_dim, upsample=upsample)
-            self.speech_down_or_up = SpeechFeatUpsample2(
+            self.speech_down = SpeechFeatUpsample2(
                 speaker_embed_dim=cfg.speaker_embed_dim, upsample=upsample
             )
         # ecapa_wespeaker
@@ -240,13 +240,13 @@ class TSVADModel(nn.Module):
             stride = int(4 // sample_times)
             pretrain_speech_encoder_dim=1536 # # here 1536 means it is feature dimension  before pool layer of ecapa_wespeaker model dimension
             ## the input shape of self.speech_down except is (B,F,T)
-            self.speech_down_or_up = nn.Sequential(
+            self.speech_down = nn.Sequential(
 
                 nn.Conv1d(pretrain_speech_encoder_dim, cfg.speaker_embed_dim, 5, stride=stride, padding=2),
                 BatchNorm1D(num_features=cfg.speaker_embed_dim),
                 nn.ReLU(),
             )
-        return  self.speech_encoder, self.speech_down_or_up
+        return  self.speech_encoder, self.speech_down
 
     def forward_common(
         self,
@@ -266,7 +266,7 @@ class TSVADModel(nn.Module):
         with torch.no_grad() if fix_encoder else contextlib.ExitStack():
             x = self.speech_encoder(ref_speech,get_time_out=True)
         #print(f"x shape: {x.shape}") # B,F',T'
-        x = self.speech_down_or_up(x)
+        x = self.speech_down(x)
 
         assert (
             x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1

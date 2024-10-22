@@ -541,6 +541,7 @@ def main(args):
     params = get_params()
     params.update(vars(args))
     logging.info(f"params: {params}")
+    fix_random_seed(params.seed)
     world_size=args.world_size
     # data part
     #from datasets import TSVADDataConfig
@@ -584,6 +585,8 @@ def main(args):
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg)
     logging.info(f"model: {model}")
+    num_param = sum([p.numel() for p in model.parameters()])
+    logging.info(f"Number of model parameters: {num_param}")
     model_avg: Optional[nn.Module] = None
     checkpoints = load_checkpoint_if_available(
         params=params, model=model, model_avg=model_avg
@@ -624,8 +627,9 @@ def main(args):
     scaler: Optional[GradScaler]=None
     logging.info(f"start training from epoch {params.start_epoch}")
     logging.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
+    #fix_random_seed(params.seed)
     for epoch in range(params.start_epoch, params.num_epochs+1):
-        fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
+        #fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
 
         params.cur_epoch = epoch
 

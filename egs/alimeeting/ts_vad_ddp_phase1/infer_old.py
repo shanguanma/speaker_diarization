@@ -218,7 +218,7 @@ def main(args):
     ## load dataset
     from datasets import TSVADDataConfig
     from datasets import load_dataset
-    from model import TSVADModel
+    from model_old import TSVADModel
 
     data_cfg = TSVADDataConfig()
 
@@ -246,7 +246,7 @@ def main(args):
     logging.info(f"Device: {device}")
 
     # load model
-    from model import TSVADConfig
+    from model_old import TSVADConfig
     model_cfg = TSVADConfig()
     model_cfg.speech_encoder_type = args.speech_encoder_type #
     model_cfg.speech_encoder_path = args.speech_encoder_path

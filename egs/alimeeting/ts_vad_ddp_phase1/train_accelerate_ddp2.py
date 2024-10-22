@@ -624,8 +624,9 @@ def main(args):
     scaler: Optional[GradScaler]=None
     logging.info(f"start training from epoch {params.start_epoch}")
     logging.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
+    fix_random_seed(params.seed)
     for epoch in range(params.start_epoch, params.num_epochs+1):
-        fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
+        #fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
 
         params.cur_epoch = epoch
 

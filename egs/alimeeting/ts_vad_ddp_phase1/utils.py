@@ -22,6 +22,26 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
 Pathlike = Union[str, Path]
+
+def fix_random_seed(random_seed: int):
+    """
+    Set the same random seed for the libraries and modules that Lhotse interacts with.
+    Includes the ``random`` module, numpy, torch, and ``uuid4()`` function defined in this file.
+    """
+    global _lhotse_uuid
+    import random
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+    torch.random.manual_seed(random_seed)
+    # new add the below two row code from accelerate.utils import set_seed
+    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
+    # Ensure deterministic ID creation
+    rd = random.Random()
+    rd.seed(random_seed)
+    import uuid
+    _lhotse_uuid = lambda: uuid.UUID(int=rd.getrandbits(128))
+
 def str2bool(v):
     """Used in argparse.ArgumentParser.add_argument to indicate
     that a type is a bool type and user can enter
