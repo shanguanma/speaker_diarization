@@ -384,7 +384,23 @@ class CAMPPlus(nn.Module):
                 nn.init.kaiming_normal_(m.weight.data)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
+    def _freeze_parameters(self):
+        for param in self.parameters():
+            param.requires_grad = False
 
+    def get_frame_level_feat(self, x):
+        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
+        x = self.head(x)
+        for layer in self.xvector[:-2]:
+            x = layer(x)
+        return x # (B,F,T)
+
+    def forward(self,x):
+        frame_x = self.get_frame_level_feat(x)
+        x = self.xvector[-2](frame_x)
+        x = self.xvector[-1](x)
+        return x,frame_x
+    """
     def forward(self, x, get_time_out=False):
         x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
         x = self.head(x)
@@ -398,9 +414,11 @@ class CAMPPlus(nn.Module):
             x = self.xvector(x)
         return x
 
-
+    """
 
 if __name__ == '__main__':
+    """
+    check old api forward(self,x,get_time_out=False)
 
     x = torch.zeros(10, 200, 80) # B,T,F
     #x = torch.zeros(10, 398, 80) # B,T,F
@@ -420,4 +438,9 @@ if __name__ == '__main__':
     for name, v in model.named_parameters():
         print(f"name: {name}, v: {v.shape}")
     print("{} M".format(num_params / 1e6)) # 6.61M
-
+    """
+    x = torch.zeros(10, 600, 80) # B,T,F
+    model = CAMPPlus(feat_dim=80,embedding_size=192)
+    model.eval()
+    utt_feat, frame_feat = model(x)
+    print(utt_feat.shape, frame_feat.shape) # utt_feat: (10,512) frame_feat: (10, 512, 300)

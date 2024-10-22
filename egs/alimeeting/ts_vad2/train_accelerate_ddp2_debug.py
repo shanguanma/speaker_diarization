@@ -887,6 +887,7 @@ def main(args):
     model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg)
+    #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
     logging.info(f"Number of model parameters: {num_param}")
@@ -936,14 +937,17 @@ def main(args):
 
     # the below combine ddp find_unused_parameters=True in accelerate package.
     # it will solve the strange error.
-    if True:
-        from functools import partial
+    #if True:
+    #    from functools import partial
 
-        notfailing_checkpoint = partial(
-            torch.utils.checkpoint.checkpoint, use_reentrant=False
-        )
-        torch.utils.checkpoint.checkpoint = notfailing_checkpoint
-        model.gradient_checkpointing_enable()
+    #    notfailing_checkpoint = partial(
+    #        torch.utils.checkpoint.checkpoint, use_reentrant=False
+    #    )
+    #    torch.utils.checkpoint.checkpoint = notfailing_checkpoint
+    #    model.gradient_checkpointing_enable()
+    if True:
+        model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
 
@@ -959,9 +963,7 @@ def main(args):
     # fix_random_seed(params.seed) # fairseq1 seed=1337 # this may be not correct at here.
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
-
         params.cur_epoch = epoch
-
         train_one_epoch(
             params=params,
             model=model,

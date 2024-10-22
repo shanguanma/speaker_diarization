@@ -14,12 +14,14 @@ import math
 import numpy as np
 import torch
 import torchaudio
+
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from torch.utils.checkpoint import checkpoint
 from typing import Any, Callable
 
+from ts_vad_dataset import FBank
 from cam_pplus_wespeaker import CAMPPlus
 from wavlm import WavLM, WavLMConfig
 from resnet_wespeaker import ResNet34
@@ -38,10 +40,21 @@ class TSVADConfig:
         "/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
     )
     """path to pretrained speech encoder path."""
+
     speech_encoder_type: str = "CAM++"
     """choice it  from CAM++ or WavLM as speech encoder of our TSVAD"""
+
     freeze_speech_encoder_updates: int = 4000
-    """updates to freeze speech encoder."""
+    """train number of step <4000, freeze speech encoder. train number of step> 4000, speech encoder start update."""
+
+    freeze_speaker_encoder_updates: int = 4000
+    """train number of step <4000, freeze speaker encoder. train number of step> 4000, speaker encoder start update."""
+
+    fuse_fbank_feat: bool = False
+    """if it is true, at fbank feat level, target speaker and mix speech interact with each other """
+
+    fuse_speaker_embedding_feat: bool = False
+    """if it is true, at embedding feat level, target speaker and mix speech interact with each other"""
 
     num_attention_head: int = 4
     """number of attention head in transformer"""
@@ -87,10 +100,19 @@ class TSVADConfig:
     if it is true, it will apply layer norm on weight sum of all transformer layer in pretrained wavlm model
 
     """
-    speech_encoder_config: str= "/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json"
+    speech_encoder_config: str = (
+        "/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json"
+    )
     """
     this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model.
     """
+    # freeze_speech_encoder_updates: (TODO)
+    # freeze_speaker_encoder: bool = True
+    # """
+    # if it true, we will freeze speaker encoder,when we get target speaker embedding online on training our tsvad model.
+    # if it false,we joint speaker encoder and speech encoder to train our tsvad model.
+    # """
+
 
 model_cfg = TSVADConfig()
 
@@ -165,8 +187,9 @@ class TSVADModel(nn.Module):
         self, cfg=model_cfg, task_cfg=data_cfg, device=torch.device("cpu")
     ) -> None:
         super(TSVADModel, self).__init__()
-        self.gradient_checkpointing = False
+        self.gradient_checkpointing = False  # for DDP of pytorch
         self.freeze_speech_encoder_updates = cfg.freeze_speech_encoder_updates
+        self.freeze_speaker_encoder_updates = cfg.freeze_speaker_encoder_updates
         self.use_spk_embed = cfg.use_spk_embed
         self.rs_dropout = nn.Dropout(p=cfg.dropout)
         self.label_rate = task_cfg.label_rate
@@ -177,10 +200,11 @@ class TSVADModel(nn.Module):
         self.speech_encoder_type = cfg.speech_encoder_type
         self.speech_encoder_path = cfg.speech_encoder_path
         self.wavlm_fuse_feat_post_norm = cfg.wavlm_fuse_feat_post_norm
-        print(f"self.wavlm_fuse_feat_post_norm: {self.wavlm_fuse_feat_post_norm}")
+        logger.info(f"self.wavlm_fuse_feat_post_norm: {self.wavlm_fuse_feat_post_norm}")
         self.max_num_speaker = task_cfg.max_num_speaker
         sample_times = 16000 / task_cfg.sample_rate
-        self.select_encoder_layer_nums=cfg.select_encoder_layer_nums # only for wav-bert2
+        # self.target_speaker_input_type = task_cfg.target_speaker_input_type
+
         ## create speech encoder
         (
             self.speech_encoder,
@@ -191,6 +215,32 @@ class TSVADModel(nn.Module):
             self.wavlmproj,
             self.wavlmlnorm,
         ) = self.create_speech_encoder(sample_times, cfg, device)
+
+        if not self.use_spk_embed:
+            (
+                ## create speaker encoder
+                ## Its main function is to interact the target speaker's multi-level information
+                # with the reference speech (mixer speech)
+                # so that the model can obtain multi-level information to help determine the speaker's timestamp.
+                # target speaker is wavfrom input
+                self.speaker_encoder,
+            ) = self.create_speaker_encoder(sample_times, cfg, device)
+            logger.info(f"input speaker model is wavfrom !!!")
+            self.feature_extractor = FBank(
+                80, sample_rate=self.sample_rate, mean_nor=True
+            )
+            self.fuse_fbank_linear = nn.Linear(160,80)
+            self.fuse_speaker_encoder_linear = nn.Linear(self.pretrain_speech_encoder_dim*2,self.pretrain_speech_encoder_dim)
+            self.att_fuse_dropout = 0.1
+        else:
+            # target speaker embedding as input. not use speaker encoder network,
+            self.speaker_encoder = None
+            self.speaker_down_or_up = None
+            self.pretrain_speaker_encoder_dim = None
+            self.feature_extractor = None
+            self.fuse_fbank_linear = None
+            self.fuse_speaker_encoder_linear = None
+
 
         # projection
         if cfg.speaker_embed_dim * 2 != cfg.transformer_embed_dim:
@@ -239,6 +289,17 @@ class TSVADModel(nn.Module):
 
         self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
 
+    def create_speaker_encoder(self, sample_times, cfg, device):
+        self.speaker_encoder: Optional[nn.Module] = None
+        if self.speaker_encoder_type == "CAM++":
+            self.speaker_encoder = CAMPPlus(feat_dim=80, embedding_size=192)
+            self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speaker_encoder"
+            )
+        return (
+            self.speaker_encoder,
+        )
+
     def create_speech_encoder(self, sample_times, cfg, device):
         self.speech_encoder: Optional[nn.Module] = None
         self.speech_down_or_up: Optional[nn.Module] = None
@@ -271,20 +332,25 @@ class TSVADModel(nn.Module):
             # It is kaldi fbank(10ms(160 samples) frame shift, 25ms(400samples) windows lens),
             # So origin fbank frame rate is 100,and after reshape operation, fbank frame rate is 50
             # so input shape of  Wav2Vec2BertModel is (B,T//2,D*2), frame rate is 50
-            #checkpoint = torch.load(cfg.speech_encoder_path,map_location=device)
+            # checkpoint = torch.load(cfg.speech_encoder_path,map_location=device)
             from transformers import Wav2Vec2BertConfig, Wav2Vec2BertModel
-            conf =  Wav2Vec2BertConfig.from_pretrained(cfg.speech_encoder_config,hidden_act="swish")
-            conf.num_hidden_layers=cfg.select_encoder_layer_nums
-            #self.speech_encoder = Wav2Vec2BertModel(conf) ##  Initializing a model (with random weights)
-            #self.speech_encoder.train()
-            #from safetensors.torch import load_model
-            #load_model(self.speech_encoder,cfg.speech_encoder_path,strict=False)
-            # Instead of model.load_state_dict(load_file("model.safetensors"))
-            self.speech_encoder = Wav2Vec2BertModel.from_pretrained(cfg.speech_encoder_path,config=conf)
-            #self.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-            pretrain_speech_encoder_dim= conf.output_hidden_size
 
-            #self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
+            conf = Wav2Vec2BertConfig.from_pretrained(
+                cfg.speech_encoder_config, hidden_act="swish"
+            )
+            conf.num_hidden_layers = cfg.select_encoder_layer_nums
+            # self.speech_encoder = Wav2Vec2BertModel(conf) ##  Initializing a model (with random weights)
+            # self.speech_encoder.train()
+            # from safetensors.torch import load_model
+            # load_model(self.speech_encoder,cfg.speech_encoder_path,strict=False)
+            # Instead of model.load_state_dict(load_file("model.safetensors"))
+            self.speech_encoder = Wav2Vec2BertModel.from_pretrained(
+                cfg.speech_encoder_path, config=conf
+            )
+            # self.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            pretrain_speech_encoder_dim = conf.output_hidden_size
+
+            # self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
             # w2v-bert2.0 output frame rate 50,so I need to downsample to 25.
             self.speech_down_or_up = nn.Sequential(
                 nn.Conv1d(
@@ -301,13 +367,13 @@ class TSVADModel(nn.Module):
             # hubert chinese model is from https://huggingface.co/TencentGameMate/chinese-hubert-large/tree/main
             # maduo note: I follow pretrain mask setting because I did not reset the relevant mask parameters
             from transformers import HubertConfig, HubertModel
-            conf =  HubertConfig.from_pretrained(cfg.speech_encoder_config)
-            conf.num_hidden_layers = cfg.select_encoder_layer_nums
-            self.speech_encoder = HubertModel.from_pretrained(cfg.speech_encoder_path,config=conf)
-            if cfg.feature_grad_mult==0: # freeze cnn front in tsvad train stage
-                self.speech_encoder.feature_extractor._freeze_parameters()
 
-            pretrain_speech_encoder_dim= conf.hidden_size
+            conf = HubertConfig.from_pretrained(cfg.speech_encoder_config)
+            conf.num_hidden_layers = cfg.select_encoder_layer_nums
+            self.speech_encoder = HubertModel.from_pretrained(
+                cfg.speech_encoder_path, config=conf
+            )
+            pretrain_speech_encoder_dim = conf.hidden_size
             # wav-bert2.0 output frame rate 50,so I need to downsample to 25.
             self.speech_down_or_up = nn.Sequential(
                 nn.Conv1d(
@@ -326,7 +392,9 @@ class TSVADModel(nn.Module):
             wavlm_cfg.encoder_layers = cfg.select_encoder_layer_nums  # default =6
             wavlm_cfg.feature_grad_mult = cfg.feature_grad_mult
             pretrain_speech_encoder_dim = wavlm_cfg.encoder_embed_dim
-            self.speech_encoder = WavLM(wavlm_cfg) #  Initializing a model (with random weights)
+            self.speech_encoder = WavLM(
+                wavlm_cfg
+            )  #  Initializing a model (with random weights)
             self.speech_encoder.train()
             self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
             # wavlm output frame rate 50,so I need to downsample to 25.
@@ -351,7 +419,7 @@ class TSVADModel(nn.Module):
             self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
             # print(f"wavlm_cfg.encoder_layers: {wavlm_cfg.encoder_layers}")
             wavlm_encoder_num_layer = wavlm_cfg.encoder_layers
-            #self.weights = nn.Parameter(torch.zeros(wavlm_encoder_num_layer))
+            # self.weights = nn.Parameter(torch.zeros(wavlm_encoder_num_layer))
 
             # refer from: `Leveraging Self-Supervised Learning for Speaker Diarization`
             #       code: https://github.com/BUTSpeechFIT/DiariZen/blob/main/diarizen/models/eend/model_wavlm_conformer.py#L182
@@ -495,53 +563,71 @@ class TSVADModel(nn.Module):
             self.wavlmlnorm,
         )
 
-    def forward_common(
+    def forward_speech_encoder(
         self,
         ref_speech: torch.Tensor,
-        target_speech: torch.Tensor,
         labels: torch.Tensor,
-        # labels_len: torch.Tensor,
-        fix_encoder: bool = True,
+        # speech_fbank_or_cnn_feat: torch.Tensor = None
+        fix_speech_encoder: bool = True,
         num_updates: int = 0,
     ):
         B = ref_speech.size(0)
         T = ref_speech.size(1)
         # print(f"ref_speech shape: {ref_speech.shape}")
         max_len = labels.size(-1)
-        fix_encoder = num_updates < self.freeze_speech_encoder_updates
+        fix_speech_encoder = num_updates < self.freeze_speech_encoder_updates
+        speech_fbank_or_cnn_feat: torch.Tensor
+        speech_encoder_output_feat: torch.Tensor
+
         if self.speech_encoder_type == "WavLM":
             # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                x = self.speech_encoder.extract_features(ref_speech)[0]
-            x = x.view(
-                B, -1, self.pretrain_speech_encoder_dim
-            )  # B, 50 * T, self.pretrain_speech_encoder_dim
-            x = x.transpose(1, 2)  # (B,D,T)
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
+                out = self.speech_encoder.extract_features(
+                    ref_speech,
+                    output_layer=self.wavlm_encoder_num_layer,
+                    ret_conv=True,
+                    ret_layer_results=True,
+                )
+                speech_fbank_or_cnn_feat = out[0][0]  # (B,T,D)
+                speech_encoder_output_feat = out[0][1][-1][
+                    0
+                ]  # you can see more detail about wavlm.py,shape: (T,B,D)
+                speech_encoder_output_feat = speech_encoder_output_feat.permute(
+                    1, 0, 2
+                )  # (T,B,D) -> (B,T,D)
+            x = speech_encoder_output_feat.view(
+                -1, B, self.pretrain_speech_encoder_dim
+            )  # B, , self.pretrain_speech_encoder_dim
+            x = x.permute(1, 2, 0)  # (B,D,T)
             x = self.speech_down_or_up(x)
         elif self.speech_encoder_type == "WavLM_weight_sum":
             # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
                 # print(x[0][0].shape)#(B,T,D), it is output of last layer of transformer
                 # print(len(x[0][1])) # when output_layer=12,ret_layer_results=True, it is 13,
                 # Because the first element of ret_layer_results is the result of pos_conv,
                 # and the second element is the output of the first layer of transformer,
                 # Each element here is actually a tuple. The first element of the tuple is hidden state, and the second element is attention_state.
-                x = self.speech_encoder.extract_features(
+                out = self.speech_encoder.extract_features(
                     ref_speech,
                     output_layer=self.wavlm_encoder_num_layer,
+                    ret_conv=True,
                     ret_layer_results=True,
                 )
-            hss = [hs for hs, att in x[0][1]]
+                speech_fbank_or_cnn_feat = out[0][0]  # #(B,T,D)
+
+            hss = [hs for hs, att in out[0][1]]
             # print(f"hss len: {len(hss)}")
             stacked_hs = torch.stack(hss[1:], dim=-1)  # (T,B,D,12)
 
             if self.wavlm_fuse_feat_post_norm:
-                x = self.weights(stacked_hs) # (T,B,D,1)
-                x = torch.squeeze(x, -1) #(T,B,D)
-                x = x.permute(1,0,2) #(B,T,D)
-                x = self.wavlmproj(x) # (B,T,D)
-                x = self.wavlmlnorm(x) # (B,T,D)
-                x = x.permute(0,2,1) # (B,D,T)
+                x = self.weights(stacked_hs)  # (T,B,D,1)
+                x = torch.squeeze(x, -1)  # (T,B,D)
+                x = x.permute(1, 0, 2)  # (B,T,D)
+                x = self.wavlmproj(x)  # (B,T,D)
+                x = self.wavlmlnorm(x)  # (B,T,D)
+                speech_encoder_output_feat = x  # (B,T,D)
+                x = x.permute(0, 2, 1)  # (B,D,T)
                 x = self.speech_down_or_up(x)
             else:
                 _, T, B, D = stacked_hs.shape
@@ -552,39 +638,62 @@ class TSVADModel(nn.Module):
                 # print(f"norm_weights.unsqueeze(-1) shape: {norm_weights.unsqueeze(-1).shape}")
                 weighted_hs = (norm_weights.unsqueeze(-1) * stacked_hs).sum(dim=0)
                 weighted_hs = weighted_hs.view(B, T, D)
+                speech_encoder_output_feat = x  # (B,T,D)
                 x = weighted_hs.permute(0, 2, 1)  # (B,D,T)
                 x = self.speech_down_or_up(x)
+        ## (TODO) MADUO, maybe remove it and finetune, now I have no time to do it.
         elif self.speech_encoder_type == "whisper":
             # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
             # whisper output frame rate 50,so I need to downsample to 25.
             # whisper encoder output  shape (B,T,D)
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
                 x = self.speech_encoder(ref_speech)
             x = x.transpose(1, 2)  # (B,T,D)-> (B,D,T)
             x = self.speech_down_or_up(x)  # (B,D,T/2)
 
         elif self.speech_encoder_type == "w2v-bert2":
             # its input fbank feature(80-dim)
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+            speech_fbank_or_cnn_feat = ref_speech  # (B,T,D)
+
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
                 batch_size, num_frames, num_channels = ref_speech.shape
-                ref_speech = torch.reshape(ref_speech,(batch_size,num_frames//2,num_channels*2)) # (batch_size, T, 160)
-                x = self.speech_encoder(ref_speech,output_hidden_states=True) #
-                x = x.hidden_states[-1] #it is equal to x = x['hidden_states'][self.select_encoder_layer_nums]
+                ref_speech = torch.reshape(
+                    ref_speech, (batch_size, num_frames // 2, num_channels * 2)
+                )  # (batch_size, T, 160)
+                x = self.speech_encoder(ref_speech, output_hidden_states=True)  #
+                x = x.hidden_states[
+                    -1
+                ]  # it is equal to x = x['hidden_states'][self.select_encoder_layer_nums]
+                speech_encoder_output_feat = x  # (B,T,D)
+
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             x = self.speech_down_or_up(x)
-        elif self.speech_encoder_type == 'hubert':
+
+        elif self.speech_encoder_type == "hubert":
             # its input is wavform. we use pretrain mask setting again
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
                 batch_size, raw_sequence_length = ref_speech.shape
-                x = self.speech_encoder(ref_speech,output_hidden_states=True)
-                x = x.hidden_states[-1] #(B,T,D)
+
+                speech_fbank_or_cnn_feat = self.speech_encoder.feature_extractor(
+                    ref_speech
+                )  # (B,D,T)
+                speech_fbank_or_cnn_feat = speech_fbank_or_cnn_feat.permute(
+                    0, 2, 1
+                )  # (B,D,T) -> (B,T,D)
+
+                x = self.speech_encoder(ref_speech, output_hidden_states=True)
+                x = x.hidden_states[-1]  # (B,T,D)
+                speech_encoder_output_feat = x  # (B,T,D)
+
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             x = self.speech_down_or_up(x)
         else:
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)
+                speech_fbank_or_cnn_feat = ref_speech  # (B,T,D)
                 x = self.speech_encoder(ref_speech, get_time_out=True)
-            # print(f"x shape: {x.shape}") # B,F',T'
+                speech_encoder_output_feat = x.permute(0, 2, 1)  # (B,D,T)->(B,T,D)
+            # print(f"x shape: {x.shape}") # B,D,T
             x = self.speech_down_or_up(x)
         assert (
             x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
@@ -592,10 +701,117 @@ class TSVADModel(nn.Module):
         if x.size(-1) - max_len == -1:
             x = nn.functinal.pad(x, (0, 1))
         x = x[:, :, :max_len]  # (B,D,T)
+        speech_fbank_or_cnn_feat = speech_fbank_or_cnn_feat[:, :max_len, :]  # (B,T,D)
+        speech_encoder_output_feat = speech_encoder_output_feat[
+            :, :max_len, :
+        ]  # (B,T,D)
         mix_embeds = x.transpose(1, 2)  # (B,T,D)
+        speech_encoder_final_feat = mix_embeds
+        return (
+            speech_fbank_or_cnn_feat,
+            speech_encoder_output_feat,
+            speech_encoder_final_feat,
+        )
 
-        # target speech
-        ts_embeds = self.rs_dropout(target_speech)  # B, 4, D
+    def forward_speaker_encoder(self, x, num_updates):
+        # case1: target speaker embedding as input
+        if self.use_spk_embed:
+            # x: Bx4xD, D is speaker embedding dimension
+            # utterance level speaker embedding
+            return self.rs_dropout(x)
+        # case2: target speaker wavform as input
+        # x shape(B,4,T), if data_cfg.ts_len in dataset.py is = 6(second), so T = 16000*6=96000
+        B, _, T = x.shape
+        x = x.view(B * self.max_num_speaker, T)
+        speaker_fbank = [self.feature_extractor(ts) for ts in x]
+        # frame level fbank feature.
+        speaker_fbank = torch.stack(speaker_fbank)  # (B*self.max_num_speaker,T,80)
+        # frame level speaker embedding
+
+        fix_speaker_encoder = num_updates < self.freeze_speaker_encoder_updates
+        if self.speaker_encoder_type == "CAM++":
+            with torch.no_grad() if fix_speaker_encoder else contextlib.ExitStack():
+                speaker_encoder_utt_feat, speaker_encoder_frame_feat = self.speaker_encoder.(
+                    speaker_fbank
+                )  # (B*self.max_num_speaker,D) (B*self.max_num_speaker,D,T)
+                speaker_encoder_utt_feat = speaker_encoder_utt_feat.view(
+                    B, self.max_num_speaker, -1
+                )  # (B,4,D) # utterance level speaker embedding
+                speaker_encoder_frame_feat = speaker_encoder_frame_feat.permute(0,2,1) # (B*self.max_num_speaker,T,D)
+
+        return speaker_fbank, speaker_encoder_frame_feat, speaker_encoder_utt_feat
+    def att_fuse_kernel(self,speaker_feat, speech_feat):
+        D = speaker_feat.size(-1)
+        key = speaker_feat.view(B,-1,D).unsqueeze(1) #(B,1,4*T,D)
+        value = key
+        query = speech_feat.unsqueeze(1) #(B,1,T',D)
+        att_feat = F.scaled_dot_product_attention(query,key,value,dropout_p=(self.att_fuse_dropout if self.training else 0.0))
+        att_feat = att_feat.squeeze(1) #(B,T',D)
+        fuse_feat = torch.cat((att_feat,speech_feat),dim=2)#(B,T',2*D)
+        return fuse_feat
+
+    def fuse_feat_speech_encoder_forward(self, target_speaker_speech,ref_speech,labels,num_update:int=0):
+        """
+        target_speaker_speech: wavfrom, shape:(B*self.max_num_speaker, 16000*6), 6 is data_cfg.ts_len
+        ref_speech: fbank feat, shape: (B,T',80)
+        """
+        assert (
+            not self.use_spk_embed
+        ), f"self.use_spk_embed should be False, however it is {self.use_spk_embed}"
+
+        speaker_fbank, speaker_encoder_frame_feat, speaker_encoder_utt_feat = (
+            self.forward_speaker_encoder(target_speaker_speech,num_updates)
+        )
+        max_len = labels.size(-1)
+        fix_speech_encoder = num_updates < self.freeze_speech_encoder_updates
+        if cfg.fuse_fbank_feat:
+            fuse_fbank = self.att_fuse_kernel(speaker_fbank,ref_speech)
+            fuse_fbank = self.fuse_fbank_linear(fuse_fbank) # (B,T',80)
+        else:
+            fuse_fbank = ref_speech
+        if self.speech_encoder_type == "w2v-bert2":
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
+                batch_size, num_frames, num_channels = fuse_fbank.shape
+                fuse_fbank = torch.reshape(
+                    fuse_fbank, (batch_size, num_frames // 2, num_channels * 2)
+                )  # (batch_size, T'//2, 160)
+                x = self.speech_encoder(fuse_fbank, output_hidden_states=True)  #
+                x = x.hidden_states[
+                    -1
+                ]  # it is equal to x = x['hidden_states'][self.select_encoder_layer_nums]
+
+            if cfg.fuse_speaker_embedding_feat:
+                fuse_emb_feat = self.att_fuse_kernel(speaker_encoder_frame_feat,x)
+                fuse_emb_feat = self.fuse_speaker_encoder_linear(fuse_emb_feat) # (B,T'//2,2*D)
+            else:
+                fuse_emb_feat = x
+
+            x = fuse_emb_feat.transpose(1, 2)  # (B,T'//2,D)->(B,D,T'//2)
+            x = self.speech_down_or_up(x)
+            assert (
+            x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
+            ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
+            if x.size(-1) - max_len == -1:
+            x = nn.functinal.pad(x, (0, 1))
+            x = x[:, :, :max_len]  # (B,D,T'//2//2)
+            mix_embeds = x.transpose(1, 2)  # (B,T'//2//2,D)
+
+        return mix_embeds, speaker_encoder_utt_feat
+
+    def forward_common(
+        self,
+        ref_speech: torch.Tensor,
+        target_speech: torch.Tensor,
+        labels: torch.Tensor,
+        # labels_len: torch.Tensor,
+        #fix_encoder: bool = True,
+        #fix_speech_encoder: bool = True,  # (TODO) add it into train code.
+        num_updates: int = 0,
+    ):
+        ## fuse target speaker feture reference (mixer) speech forward branch
+        mix_embeds,speaker_encoder_utt_feat = self.fuse_feat_speech_encoder_forward(target_speech,ref_speech,labels,num_update)
+        # speaker_encoder_final_feat is utterance target speaker embedding
+        ts_embeds = self.rs_dropout(speaker_encoder_utt_feat)  # B, 4, D
 
         # combine target embedding and mix embedding
         # Extend ts_embeds for time alignemnt

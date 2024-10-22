@@ -832,3 +832,14 @@ if __name__ == "__main__":
     print(f"y[0][1][0][1]: {y[0][1][0][1]}")
     print(f"y[0][1][-1][0] shape: {y[0][1][-1][0].shape}") # (T,B,D)
     print(y[1]) # it is None
+
+    out = model.extract_features(ref_speech,output_layer=12,ret_layer_results=True,ret_conv=True)
+    # out[0][0] is conv feat,
+    # out[0][1] is layer_result, when output_layer=12,
+    # ret_layer_results=True, it is 13,
+    # Because the first element of ret_layer_results is the result of pos_conv,
+    # layer_result is list, every element is 2-tuple,
+    # first tuple element is hidden state, and the second element is attention_state.
+    print(f"conv feat: out[0][0],its feat shape: {out[0][0].shape}") # torch.Size([64, 199, 768]) # (B,T,D)
+    print(f"transformer specify layer feat shape: {out[0][1][12][0].shape}") # torch.Size([199, 64, 768]) #(T,B,D)
+

@@ -122,8 +122,8 @@ def get_parser():
     parser.add_argument(
         "--max-updates",
         type=int,
-        default=40000,
-        help="number iters of training ",
+        default=None,  # default is 40000
+        help="number iters of training,if it is None,we get it base on max_updates=num_epochs*len(train_dl)",
     )
     parser.add_argument(
         "--warmup-updates",
@@ -211,6 +211,59 @@ def get_parser():
         help="whether grad clip norm at traing stage",
     )
     parser.add_argument(
+        "--musan-path",
+        type=none_or_str,
+        nargs="?",
+        default=None,
+        help="musan noise wavform directory path",
+    )
+    parser.add_argument(
+        "--rir-path",
+        type=none_or_str,
+        nargs="?",
+        default=None,
+        help="rir noise wavform directory path",
+    )
+    parser.add_argument(
+        "--speech-encoder-type",
+        type=str,
+        default="CAM++",
+        help="speech encoder arch ",
+    )
+    parser.add_argument(
+        "--speech-encoder-path",
+        type=str,
+        default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt",
+        help="speech encoder pretrain model path",
+    )
+    parser.add_argument(
+        "--speaker-embed-dim",
+        type=int,
+        default=192,
+        help="target speaker model output feature dimension and is also tsvad speech encoder output feature dimension ",
+    )
+    parser.add_argument(
+        "--spk-path",
+        type=str,
+        default="/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding",
+        help="target speaker embedding path",
+    )
+
+    parser.add_argument(
+        "--speaker-embedding-name-dir",
+        type=str,
+        default="cam++_en_zh_advanced_feature_dir",
+        help="specify speaker embedding directory name",
+    )
+
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
+        help="path to target audio and mixture labels root directory.",
+    )
+
+    parser.add_argument(
         "--feature-grad-mult",
         type=float,
         default=0.1,
@@ -241,88 +294,13 @@ def get_parser():
         default=False,
         help="train on the average model, how to average model, you can see '--average-period'",
     )
-    add_data_arguments(parser)
-    add_model_arguments(parser)
-    add_data_model_common_arguments(parser)
-    add_finetune_arguments(parser)
-    return parser
-def add_data_arguments(parser: argparse.ArgumentParser):
-    parser.add_argument(
-        "--musan-path",
-        type=none_or_str,
-        nargs="?",
-        default=None,
-        help="musan noise wavform directory path",
-    )
-    parser.add_argument(
-        "--rir-path",
-        type=none_or_str,
-        nargs="?",
-        default=None,
-        help="rir noise wavform directory path",
-    )
-    parser.add_argument(
-        "--spk-path",
-        type=str,
-        default="/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding",
-        help="target speaker embedding path",
-    )
-
-    parser.add_argument(
-        "--speaker-embedding-name-dir",
-        type=str,
-        default="cam++_en_zh_advanced_feature_dir",
-        help="specify speaker embedding directory name",
-    )
-
-    parser.add_argument(
-        "--data-dir",
-        type=str,
-        default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
-        help="path to target audio and mixture labels root directory.",
-    )
-    return parser
-
-def add_data_model_common_arguments(parser: argparse.ArgumentParser):
-    parser.add_argument(
-        "--speech-encoder-type",
-        type=str,
-        default="CAM++",
-        help="speech encoder arch ",
-    )
-    parser.add_argument(
-        "--speaker-embed-dim",
-        type=int,
-        default=192,
-        help="target speaker model output feature dimension and is also tsvad speech encoder output feature dimension ",
-    )
-    return parser
-
-def add_model_arguments(parser: argparse.ArgumentParser):
-    parser.add_argument(
-        "--speech-encoder-path",
-        type=str,
-        default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt",
-        help="speech encoder pretrain model path",
-    )
     parser.add_argument(
         "--select-encoder-layer-nums",
         type=int,
         default=6,
         help="""it will select transformer encoder layer of wavlm model.i.e. --select-encoder-layer-nums 6, means that we only use cnn front and first 6 transformer layer of wavlm in tsvad model.""",
     )
-    parser.add_argument(
-        "--wavlm-fuse-feat-post-norm",
-        type=str2bool,
-        default=False,
-        help="""if true, it will apply layernorm on weight sum of all transformer layer feature in pretrained wavlm model""",
-    )
-    parser.add_argument(
-        "--speech-encoder-config",
-        type=str,
-        default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json",
-        help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model."""
-    )
+    add_finetune_arguments(parser)
     return parser
 
 
@@ -386,7 +364,7 @@ def calculate_loss(outs, labels, labels_len):
     return total_loss / labels_len.size(0)
 
 
-def get_optimizer_scheduler(params, model, world_size):
+def get_optimizer_scheduler(params, model, world_size, max_num_updates):
     from torch.optim import AdamW
 
     optimizer = AdamW(
@@ -400,9 +378,31 @@ def get_optimizer_scheduler(params, model, world_size):
     from polynomial import PolynomialDecayLR
 
     scheduler = PolynomialDecayLR(
-        optimizer, params.max_updates, params.warmup_updates, power=1.0
+        optimizer, max_num_updates, params.warmup_updates, power=1.0
     )
     return optimizer, scheduler
+
+
+def get_optimizer(params, model):
+    from torch.optim import AdamW
+
+    optimizer = AdamW(
+        model.parameters(),
+        lr=params.lr,
+        betas=(0.9, 0.98),
+        eps=1e-08,
+        weight_decay=0.01,
+    )
+    return optimizer
+
+
+def get_scheduler(params, optimizer, max_num_updates):
+    from polynomial import PolynomialDecayLR
+
+    scheduler = PolynomialDecayLR(
+        optimizer, max_num_updates, params.warmup_updates, power=1.0
+    )
+    return scheduler
 
 
 def compute_loss(
@@ -821,7 +821,6 @@ def main(args):
     data_cfg.spk_path = params.spk_path
     data_cfg.speaker_embedding_name_dir = params.speaker_embedding_name_dir
     data_cfg.data_dir = params.data_dir
-    data_cfg.speaker_embed_dim = params.speaker_embed_dim
     logging.info(f"data_cfg: {data_cfg}")
     valid_dataset = load_dataset(data_cfg, "Eval")
     train_dataset = load_dataset(data_cfg, "Train")
@@ -875,16 +874,12 @@ def main(args):
     # here ,modified model cfg
     model_cfg.speech_encoder_type = params.speech_encoder_type
     model_cfg.speech_encoder_path = params.speech_encoder_path
-    model_cfg.speaker_embed_dim = params.speaker_embed_dim
+
     model_cfg.freeze_speech_encoder_updates = params.freeze_updates
     model_cfg.feature_grad_mult = params.feature_grad_mult
     model_cfg.select_encoder_layer_nums = (
         params.select_encoder_layer_nums
     )  # only for speech_encoder_type=="WavLm"
-    model_cfg.wavlm_fuse_feat_post_norm = (
-        params.wavlm_fuse_feat_post_norm
-    )  # only for self.speech_encoder_type == "WavLM_weight_sum"
-    model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg)
     logging.info(f"model: {model}")
@@ -945,12 +940,21 @@ def main(args):
         torch.utils.checkpoint.checkpoint = notfailing_checkpoint
         model.gradient_checkpointing_enable()
     ## get optimizer, scheduler
-    optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
-
+    # optimizer, scheduler = get_optimizer_scheduler(params, model, world_size, max_num_updates)
+    optimizer = get_optimizer(params, model)
     ## accelerated model, optimizer, scheduler ,train_dl, valid_dl
-    model, optimizer, scheduler, train_dl, valid_dl = accelerator.prepare(
-        model, optimizer, scheduler, train_dl, valid_dl
+    model, optimizer, train_dl, valid_dl = accelerator.prepare(
+        model, optimizer, train_dl, valid_dl
     )
+
+    ## get scheduler
+    max_num_updates: int = None
+    if not params.max_updates:
+        max_num_updates = params.num_epochs * len(train_dl)
+    else:
+        max_num_updates = params.max_updates
+    scheduler = get_scheduler(params, optimizer, max_num_updates)
+
     # logging.info(f"After accelerator: model: {model}")
     scaler: Optional[GradScaler] = None
     logging.info(f"start training from epoch {params.start_epoch}")

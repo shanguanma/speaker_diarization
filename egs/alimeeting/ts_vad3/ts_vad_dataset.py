@@ -13,8 +13,8 @@ import torch
 import librosa
 import torchaudio.compliance.kaldi as kaldi
 from typing import Any,Dict
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 class FBank(object):
     def __init__(
@@ -332,12 +332,12 @@ class TSVADDataset(torch.utils.data.Dataset):
         for speaker_id in speaker_ids:
             if speaker_id == -1:
                 labels.append(np.zeros(stop - start))  # Obatin the labels for silence
-            elif speaker_id == -2:
+            elif speaker_id == -2: # Obatin the labels for extral
                 residual_label[residual_label > 1] = 1
                 labels.append(residual_label)
                 new_speaker_ids.append(-2)
                 continue
-            else:
+            else:##
                 full_label_id = file + "_" + str(speaker_id)
                 label = self.label_dic[full_label_id]
                 labels.append(
@@ -365,6 +365,15 @@ class TSVADDataset(torch.utils.data.Dataset):
         return ref_speech, labels, new_speaker_ids, rc
 
     def load_alimeeting_ts_embed(self, file, speaker_ids):
+        """
+        For target speaker embedding processing.
+        silence case:
+           inference: fill zero vector
+           train: random other target speaker embedding and mean it.
+        target speaker case:
+           inference: random one segement (i.e. 6s ) from target speaker embedding
+           train : mean on total segement target speaker embeddings.
+        """
         target_speeches = []
         exist_spk = []
         #print(f"file:{file}, speaker_ids: {speaker_ids}")
@@ -375,12 +384,15 @@ class TSVADDataset(torch.utils.data.Dataset):
 
         for speaker_id in speaker_ids:
             if speaker_id == -1: # Obatin the labels for silence
+                ## prepared silence embedding at inference stage
                 if np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 1 or not self.is_train:
 
                     # (TODO) maduo add speaker embedding dimension parameter to replace hard code.
                     feature = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model
                 else:
+                    # ## prepared silence embedding at train stage
                     random_spk = random.choice(list(self.spk2data))
+
                     while random_spk in exist_spk:
                         random_spk = random.choice(list(self.spk2data))
                     exist_spk.append(random_spk)
@@ -388,8 +400,8 @@ class TSVADDataset(torch.utils.data.Dataset):
                     path = os.path.join(self.spk_path,
                             f"{random.choice(self.spk2data[random_spk])}.pt",
                         )
-                    ## for
                     feature = torch.load(path, map_location="cpu")
+
             elif speaker_id == -2: # # Obatin the labels for extral
                 feature = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model
             else: # # Obatin the labels for speaker
@@ -410,33 +422,72 @@ class TSVADDataset(torch.utils.data.Dataset):
         return target_speeches
 
     def load_ts_embed(self, file, speaker_ids):
+        ## prepared target speaker embedding data
         if self.dataset_name == "alimeeting":
             target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
         return target_speeches
 
-    def load_ts(self,file, speaker_ids, rc=0):
+    def load_ts(self,file, speaker_ids):
+        ## prepared target speaker wavform data
+        if self.dataset_name == "alimeeting":
+            # rc=0 means that we only select first channel data if multi channel wavfrom data.
+            target_speeches = self.load_alimeeting_ts(file, speaker_ids,rc=0)
+        return target_speeches
+
+    def load_alimeeting_ts(self, file, speaker_ids,rc=0):
+        """
+        For target speaker wavform processing.
+        silence case:
+            inference: fill zero wavfrom
+            train:  random target speaker wavform as silence case.
+             > ts_len: random ts_len wavfrom from other target speaker wavform utterance.
+             < ts_len: read total other target speaker wavfrom utterance.
+        target speaker:
+             inference:
+              > ts_len: read frist ts_len wavfrom from target speaker wavform utterance
+              < ts_len: read total target speaker wavfrom utterance.
+             train :
+              > ts_len: read random ts_len wavfrom from target speaker wavform utterance
+              < ts_len: read total target speaker wavfrom utterance.
+
+        """
         target_speeches = []
         exist_spk = []
         speaker_id_full_list = []
-
         ts_mask = []
         for speaker_id in speaker_ids:
-            if speaker_id == -1:
+            if speaker_id != -1 and speaker_id != -2:
+                audio_filename = speaker_id
+                exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
+
+        for speaker_id in speaker_ids:
+            if speaker_id == -1: # Obatin the labels for silence
                 if (
                     np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 0
                     and self.is_train
                 ):
+                    # prepared silence target path at train stage
                     random_spk = random.choice(list(self.spk2data))
                     while random_spk in exist_spk:
                         random_spk = random.choice(list(self.spk2data))
                     exist_spk.append(random_spk)
                     random_speech = random.choice(self.spk2data[random_spk])
+                    logger.info(f"speaker_id==-1, random target speech: {random_speech}, random_spk: {random_spk}")
+                    spk = random_spk
+                    path = os.path.join(self.audio_path, f"{random_speech}.wav")
                 else:
+                    # for inference silence case.
                     spk = "-1"
                     path = None
             elif speaker_id == -2:
                 spk = "-2"
                 path = None
+                #(todo) maduo
+            else: # # Obatin the labels for speaker
+                audio_filename=speaker_id
+                spk = speaker_id
+                path = os.path.join(self.audio_path, file, str(audio_filename) + ".wav")
+
 
             speaker_id_full_list.append(spk)
             if path is not None and librosa.get_duration(path=path) > 0.01:
@@ -452,7 +503,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                     else:
                         start_frame = 0
                     target_speech, _ = self.read_audio_with_resample(
-                        path,
+                                path,
                         start=start_frame,
                         length=int(self.ts_len * sr_cur),
                         sr_cur=sr_cur,
@@ -462,7 +513,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                 target_speech = torch.FloatTensor(np.array(target_speech))
                 ts_mask.append(1)
             else:
-                target_speech = torch.zeros(192)  # fake one
+                target_speech = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model  # fake one
                 ts_mask.append(0)
             target_speeches.append(target_speech)
 
@@ -480,6 +531,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         rir = np.expand_dims(rir.astype(float), 0)
         rir = rir / np.sqrt(np.sum(rir**2))
         return signal.convolve(audio, rir, mode="full")[:, :length]
+
     def add_noise(self, audio, noisecat, length):
         clean_db = 10 * np.log10(max(1e-4, np.mean(audio**2)))
         numnoise = self.numnoise[noisecat]
@@ -595,6 +647,7 @@ class TSVADDataset(torch.utils.data.Dataset):
 
         if self.spk_path is None:
             target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
+            logger.info(f"in the __getitem__ fn: target_speech shape: {target_speech.shape}")
         else:
             target_speech = self.load_ts_embed(file, new_speaker_ids)
 

@@ -107,7 +107,17 @@ ERes2Net_Large_3D_Speaker = {
         'm_channels': 64,
     },
 }
-
+ERes2Netv2w24s4ep4_Large_3D_Speaker={
+    'obj': "ts_vad2.ERes2NetV2.ERes2NetV2",
+    'args':{
+    # it is modified from https://modelscope.cn/models/iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common/file/view/master?fileName=configuration.json&status=1
+        #"sample_rate": 16000,
+        "embedding_size": 192,
+        "baseWidth": 24,
+        "scale":4,
+        "expansion": 4
+    },
+}
 EPACA_CNCeleb = {
     'obj': 'ts_vad2.ECAPA_TDNN.ECAPA_TDNN',
     'args': {
@@ -118,6 +128,13 @@ EPACA_CNCeleb = {
 }
 
 supports = {
+    # eres2netv2w24s4ep4 trained on 200k labeled speakers
+    'iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common':{
+       'revision': 'v1.0.1',
+       'model': ERes2Netv2w24s4ep4_Large_3D_Speaker,
+       'model_pt': "pretrained_eres2netv2w24s4ep4.ckpt",
+    },
+
     # CAM++ trained on 200k labeled speakers
     'iic/speech_campplus_sv_zh-cn_16k-common': {
         'revision': 'v1.0.0',

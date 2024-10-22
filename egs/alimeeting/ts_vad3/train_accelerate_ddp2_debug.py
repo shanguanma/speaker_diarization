@@ -263,16 +263,18 @@ def add_data_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument(
         "--spk-path",
-        type=str,
-        default="/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding",
-        help="target speaker embedding path",
+        type=none_or_str,
+        nargs="?",
+        default=None,
+        help="target speaker embedding path.i.e./mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding",
     )
 
     parser.add_argument(
         "--speaker-embedding-name-dir",
-        type=str,
-        default="cam++_en_zh_advanced_feature_dir",
-        help="specify speaker embedding directory name",
+        type=none_or_str,
+        nargs="?",
+        default=None,
+        help="""specify speaker embedding directory name,i.e.cam++_en_zh_advanced_feature_dir""",
     )
 
     parser.add_argument(
@@ -321,7 +323,33 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         "--speech-encoder-config",
         type=str,
         default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json",
-        help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model."""
+        help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model.""",
+    )
+    parser.add_argument(
+        "--freeze-speech-encoder-updates",
+        type=int,
+        default=4000,
+        help="number freeze speech_encoder  iters of training ",
+    )
+    parser.add_argument(
+        "--freeze-speaker-encoder-updates",
+        type=int,
+        default=62600,
+        help="""if >=62600,At alimeeting dataset,one epoch has 1565 steps when batch_size=64,so 40 epochs have 62600 steps.
+        in other words, I will freeze speaker encoder when our tsvad is training.""",
+    )
+    parser.add_argument(
+        "--fuse-fbank-feat",
+        type=str2bool,
+        default=False,
+        help="""if it is true, at fbank feat level, target speaker and mix speech interact with each other """
+    )
+
+    parser.add_argument(
+        "--fuse-speaker-embedding-feat",
+        type=str2bool,
+        default=False,
+        help="""if it is true, at embedding feat level, target speaker and mix speech interact with each other """
     )
     return parser
 
@@ -876,7 +904,7 @@ def main(args):
     model_cfg.speech_encoder_type = params.speech_encoder_type
     model_cfg.speech_encoder_path = params.speech_encoder_path
     model_cfg.speaker_embed_dim = params.speaker_embed_dim
-    model_cfg.freeze_speech_encoder_updates = params.freeze_updates
+    model_cfg.freeze_speech_encoder_updates = params.freeze_speech_encoder_updates
     model_cfg.feature_grad_mult = params.feature_grad_mult
     model_cfg.select_encoder_layer_nums = (
         params.select_encoder_layer_nums
@@ -884,9 +912,17 @@ def main(args):
     model_cfg.wavlm_fuse_feat_post_norm = (
         params.wavlm_fuse_feat_post_norm
     )  # only for self.speech_encoder_type == "WavLM_weight_sum"
-    model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
+    model_cfg.speech_encoder_config=params.speech_encoder_config # only for w2v-bert2.0 ssl model
+
+    ## fuse feat method
+    model_cfg.freeze_speaker_encoder_updates = params.freeze_speaker_encoder_updates
+    model_cfg.fuse_fbank_feat = params.fuse_fbank_feat
+    model_cfg.fuse_speaker_embedding_feat = params.fuse_speaker_embedding_feat
+
+
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg)
+    #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
     logging.info(f"Number of model parameters: {num_param}")
@@ -936,14 +972,17 @@ def main(args):
 
     # the below combine ddp find_unused_parameters=True in accelerate package.
     # it will solve the strange error.
-    if True:
-        from functools import partial
+    #if True:
+    #    from functools import partial
 
-        notfailing_checkpoint = partial(
-            torch.utils.checkpoint.checkpoint, use_reentrant=False
-        )
-        torch.utils.checkpoint.checkpoint = notfailing_checkpoint
-        model.gradient_checkpointing_enable()
+    #    notfailing_checkpoint = partial(
+    #        torch.utils.checkpoint.checkpoint, use_reentrant=False
+    #    )
+    #    torch.utils.checkpoint.checkpoint = notfailing_checkpoint
+    #    model.gradient_checkpointing_enable()
+    if True:
+        model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
 
@@ -959,9 +998,7 @@ def main(args):
     # fix_random_seed(params.seed) # fairseq1 seed=1337 # this may be not correct at here.
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
-
         params.cur_epoch = epoch
-
         train_one_epoch(
             params=params,
             model=model,

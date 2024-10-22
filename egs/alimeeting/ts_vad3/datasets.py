@@ -12,19 +12,19 @@ class TSVADDataConfig:
     data_dir: str = "/mntcephfs/lab_data/maduo/datasets/alimeeting"
     """path to target audio and mixture labels root directory."""
 
-    ts_len: int = 6000
-    """Input ms of target speaker utterance"""
+    ts_len: int = 6
+    """Input second of target speaker wavfrom utterance"""
 
     rs_len: int = 4
-    """Input ms of reference speech"""
+    """Input second of reference speech"""
 
     segment_shift: int = 2
-    """Speech shift during segmenting"""
+    """Reference speech shift segmenting(second)"""
 
     spk_path: str = (
         "/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding"
     )
-    """path to target speaker embedding directory"""
+    """path to target speaker embedding directory, if it is not None, otherwise we will use target speaker wavfrom via `data_dir` """
 
     speech_encoder_type: str = "cam++"
     """path to pretrained speaker encoder path."""
@@ -76,7 +76,8 @@ class TSVADDataConfig:
 
     rir_path: str = "/mntcephfs/lee_dataset/asr/RIRS_NOISES"
     """rir path."""
-
+    #target_speaker_input_type: str = 'spk_embed'
+    #"""set target speaker input type, it can be choices from `spk_embed`, `wavform``"""
 
 cfg = TSVADDataConfig()
 from model import TSVADConfig
@@ -89,13 +90,21 @@ def load_dataset(
     cfg,
     split: str,
 ):
+    spk_path = None
     if cfg.dataset_name == "alimeeting":
         if split == "Test" or split == "Eval":
-            spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
+            #if cfg.target_speaker_input_type == "spk_embed":
+            if cfg.spk_path is not None:
+                spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
+            else:
+                spk_path = None # we will use target speaker wavform via `audio_path`
             json_path = f"{cfg.data_dir}/{split}_Ali/{split}_Ali_far/{split}.json"  ## offer mixer wavform name,
             audio_path = f"{cfg.data_dir}/{split}_Ali/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
         elif split == "Train":
-            spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
+            if cfg.spk_path is not None:
+                spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
+            else:
+                spk_path = None # we will use target speaker wavform via `audio_path`
             json_path = f"{cfg.data_dir}/{split}_Ali_far/{split}.json"  ## offer mixer wavform name,
             audio_path = f"{cfg.data_dir}/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
     else:
@@ -116,15 +125,15 @@ def load_dataset(
         rs_len=cfg.rs_len,
         spk_path=spk_path,
         is_train="train" in split.lower(),
-        segment_shift=cfg.segment_shift,
+        segment_shift=cfg.segment_shift, # cut mixer wavform
         zero_ratio=cfg.zero_ratio,
         max_num_speaker=cfg.max_num_speaker,
         dataset_name=cfg.dataset_name,
         sample_rate=cfg.sample_rate,
-        embed_len=cfg.embed_len,
-        embed_shift=cfg.embed_shift,
-        embed_input=cfg.embed_input,
-        fbank_input=fbank_input,
+        embed_len=cfg.embed_len,     # cut mixer emebdding
+        embed_shift=cfg.embed_shift, # cut mixer embedding
+        embed_input=cfg.embed_input, # embed of mixer (reference) speech, default is False
+        fbank_input=fbank_input, # for type of mixer speech input
         label_rate=cfg.label_rate,
         random_channel=cfg.random_channel,
         random_mask_speaker_prob=cfg.random_mask_speaker_prob,
@@ -138,7 +147,9 @@ def load_dataset(
 
 
 if __name__ == "__main__":
+    cfg.spk_path = None
     eval_dataset = load_dataset(cfg, "Train")
+
     print(eval_dataset)
     print(
         len(eval_dataset)
@@ -150,20 +161,24 @@ if __name__ == "__main__":
     # instantiating a dataloader object
     eval_dataloader = DataLoader(
         dataset=eval_dataset,  # the dataset instance
-        batch_size=64,  # automatic batching
+        batch_size=3,  # automatic batching
         drop_last=False,  # drops the last incomplete batch in case the dataset size is not divisible by 64
         shuffle=True,  # shuffles the dataset before every epoch
         collate_fn=eval_dataset.collater,
     )
     import math
 
-    total_num_itrs = int(math.ceil(len(eval_dataloader) / float(64)))
+    total_num_itrs = int(math.ceil(len(eval_dataloader) / float(3)))
     print(f"len(eval_dataloader): {len(eval_dataloader)}")
     print(f"grouped total_num_itrs = {total_num_itrs}")
     # iterating over the dataloader instance
-    # for batch_num, data_dict in enumerate(eval_dataloader):
-    #    if batch_num < 2:
-    #        print(data_dict['net_input'],data_dict['id'])
+    for batch_num, data_dict in enumerate(eval_dataloader):
+        if batch_num < 2:
+            print(data_dict['net_input'],data_dict['id'])
+            print(data_dict['net_input']['target_speech'].shape) # when cfg.spk_path is not None, (B,4,speaker_embeding_dim)
+                                                                 # when cfg.spk_path is None, (B,4,96000) # 96000 = 16000 * 6, 6 means that ts_len=6seconds
+        else:
+            break
     # input, label = data_dict['input'], data_dict['label']
     # print(f'Batch number {batch_num} has {len(input)} data points and correspondingly {len(label)} labels.')
 
