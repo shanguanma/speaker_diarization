@@ -397,8 +397,9 @@ class CAMPPlus(nn.Module):
 
     def forward(self,x):
         frame_x = self.get_frame_level_feat(x)
-        x = self.xvector[-2](frame_x)
-        x = self.xvector[-1](x)
+        x = frame_x
+        for layer in self.xvector[-2:]:
+            x = layer(x)
         return x,frame_x
     """
     def forward(self, x, get_time_out=False):
@@ -443,4 +444,4 @@ if __name__ == '__main__':
     model = CAMPPlus(feat_dim=80,embedding_size=192)
     model.eval()
     utt_feat, frame_feat = model(x)
-    print(utt_feat.shape, frame_feat.shape) # utt_feat: (10,512) frame_feat: (10, 512, 300)
+    print(utt_feat.shape, frame_feat.shape) # utt_feat: (10,192) frame_feat: (10, 512, 300)

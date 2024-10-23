@@ -341,7 +341,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--fuse-fbank-feat",
         type=str2bool,
-        default=False,
+        default=True,
         help="""if it is true, at fbank feat level, target speaker and mix speech interact with each other """
     )
 

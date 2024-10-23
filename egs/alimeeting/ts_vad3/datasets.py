@@ -13,13 +13,13 @@ class TSVADDataConfig:
     """path to target audio and mixture labels root directory."""
 
     ts_len: int = 6
-    """Input second of target speaker wavfrom utterance"""
+    """The number of seconds to capture the target speaker's speech"""
 
     rs_len: int = 4
-    """Input second of reference speech"""
+    """The number of seconds to capture the reference(mixer) speech"""
 
-    segment_shift: int = 2
-    """Reference speech shift segmenting(second)"""
+    rs_segment_shift: int = 2
+    """The number of seconds for sliding to capture the reference(mix) speech"""
 
     spk_path: str = (
         "/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding"
@@ -125,7 +125,7 @@ def load_dataset(
         rs_len=cfg.rs_len,
         spk_path=spk_path,
         is_train="train" in split.lower(),
-        segment_shift=cfg.segment_shift, # cut mixer wavform
+        rs_segment_shift=cfg.rs_segment_shift, # cut mixer wavform
         zero_ratio=cfg.zero_ratio,
         max_num_speaker=cfg.max_num_speaker,
         dataset_name=cfg.dataset_name,
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     # instantiating a dataloader object
     eval_dataloader = DataLoader(
         dataset=eval_dataset,  # the dataset instance
-        batch_size=3,  # automatic batching
+        batch_size=1,  # automatic batching
         drop_last=False,  # drops the last incomplete batch in case the dataset size is not divisible by 64
         shuffle=True,  # shuffles the dataset before every epoch
         collate_fn=eval_dataset.collater,
@@ -174,9 +174,10 @@ if __name__ == "__main__":
     # iterating over the dataloader instance
     for batch_num, data_dict in enumerate(eval_dataloader):
         if batch_num < 2:
-            print(data_dict['net_input'],data_dict['id'])
-            print(data_dict['net_input']['target_speech'].shape) # when cfg.spk_path is not None, (B,4,speaker_embeding_dim)
+            print(f"data_dict['net_input']: {data_dict['net_input']},data_dict['id']: {data_dict['id']}")
+            print(f"target_speech shape: {data_dict['net_input']['target_speech'].shape}") # when cfg.spk_path is not None, (B,4,speaker_embeding_dim)
                                                                  # when cfg.spk_path is None, (B,4,96000) # 96000 = 16000 * 6, 6 means that ts_len=6seconds
+            print(f"labels shape: {data_dict['net_input']['labels'].shape}")
         else:
             break
     # input, label = data_dict['input'], data_dict['label']

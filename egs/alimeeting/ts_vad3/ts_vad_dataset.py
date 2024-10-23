@@ -94,7 +94,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         rir_path: str = None,
         noise_ratio: float = 0.5,
         spk_path: str = None,
-        segment_shift: int = 6,
+        rs_segment_shift: int = 2,
         zero_ratio: float = 0.5,
         max_num_speaker: int = 4,
         dataset_name: str = "alimeeting",
@@ -125,7 +125,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         ## it will prepare chunk segment information for mixture audio
         self.label_rate = label_rate
         self.sample_rate = sample_rate
-        self.segment_shift = segment_shift
+        self.rs_segment_shift = rs_segment_shift
         self.rs_len = rs_len  # Number of second for reference speech
         self.is_train = is_train
         self.data_list, self.label_dic, self.sizes, self.spk2data, self.data2spk = self.load_data_and_label(json_path)
@@ -160,7 +160,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         logger.info(
             f"loaded sentence={len(self.sizes)}, "
             f"shortest sent={min(self.sizes)}, longest sent={max(self.sizes)}, "
-            f"rs_len={rs_len}, segment_shift={segment_shift},  rir={rir_path is not None}, "
+            f"rs_len={rs_len}, rs_segment_shift={rs_segment_shift},  rir={rir_path is not None}, "
             f"musan={musan_path is not None}, noise_ratio={noise_ratio}, zero_ratio={self.zero_ratio} "
         )
 
@@ -198,13 +198,13 @@ class TSVADDataset(torch.utils.data.Dataset):
                 pass
             else:
                 filename_set.add(filename)
-                dis = self.label_rate * self.segment_shift
+                dis = self.label_rate * self.rs_segment_shift
                 chunk_size = self.label_rate * self.rs_len
                 folder = self.audio_path + "/" + filename + "/*.wav" # target speaker wavform
 
                 audios = glob.glob(folder)
                 num_speaker = (
-                    len(audios) - 1
+                    len(audios) - 1 # -1 means -1 all.wav(it is mixer wav)
                 )  # The total number of speakers, 2 or 3 or 4
 
                 ## get chunk segment information for mixture audio.
@@ -431,7 +431,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         ## prepared target speaker wavform data
         if self.dataset_name == "alimeeting":
             # rc=0 means that we only select first channel data if multi channel wavfrom data.
-            target_speeches = self.load_alimeeting_ts(file, speaker_ids,rc=0)
+            target_speeches,_,_,_ = self.load_alimeeting_ts(file, speaker_ids,rc=0)
         return target_speeches
 
     def load_alimeeting_ts(self, file, speaker_ids,rc=0):
@@ -459,7 +459,7 @@ class TSVADDataset(torch.utils.data.Dataset):
             if speaker_id != -1 and speaker_id != -2:
                 audio_filename = speaker_id
                 exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
-
+        print(f"exist_spk: {exist_spk}")
         for speaker_id in speaker_ids:
             if speaker_id == -1: # Obatin the labels for silence
                 if (
@@ -516,7 +516,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                 target_speech = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model  # fake one
                 ts_mask.append(0)
             target_speeches.append(target_speech)
-
+        print(f"target_speeches: {target_speeches}")
         target_len = torch.tensor(
             [ts.size(0) for ts in target_speeches], dtype=torch.long
         )
@@ -646,7 +646,8 @@ class TSVADDataset(torch.utils.data.Dataset):
             ref_speech = torch.stack(ref_speech)
 
         if self.spk_path is None:
-            target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
+            #target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
+            target_speech = self.load_ts(file, new_speaker_ids)
             logger.info(f"in the __getitem__ fn: target_speech shape: {target_speech.shape}")
         else:
             target_speech = self.load_ts_embed(file, new_speaker_ids)
