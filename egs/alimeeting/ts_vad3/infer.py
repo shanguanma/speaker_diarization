@@ -272,7 +272,9 @@ def main(args):
         args.select_encoder_layer_nums
     )  # only for speech_encoder_type=="WavLm"
     model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
-    model_cfg.speech_encoder_config = args.speech_encoder_config # only for wav-bert2 ssl model
+    model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
+    model_cfg.fuse_fbank_feat = args.fuse_fbank_feat
+    model_cfg.fuse_speaker_embedding_feat = args.fuse_speaker_embedding_feat
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
 
@@ -457,7 +459,7 @@ def get_args():
         default="ts_vad/exp",
         help="The experiment dir",
     )
-    from train_accelerate_ddp2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    from train_accelerate_ddp import add_model_arguments, add_data_model_common_arguments, add_data_arguments
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)

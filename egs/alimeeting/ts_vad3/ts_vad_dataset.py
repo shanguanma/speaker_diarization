@@ -12,9 +12,10 @@ import soundfile as sf
 import torch
 import librosa
 import torchaudio.compliance.kaldi as kaldi
-from typing import Any,Dict
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
+
 
 class FBank(object):
     def __init__(
@@ -25,13 +26,19 @@ class FBank(object):
     ):
         self.n_mels = n_mels
         self.mean_nor = mean_nor
+        self.sample_rate = sample_rate
 
     def __call__(self, wav, dither=1.0):
         sr = 16000
+        assert sr == self.sample_rate, f"sample_rate"
         if len(wav.shape) == 1:
             wav = wav.unsqueeze(0)
+        # select single channel
+        if wav.shape[0] > 1:
+            wav = wav[0, :]
         assert len(wav.shape) == 2 and wav.shape[0] == 1
         wav = wav * (1 << 15)
+        logger.debug(f"in the ts_vad_dataset.py , here wav is from ref_speech, wav: {wav}, its shape: {wav.shape}")
         feat = kaldi.fbank(
             wav,
             num_mel_bins=self.n_mels,
@@ -40,6 +47,7 @@ class FBank(object):
             window_type="hamming",
             use_energy=False,
         )
+        logger.debug(f"in the ts_vad_dataset.py , here feat is from ref_speech,feat: {feat},its shape: {feat.shape}")
         # feat: [T, N]
         if self.mean_nor:
             feat = feat - feat.mean(0, keepdim=True)
@@ -103,13 +111,12 @@ class TSVADDataset(torch.utils.data.Dataset):
         embed_shift: float = 0.4,
         embed_input: bool = False,
         fbank_input: bool = False,
-
         label_rate: int = 25,
         random_channel: bool = False,
         support_mc: bool = False,
         random_mask_speaker_prob: float = 0.0,
         random_mask_speaker_step: int = 0,
-        speaker_embed_dim: int = 192, # same as speaker_embed_dim of model
+        speaker_embed_dim: int = 192,  # same as speaker_embed_dim of model
     ):
         self.audio_path = audio_path
         self.spk_path = spk_path
@@ -128,13 +135,17 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.rs_segment_shift = rs_segment_shift
         self.rs_len = rs_len  # Number of second for reference speech
         self.is_train = is_train
-        self.data_list, self.label_dic, self.sizes, self.spk2data, self.data2spk = self.load_data_and_label(json_path)
+        self.data_list, self.label_dic, self.sizes, self.spk2data, self.data2spk = (
+            self.load_data_and_label(json_path)
+        )
 
         # add noise and rir augment
         self.musan_path = musan_path
         self.rir_path = rir_path
-        if musan_path is not None or  rir_path is not None:
-            self.noisesnr, self.numnoise, self.noiselist, self.rir_files = self.load_musan_or_rirs(musan_path,rir_path)
+        if musan_path is not None or rir_path is not None:
+            self.noisesnr, self.numnoise, self.noiselist, self.rir_files = (
+                self.load_musan_or_rirs(musan_path, rir_path)
+            )
 
         self.noise_ratio = noise_ratio
         self.zero_ratio = zero_ratio
@@ -149,12 +160,16 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.support_mc = support_mc
         self.update_num = 0
         if fbank_input:
-            logger.info(f"model expect fbank as input , fbank_input should be {fbank_input} !!!")
+            logger.info(
+                f"model expect fbank as input , fbank_input should be {fbank_input} !!!"
+            )
             self.feature_extractor = FBank(
                 80, sample_rate=self.sample_rate, mean_nor=True
             )
         else:
-            logger.info(f"speech encoder may be self supervise pretrain model, its input is wavform.")
+            logger.info(
+                f"speech encoder may be self supervise pretrain model, its input is wavform."
+            )
             self.feature_extractor = None
 
         logger.info(
@@ -169,7 +184,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         lines = open(json_path).read().splitlines()
         filename_set = set()
         label_dic = defaultdict(list)
-        data_list=[]
+        data_list = []
         sizes = []
         spk2data = {}
         data2spk = {}
@@ -185,8 +200,10 @@ class TSVADDataset(torch.utils.data.Dataset):
             if speaker_id_full not in spk2data:
                 spk2data[speaker_id_full] = []
             if self.dataset_name == "alimeeting":
-                spk2data[speaker_id_full].append(filename + "/" + speaker_id) # A speaker corresponds to all its speech segment in the long mixture audio.
-                                                                              # in order to random choice target embedding base on the above list.
+                spk2data[speaker_id_full].append(
+                    filename + "/" + speaker_id
+                )  # A speaker corresponds to all its speech segment in the long mixture audio.
+                # in order to random choice target embedding base on the above list.
                 data2spk[filename + "/" + speaker_id] = speaker_id_full
             else:
                 raise Exception(
@@ -200,11 +217,13 @@ class TSVADDataset(torch.utils.data.Dataset):
                 filename_set.add(filename)
                 dis = self.label_rate * self.rs_segment_shift
                 chunk_size = self.label_rate * self.rs_len
-                folder = self.audio_path + "/" + filename + "/*.wav" # target speaker wavform
+                folder = (
+                    self.audio_path + "/" + filename + "/*.wav"
+                )  # target speaker wavform
 
                 audios = glob.glob(folder)
                 num_speaker = (
-                    len(audios) - 1 # -1 means -1 all.wav(it is mixer wav)
+                    len(audios) - 1  # -1 means -1 all.wav(it is mixer wav)
                 )  # The total number of speakers, 2 or 3 or 4
 
                 ## get chunk segment information for mixture audio.
@@ -213,9 +232,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                 # we fix label rate is 25, mean that has 25 target labels in 1s mixture audio.
                 for start in range(0, length, dis):
                     end = (
-                        (start + chunk_size)
-                        if start + chunk_size < length
-                        else length
+                        (start + chunk_size) if start + chunk_size < length else length
                     )
                     if self.is_train:
                         short_ratio = 3
@@ -224,9 +241,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                     if end - start > self.label_rate * short_ratio:
                         data_intro = [filename, num_speaker, start, end]
                         data_list.append(data_intro)
-                        sizes.append(
-                            (end - start) * self.sample_rate / self.label_rate
-                        )
+                        sizes.append((end - start) * self.sample_rate / self.label_rate)
 
         return data_list, label_dic, sizes, spk2data, data2spk
 
@@ -285,8 +300,10 @@ class TSVADDataset(torch.utils.data.Dataset):
         audio_start = self.sample_rate // self.label_rate * start
         audio_stop = self.sample_rate // self.label_rate * stop
         if self.dataset_name == "alimeeting":
-            audio_path = os.path.join(self.audio_path, file + "/all.wav")  ## This audio_path is single channel mixer audio,
-                                                                           ## now it is used in alimeeting dataset,and is stored at target_audio directory.
+            audio_path = os.path.join(
+                self.audio_path, file + "/all.wav"
+            )  ## This audio_path is single channel mixer audio,
+            ## now it is used in alimeeting dataset,and is stored at target_audio directory.
             ref_speech, rc = self.read_audio_with_resample(
                 audio_path,
                 start=audio_start,
@@ -332,12 +349,12 @@ class TSVADDataset(torch.utils.data.Dataset):
         for speaker_id in speaker_ids:
             if speaker_id == -1:
                 labels.append(np.zeros(stop - start))  # Obatin the labels for silence
-            elif speaker_id == -2: # Obatin the labels for extral
+            elif speaker_id == -2:  # Obatin the labels for extral
                 residual_label[residual_label > 1] = 1
                 labels.append(residual_label)
                 new_speaker_ids.append(-2)
                 continue
-            else:##
+            else:  ##
                 full_label_id = file + "_" + str(speaker_id)
                 label = self.label_dic[full_label_id]
                 labels.append(
@@ -376,19 +393,24 @@ class TSVADDataset(torch.utils.data.Dataset):
         """
         target_speeches = []
         exist_spk = []
-        #print(f"file:{file}, speaker_ids: {speaker_ids}")
+        # print(f"file:{file}, speaker_ids: {speaker_ids}")
         for speaker_id in speaker_ids:
             if speaker_id != -1 and speaker_id != -2:
                 audio_filename = speaker_id
                 exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
 
         for speaker_id in speaker_ids:
-            if speaker_id == -1: # Obatin the labels for silence
+            if speaker_id == -1:  # Obatin the labels for silence
                 ## prepared silence embedding at inference stage
-                if np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 1 or not self.is_train:
+                if (
+                    np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 1
+                    or not self.is_train
+                ):
 
                     # (TODO) maduo add speaker embedding dimension parameter to replace hard code.
-                    feature = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model
+                    feature = torch.zeros(
+                        self.speaker_embed_dim
+                    )  # speaker embedding dimension of speaker model
                 else:
                     # ## prepared silence embedding at train stage
                     random_spk = random.choice(list(self.spk2data))
@@ -397,25 +419,27 @@ class TSVADDataset(torch.utils.data.Dataset):
                         random_spk = random.choice(list(self.spk2data))
                     exist_spk.append(random_spk)
 
-                    path = os.path.join(self.spk_path,
-                            f"{random.choice(self.spk2data[random_spk])}.pt",
-                        )
+                    path = os.path.join(
+                        self.spk_path,
+                        f"{random.choice(self.spk2data[random_spk])}.pt",
+                    )
                     feature = torch.load(path, map_location="cpu")
 
-            elif speaker_id == -2: # # Obatin the labels for extral
-                feature = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model
-            else: # # Obatin the labels for speaker
-                audio_filename=speaker_id
+            elif speaker_id == -2:  # # Obatin the labels for extral
+                feature = torch.zeros(
+                    self.speaker_embed_dim
+                )  # speaker embedding dimension of speaker model
+            else:  # # Obatin the labels for speaker
+                audio_filename = speaker_id
                 path = os.path.join(self.spk_path, file, str(audio_filename) + ".pt")
                 feature = torch.load(path, map_location="cpu")
-
 
             if len(feature.size()) == 2:
                 if self.is_train:
                     feature = feature[random.randint(0, feature.shape[0] - 1), :]
                 else:
                     # feature = torch.mean(feature, dim = 0)
-                    feature = torch.mean(feature, dim = 0)
+                    feature = torch.mean(feature, dim=0)
 
             target_speeches.append(feature)
         target_speeches = torch.stack(target_speeches)
@@ -427,14 +451,14 @@ class TSVADDataset(torch.utils.data.Dataset):
             target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
         return target_speeches
 
-    def load_ts(self,file, speaker_ids):
+    def load_ts(self, file, speaker_ids):
         ## prepared target speaker wavform data
         if self.dataset_name == "alimeeting":
             # rc=0 means that we only select first channel data if multi channel wavfrom data.
-            target_speeches,_,_,_ = self.load_alimeeting_ts(file, speaker_ids,rc=0)
+            target_speeches = self.load_alimeeting_ts(file, speaker_ids, rc=0)
         return target_speeches
 
-    def load_alimeeting_ts(self, file, speaker_ids,rc=0):
+    def load_alimeeting_ts(self, file, speaker_ids, rc=0):
         """
         For target speaker wavform processing.
         silence case:
@@ -459,9 +483,9 @@ class TSVADDataset(torch.utils.data.Dataset):
             if speaker_id != -1 and speaker_id != -2:
                 audio_filename = speaker_id
                 exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
-        print(f"exist_spk: {exist_spk}")
+        logger.debug(f"exist_spk: {exist_spk}")
         for speaker_id in speaker_ids:
-            if speaker_id == -1: # Obatin the labels for silence
+            if speaker_id == -1:  # Obatin the labels for silence
                 if (
                     np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 0
                     and self.is_train
@@ -471,59 +495,51 @@ class TSVADDataset(torch.utils.data.Dataset):
                     while random_spk in exist_spk:
                         random_spk = random.choice(list(self.spk2data))
                     exist_spk.append(random_spk)
-                    random_speech = random.choice(self.spk2data[random_spk])
-                    logger.info(f"speaker_id==-1, random target speech: {random_speech}, random_spk: {random_spk}")
-                    spk = random_spk
-                    path = os.path.join(self.audio_path, f"{random_speech}.wav")
+                    path = os.path.join(self.audio_path, f"{random.choice(self.spk2data[random_spk])}.wav")
+                    logger.debug(
+                         f"speaker_id==-1,random target speech :{path} random_spk: {random_spk}")
+                    target_speech = self.cut_target_speech(path,rc)
                 else:
-                    # for inference silence case.
-                    spk = "-1"
-                    path = None
+                    # for inference silence case or use zeros vector to instead random target speech.
+                    target_speech = torch.zeros(self.ts_len * self.sample_rate)  # fake one
+
             elif speaker_id == -2:
-                spk = "-2"
-                path = None
-                #(todo) maduo
-            else: # # Obatin the labels for speaker
-                audio_filename=speaker_id
-                spk = speaker_id
+                target_speech = torch.zeros(self.ts_len * self.sample_rate)  # fake one
+            else:  # # Obatin the labels for speaker
+                audio_filename = speaker_id
                 path = os.path.join(self.audio_path, file, str(audio_filename) + ".wav")
-
-
-            speaker_id_full_list.append(spk)
-            if path is not None and librosa.get_duration(path=path) > 0.01:
-                aux_len = librosa.get_duration(path=path)
-                if aux_len <= self.ts_len:
-                    target_speech, _ = sf.read(path)
-                else:
-                    sr_cur = self.sample_rate
-                    if self.is_train:
-                        start_frame = np.int64(
-                            random.random() * (aux_len - self.ts_len) * sr_cur
-                        )
-                    else:
-                        start_frame = 0
-                    target_speech, _ = self.read_audio_with_resample(
-                                path,
-                        start=start_frame,
-                        length=int(self.ts_len * sr_cur),
-                        sr_cur=sr_cur,
-                        rc=rc,
-                    )
-
-                target_speech = torch.FloatTensor(np.array(target_speech))
-                ts_mask.append(1)
-            else:
-                target_speech = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model  # fake one
-                ts_mask.append(0)
+                target_speech = self.cut_target_speech(path,rc)
+                logger.debug(f"target speaker wavform: {path},self.audio_path: {self.audio_path}, file: {file},str(audio_filename): {str(audio_filename)}!!!")
             target_speeches.append(target_speech)
-        print(f"target_speeches: {target_speeches}")
-        target_len = torch.tensor(
-            [ts.size(0) for ts in target_speeches], dtype=torch.long
-        )
-        ts_mask = torch.tensor(ts_mask, dtype=torch.long)
+        logger.debug(f"target_speeches: {target_speeches}")
         target_speeches = _collate_data(target_speeches, is_audio_input=True)
+        logger.debug(f"after _collate_data fn, target_speeches: {target_speeches},its shape: {target_speeches.shape}")
+        return target_speeches
 
-        return target_speeches, ts_mask, target_len, speaker_id_full_list
+
+    def cut_target_speech(self,path,rc):
+        assert librosa.get_duration(path=path) > 0.01
+        aux_len = librosa.get_duration(path=path)
+        if aux_len <= self.ts_len:
+            target_speech, _ = sf.read(path)
+        else:
+            sr_cur = self.sample_rate
+            if self.is_train:
+                start_frame = np.int64(
+                    random.random() * (aux_len - self.ts_len) * sr_cur
+                )
+            else:
+                start_frame = 0
+            target_speech, _ = self.read_audio_with_resample(
+                path,
+                start=start_frame,
+                length=int(self.ts_len * sr_cur),
+                sr_cur=sr_cur,
+                rc=rc,
+            )
+        target_speech = torch.from_numpy(target_speech)
+        return target_speech
+
 
     def add_rev(self, audio, length):
         rir_file = random.choice(self.rir_files)
@@ -630,9 +646,11 @@ class TSVADDataset(torch.utils.data.Dataset):
         # ref_speech : 16000 * (T / 25)
         # labels : 4, T
         # target_speech: 4, 16000 * (T / 25)
-        #file, num_speaker, start, stop, _ = self.data_list[index]
+        # file, num_speaker, start, stop, _ = self.data_list[index]
         file, num_speaker, start, stop = self.data_list[index]
-        speaker_ids = self.get_ids(num_speaker) # num_speaker means that it contains number of speaker in current mixture utterance.
+        speaker_ids = self.get_ids(
+            num_speaker
+        )  # num_speaker means that it contains number of speaker in current mixture utterance.
 
         ref_speech, labels, new_speaker_ids, _ = self.load_rs(
             file, speaker_ids, start, stop
@@ -646,9 +664,9 @@ class TSVADDataset(torch.utils.data.Dataset):
             ref_speech = torch.stack(ref_speech)
 
         if self.spk_path is None:
-            #target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
+            # target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
             target_speech = self.load_ts(file, new_speaker_ids)
-            logger.info(f"in the __getitem__ fn: target_speech shape: {target_speech.shape}")
+            # logger.info(f"in the __getitem__ fn: target_speech shape: {target_speech.shape}")
         else:
             target_speech = self.load_ts_embed(file, new_speaker_ids)
 
@@ -663,12 +681,10 @@ class TSVADDataset(torch.utils.data.Dataset):
         }
         return samples
 
-
     def ordered_indices(self):
         order = [np.random.permutation(len(self))]
         order.append(self.sizes)
         return np.lexsort(order)[::-1]
-
 
     def read_audio_with_resample(
         self, audio_path, start=None, length=None, sr_cur=None, support_mc=False, rc=-1

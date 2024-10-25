@@ -21,7 +21,8 @@ from torch import Tensor
 from torch.utils.checkpoint import checkpoint
 from typing import Any, Callable
 
-from ts_vad_dataset import FBank
+#from ts_vad_dataset import FBank
+import torchaudio.compliance.kaldi as kaldi
 from cam_pplus_wespeaker import CAMPPlus
 from wavlm import WavLM, WavLMConfig
 from resnet_wespeaker import ResNet34
@@ -52,11 +53,12 @@ class TSVADConfig:
     freeze_speech_encoder_updates: int = 4000
     """train number of step <4000, freeze speech encoder. train number of step> 4000, speech encoder start update."""
 
-
     speaker_encoder_type: str = "CAM++"
     """choice it  from CAM++ as speaker encoder of our TSVAD"""
 
-    speaker_encoder_path: str = "/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+    speaker_encoder_path: str = (
+        "/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+    )
     """path to pretrained speaker encoder path."""
 
     freeze_speaker_encoder_updates: int = 62600
@@ -66,7 +68,7 @@ class TSVADConfig:
     if <62600,speaker encoder start update.
     """
 
-    fuse_fbank_feat: bool = True
+    fuse_fbank_feat: bool = False
     """if it is true, at fbank feat level, target speaker and mix speech interact with each other
        if it is false, at fbank feat level, target speaker  will not help mix speech
     """
@@ -75,7 +77,6 @@ class TSVADConfig:
     """if it is true, at embedding feat level, target speaker and mix speech interact with each other
        if it is false, at embedding feat level, target speaker will not help mix speech
     """
-
 
     num_attention_head: int = 4
     """number of attention head in transformer"""
@@ -94,11 +95,6 @@ class TSVADConfig:
 
     dropout: float = 0.1
     """dropout prob"""
-
-    use_spk_embed: bool = False
-    """if it is False, we will use target speech wavform as speaker model input,
-    otherwise we will  use utterance speaker embedding via offline(Pre-extracted)
-    """
 
     feature_grad_mult: float = 0.1
     """ wavlm default config is 0.1,
@@ -133,7 +129,39 @@ class TSVADConfig:
 
 model_cfg = TSVADConfig()
 
+class FBank(object):
+    def __init__(
+        self,
+        n_mels,
+        sample_rate,
+        mean_nor: bool = False,
+    ):
+        self.n_mels = n_mels
+        self.mean_nor = mean_nor
+        self.sample_rate = sample_rate
 
+    def __call__(self, wav, dither=0.0):
+        sr = 16000
+        assert sr==self.sample_rate, f"sample_rate"
+        if len(wav.shape) == 1:
+            wav = wav.unsqueeze(0)
+        # select single channel
+        if wav.shape[0] > 1:
+            wav = wav[0, :]
+        assert len(wav.shape) == 2 and wav.shape[0] == 1
+        #wav = wav * (1 << 15)
+        logger.debug(f"in the model.py here wav should be target speech ,wav: {wav}, its shape: {wav.shape}")
+        feat = kaldi.fbank(
+            wav,
+            num_mel_bins=self.n_mels,
+            sample_frequency=sr,
+            dither=dither,
+        )
+        logger.debug(f"in the model.py here feat should be target speech ,feat: {feat},its shape: {feat.shape}")
+        # feat: [T, N]
+        if self.mean_nor:
+            feat = feat - feat.mean(0, keepdim=True)
+        return feat
 class SpeechFeatUpsample2(nn.Module):
     def __init__(self, speaker_embed_dim: int, upsample: int, model_dim: int = 2560):
         super(SpeechFeatUpsample2, self).__init__()
@@ -211,7 +239,10 @@ class TSVADModel(nn.Module):
         self.fuse_fbank_feat = cfg.fuse_fbank_feat
         self.fuse_speaker_embedding_feat = cfg.fuse_speaker_embedding_feat
 
-        self.use_spk_embed = cfg.use_spk_embed
+        # self.use_spk_embed = cfg.use_spk_embed
+        self.use_spk_embed = (
+            task_cfg.spk_path
+        )  # spk_path is target speaker utterance embedding path or None.
         self.rs_dropout = nn.Dropout(p=cfg.dropout)
         self.label_rate = task_cfg.label_rate
         assert (
@@ -219,7 +250,7 @@ class TSVADModel(nn.Module):
         ), f"self.label_rate is {elf.label_rate} not support!"
 
         self.speech_encoder_type = cfg.speech_encoder_type
-        #self.speech_encoder_path = cfg.speech_encoder_path
+        # self.speech_encoder_path = cfg.speech_encoder_path
         self.wavlm_fuse_feat_post_norm = cfg.wavlm_fuse_feat_post_norm
         logger.info(f"self.wavlm_fuse_feat_post_norm: {self.wavlm_fuse_feat_post_norm}")
         self.max_num_speaker = task_cfg.max_num_speaker
@@ -252,18 +283,22 @@ class TSVADModel(nn.Module):
                 80, sample_rate=task_cfg.sample_rate, mean_nor=True
             )
             if self.fuse_fbank_feat:
-                self.fuse_fbank_linear = nn.Linear(160,80)
+                self.fuse_fbank_linear = nn.Linear(160, 80)
             else:
                 self.fuse_fbank_linear = None
             if self.fuse_speaker_embedding_feat:
-                self.fuse_speaker_encoder_linear = nn.Linear(self.pretrain_speech_encoder_dim*2,self.pretrain_speech_encoder_dim)
+                if self.pretrain_speech_encoder_dim != speaker_frame_embedding_dim:
+                    self.speaker_encoder_frame_dim_proj = nn.Linear(
+                        speaker_frame_embedding_dim, self.pretrain_speech_encoder_dim
+                    )
+                else:
+                    self.speaker_embedding_proj = None
+                self.fuse_speaker_encoder_linear = nn.Linear(
+                    self.pretrain_speech_encoder_dim * 2,
+                    self.pretrain_speech_encoder_dim,
+                )
             else:
                 self.fuse_speaker_encoder_linear = None
-
-            if self.pretrain_speech_encoder_dim !=speaker_frame_embedding_dim:
-                self.speaker_encoder_frame_dim_proj = nn.Linear(speaker_frame_embedding_dim,self.pretrain_speech_encoder_dim)
-            else:
-                self.speaker_embedding_proj=None
 
             self.att_fuse_dropout = 0.1
         else:
@@ -274,7 +309,6 @@ class TSVADModel(nn.Module):
             self.feature_extractor = None
             self.fuse_fbank_linear = None
             self.fuse_speaker_encoder_linear = None
-
 
         # projection
         if cfg.speaker_embed_dim * 2 != cfg.transformer_embed_dim:
@@ -330,7 +364,7 @@ class TSVADModel(nn.Module):
             self.load_speaker_encoder(
                 cfg.speaker_encoder_path, device=device, module_name="speaker_encoder"
             )
-            speaker_embedding_dim=512
+            speaker_embedding_dim = 512
         return (
             self.speaker_encoder,
             speaker_embedding_dim,
@@ -726,6 +760,14 @@ class TSVADModel(nn.Module):
 
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             x = self.speech_down_or_up(x)
+        elif self.speech_encoder_type == "CAM++":
+            with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
+                # its input fbank feature(80-dim)
+                speech_fbank_or_cnn_feat = ref_speech  # (B,T,D)
+                _, x = self.speech_encoder(ref_speech)
+                speech_encoder_output_feat = x.permute(0, 2, 1)  # (B,D,T)->(B,T,D)
+            # print(f"x shape: {x.shape}") # B,D,T
+            x = self.speech_down_or_up(x)
         else:
             with torch.no_grad() if fix_speech_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)
@@ -757,43 +799,56 @@ class TSVADModel(nn.Module):
         if self.use_spk_embed:
             # x: Bx4xD, D is speaker embedding dimension
             # utterance level speaker embedding
-            return self.rs_dropout(x)
+            return None, None, self.rs_dropout(x)
         # case2: target speaker wavform as input
         # x shape(B,4,T), if data_cfg.ts_len in dataset.py is = 6(second), so T = 16000*6=96000
         B, _, T = x.shape
+        logger.debug(f"target speech: {x},its shape: {x.shape}")
         x = x.view(B * self.max_num_speaker, T)
         fbank = [self.feature_extractor(ts) for ts in x]
         # frame level fbank feature.
         fbank = torch.stack(fbank)  # (B*self.max_num_speaker,T,80)
+        logger.debug(f"target speech fbank: {fbank},its shape: {fbank.shape}")
         # frame level speaker embedding
-        speaker_fbank = fbank.view(B,-1,80)
+        speaker_fbank = fbank.view(B, -1, 80)
         fix_speaker_encoder = num_updates < self.freeze_speaker_encoder_updates
         if self.speaker_encoder_type == "CAM++":
             with torch.no_grad() if fix_speaker_encoder else contextlib.ExitStack():
-                speaker_encoder_utt_feat, speaker_encoder_frame_feat = self.speaker_encoder(
-                    fbank
+                speaker_encoder_utt_feat, speaker_encoder_frame_feat = (
+                    self.speaker_encoder(fbank)
                 )  # (B*self.max_num_speaker,D) (B*self.max_num_speaker,D,T), D=512
                 speaker_encoder_utt_feat = speaker_encoder_utt_feat.view(
                     B, self.max_num_speaker, -1
                 )  # (B,4,D) # utterance level speaker embedding,D=512
-                speaker_encoder_frame_feat = speaker_encoder_frame_feat.permute(0,2,1) # (B*self.max_num_speaker,T,D)
+                speaker_encoder_frame_feat = speaker_encoder_frame_feat.permute(
+                    0, 2, 1
+                )  # (B*self.max_num_speaker,T,D)
                 E = speaker_encoder_frame_feat.size(-1)
-                speaker_encoder_frame_feat = speaker_encoder_frame_feat.reshape(B,-1,E) # (B, self.max_num_speaker*T, D)
+                speaker_encoder_frame_feat = speaker_encoder_frame_feat.reshape(
+                    B, -1, E
+                )  # (B, self.max_num_speaker*T, D)
         return speaker_fbank, speaker_encoder_frame_feat, speaker_encoder_utt_feat
 
-    def att_fuse_kernel(self,speaker_feat, speech_feat):
+    def att_fuse_kernel(self, speaker_feat, speech_feat):
         B = speaker_feat.size(0)
         D = speaker_feat.size(-1)
-        key = speaker_feat.view(B,-1,D).unsqueeze(1) #(B,1,4*T,D)
+        key = speaker_feat.view(B, -1, D).unsqueeze(1)  # (B,1,4*T,D)
         value = key
-        query = speech_feat.unsqueeze(1) #(B,1,T',D)
-        print(f"query shape: {query.shape}, key shape: {key.shape}")
-        att_feat = F.scaled_dot_product_attention(query,key,value,dropout_p=(self.att_fuse_dropout if self.training else 0.0))
-        att_feat = att_feat.squeeze(1) #(B,T',D)
-        fuse_feat = torch.cat((att_feat,speech_feat),dim=2)#(B,T',2*D)
+        query = speech_feat.unsqueeze(1)  # (B,1,T',D)
+        # print(f"query shape: {query.shape}, key shape: {key.shape}")
+        att_feat = F.scaled_dot_product_attention(
+            query,
+            key,
+            value,
+            dropout_p=(self.att_fuse_dropout if self.training else 0.0),
+        )
+        att_feat = att_feat.squeeze(1)  # (B,T',D)
+        fuse_feat = torch.cat((att_feat, speech_feat), dim=2)  # (B,T',2*D)
         return fuse_feat
 
-    def fuse_feat_speech_encoder_forward(self, target_speaker_speech,ref_speech,labels,num_updates:int=0):
+    def fuse_feat_speech_encoder_forward(
+        self, target_speaker_speech, ref_speech, labels, num_updates: int = 0
+    ):
         """
         target_speaker_speech:
            if self.use_spk_embed = False,
@@ -804,18 +859,27 @@ class TSVADModel(nn.Module):
         ref_speech: fbank feat, shape: (B,T',80)
         """
 
-        if self.use_spk_embed:
-            speaker_encoder_utt_feat = self.forward_speaker_encoder(target_speaker_speech,num_updates)
-        else:
-            speaker_fbank, speaker_encoder_frame_feat, speaker_encoder_utt_feat = (
-                self.forward_speaker_encoder(target_speaker_speech,num_updates)
-            )
+        # if self.use_spk_embed:
+        #    speaker_encoder_utt_feat = self.forward_speaker_encoder(target_speaker_speech,num_updates)
+        # else:
+        #    speaker_fbank, speaker_encoder_frame_feat, speaker_encoder_utt_feat = (
+        #        self.forward_speaker_encoder(target_speaker_speech,num_updates)
+        #    )
+        speaker_fbank, speaker_encoder_frame_feat, speaker_encoder_utt_feat = (
+            self.forward_speaker_encoder(target_speaker_speech, num_updates)
+        )
 
         max_len = labels.size(-1)
         fix_speech_encoder = num_updates < self.freeze_speech_encoder_updates
+        ## it will force reset args to avoid error.
+        if speaker_fbank is None:
+            self.fuse_fbank_feat = False
+        if speaker_encoder_frame_feat is None:
+            self.fuse_speaker_embedding_feat = False
+
         if self.fuse_fbank_feat:
-            fuse_fbank = self.att_fuse_kernel(speaker_fbank,ref_speech)
-            fuse_fbank = self.fuse_fbank_linear(fuse_fbank) # (B,T',80)
+            fuse_fbank = self.att_fuse_kernel(speaker_fbank, ref_speech)
+            fuse_fbank = self.fuse_fbank_linear(fuse_fbank)  # (B,T',80)
         else:
             fuse_fbank = ref_speech
         if self.speech_encoder_type == "w2v-bert2":
@@ -827,22 +891,26 @@ class TSVADModel(nn.Module):
                 x = self.speech_encoder(fuse_fbank, output_hidden_states=True)  #
                 x = x.hidden_states[
                     -1
-                    ]  # it is equal to x = x['hidden_states'][self.select_encoder_layer_nums],shape:(B,T'//2,D),D=1024
-                print(f"w2v-bert2 output shape: {x.shape}")
+                ]  # it is equal to x = x['hidden_states'][self.select_encoder_layer_nums],shape:(B,T'//2,D),D=1024
+                # print(f"w2v-bert2 output shape: {x.shape}")
             if self.fuse_speaker_embedding_feat:
                 speaker_encoder_frame_feat_dim = speaker_encoder_frame_feat.size(-1)
                 speech_encoder_embedding_feat_dim = x.size(-1)
                 if speaker_encoder_frame_feat_dim != speech_encoder_embedding_feat_dim:
-                    speaker_encoder_frame_feat = self.speaker_encoder_frame_dim_proj(speaker_encoder_frame_feat)
-                fuse_emb_feat = self.att_fuse_kernel(speaker_encoder_frame_feat,x)
-                fuse_emb_feat = self.fuse_speaker_encoder_linear(fuse_emb_feat) # (B,T'//2,2*D)-> (B,T'//2,D)
+                    speaker_encoder_frame_feat = self.speaker_encoder_frame_dim_proj(
+                        speaker_encoder_frame_feat
+                    )
+                fuse_emb_feat = self.att_fuse_kernel(speaker_encoder_frame_feat, x)
+                fuse_emb_feat = self.fuse_speaker_encoder_linear(
+                    fuse_emb_feat
+                )  # (B,T'//2,2*D)-> (B,T'//2,D)
             else:
                 fuse_emb_feat = x
 
             x = fuse_emb_feat.transpose(1, 2)  # (B,T'//2,D)->(B,D,T'//2)
             x = self.speech_down_or_up(x)
             assert (
-            x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
+                x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
             ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
             if x.size(-1) - max_len == -1:
                 x = nn.functinal.pad(x, (0, 1))
@@ -857,13 +925,19 @@ class TSVADModel(nn.Module):
         target_speech: torch.Tensor,
         labels: torch.Tensor,
         # labels_len: torch.Tensor,
-        #fix_encoder: bool = True,
-        #fix_speech_encoder: bool = True,  # (TODO) add it into train code.
+        # fix_encoder: bool = True,
+        # fix_speech_encoder: bool = True,  # (TODO) add it into train code.
         num_updates: int = 0,
     ):
         ## fuse target speaker feture reference (mixer) speech forward branch
-        mix_embeds,speaker_encoder_utt_feat = self.fuse_feat_speech_encoder_forward(target_speech,ref_speech,labels,num_updates)
-        print(f"mix_embeds shape: {mix_embeds.shape}, speaker_encoder_utt_feat shape: {speaker_encoder_utt_feat.shape}")
+        # mix_embeds shape: (B,100,192) when rs_len=4s,speaker_embed_dim=192,
+        # speaker_encoder_utt_feat shape:(B,4,192), when self.max_num_speaker=4, speaker_embed_dim=192
+        mix_embeds, speaker_encoder_utt_feat = self.fuse_feat_speech_encoder_forward(
+            target_speech, ref_speech, labels, num_updates
+        )
+        logger.debug(
+            f"mix_embeds: {mix_embeds},mix_embeds shape: {mix_embeds.shape},  speaker_encoder_utt_feat: {speaker_encoder_utt_feat}, speaker_encoder_utt_feat shape: {speaker_encoder_utt_feat.shape}"
+        )
         # speaker_encoder_final_feat is utterance target speaker embedding
         ts_embeds = self.rs_dropout(speaker_encoder_utt_feat)  # B, 4, D
 
@@ -910,7 +984,7 @@ class TSVADModel(nn.Module):
         ref_speech: torch.Tensor,
         target_speech: torch.Tensor,
         labels: torch.Tensor,
-        num_updates: int=0,
+        num_updates: int = 0,
     ):
         outs = self.forward_common(
             ref_speech=ref_speech,
@@ -1144,30 +1218,36 @@ class TSVADModel(nn.Module):
 
 if __name__ == "__main__":
     """Build a new model instance."""
+    # for debug
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+    )
+    model_cfg = TSVADConfig()
+    model_cfg.fuse_speaker_embedding_feat = True
+    model_cfg.fuse_fbank_feat = True
+    # model_cfg.use_spk_embed=True
+    data_cfg = TSVADDataConfig()
+    # data_cfg.spk_path=None # means that we use speaker model online on our tsvad
 
-    model_cfg=TSVADConfig()
-    model_cfg.fuse_speaker_embedding_feat=False
-    model_cfg.fuse_fbank_feat=False
-    model_cfg.use_spk_embed=True
-
-    model = TSVADModel(cfg=model_cfg)
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg)
     print(model)
-    #x = torch.zeros(10, 398, 80)  # B,T,F
-    #out = model.speech_encoder(x)
-    #print(f"out shape: {out.shape}")
+    # x = torch.zeros(10, 398, 80)  # B,T,F
+    # out = model.speech_encoder(x)
+    # print(f"out shape: {out.shape}")
     # B,T,F, w2v-bert2's expected input is dimension is 160, to achieve the same 50 frame rate as wav2vec2,
     # because w2v-bert2 Because the actual input of w2v-bert2.0 is kaldi's fbank
     # (its frame rate is 100, because the window length is 25ms, the window shift is 10ms, and mel_bin is 80),
     # then the frame number is halved and the dimension is doubled
-    ref_speech = torch.zeros(10, 400, 80) # rs_len=4s
-    if model_cfg.use_spk_embed:
-        target_speech = torch.randn(10,4,192) # ts_len=6s
+    ref_speech = torch.zeros(10, 400, 80)  # rs_len=4s
+    if data_cfg.spk_path:
+        target_speech = torch.randn(10, 4, 192)  # ts_len=6s
     else:
-        target_speech = torch.randn(10,4,96000) # ts_len=6s
-    labels = torch.randint(0,2,(10,4,100)) # 25*rs_len=25*4=100
-    #labels =
+        target_speech = torch.randn(10, 4, 96000)  # ts_len=6s
+    labels = torch.randint(0, 2, (10, 4, 100))  # 25*rs_len=25*4=100
+    # labels =
     model.eval()
-    out1 = model(ref_speech,target_speech,labels)
+    out1 = model(ref_speech, target_speech, labels)
     print(f"out1 shape: {out1.shape}")
     num_params = sum(param.numel() for param in model.parameters())
     for name, v in model.named_parameters():

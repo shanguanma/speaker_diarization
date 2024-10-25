@@ -3,38 +3,6 @@
 # Email: maduo@cuhk.edu.cn
 
 """
-for example, using two gpus to train this model without grad clip norm and no freeze speech encoder
-    export NCCL_DEBUG=INFO
-    export PYTHONFAULTHANDLER=1
-    musan_path=/mntcephfs/lee_dataset/asr/musan
-    exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_unfreeze_with_musan
-   CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
-    --world-size 2 \
-    --num-epochs 20\
-    --start-epoch 1\
-    --freeze-updates 0\
-    --grad-clip false\
-    --musan-path $musan_path \
-    --exp-dir $exp_dir
-
-
-
-    export NCCL_DEBUG=INFO
-    export PYTHONFAULTHANDLER=1
-    musan_path=/mntcephfs/lee_dataset/asr/musan
-    rir_path=/mntcephfs/lee_dataset/asr/RIRS_NOISES
-    exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_unfreeze_with_musan_and_rirs
-   CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12683 ts_vad2/train_accelerate_ddp2.py \
-    --world-size 2 \
-    --num-epochs 20\
-    --start-epoch 1\
-    --freeze-updates 0\
-    --grad-clip false\
-    --musan-path $musan_path \
-    --rir-path $rir_path \
-    --exp-dir $exp_dir
-
-
 """
 
 import argparse
@@ -65,7 +33,7 @@ from accelerate.utils import GradScalerKwargs
 
 import logging
 
-from utils import fix_random_seed
+from utils import fix_random_seed, setup_logging
 from checkpoint import (
     load_checkpoint,
     remove_checkpoints,
@@ -88,10 +56,10 @@ from datasets import TSVADDataConfig
 from model import TSVADModel
 from model import TSVADConfig
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
-)
+# logging.basicConfig(
+#    level=logging.INFO,
+#    format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+# )
 LRSchedulerType = Union[torch.optim.lr_scheduler._LRScheduler]
 
 
@@ -99,7 +67,12 @@ def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-
+    parser.add_argument(
+        "--verbose",
+        type=int,
+        default=1,
+        help=">0,INFO level log, <0, DEBUG level log",
+    )
     parser.add_argument(
         "--world-size",
         type=int,
@@ -246,6 +219,8 @@ def get_parser():
     add_data_model_common_arguments(parser)
     add_finetune_arguments(parser)
     return parser
+
+
 def add_data_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--musan-path",
@@ -285,6 +260,7 @@ def add_data_arguments(parser: argparse.ArgumentParser):
     )
     return parser
 
+
 def add_data_model_common_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--speech-encoder-type",
@@ -299,6 +275,7 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
         help="target speaker model output feature dimension and is also tsvad speech encoder output feature dimension ",
     )
     return parser
+
 
 def add_model_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
@@ -342,14 +319,14 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         "--fuse-fbank-feat",
         type=str2bool,
         default=True,
-        help="""if it is true, at fbank feat level, target speaker and mix speech interact with each other """
+        help="""if it is true, at fbank feat level, target speaker and mix speech interact with each other """,
     )
 
     parser.add_argument(
         "--fuse-speaker-embedding-feat",
         type=str2bool,
         default=False,
-        help="""if it is true, at embedding feat level, target speaker and mix speech interact with each other """
+        help="""if it is true, at embedding feat level, target speaker and mix speech interact with each other """,
     )
     return parser
 
@@ -393,12 +370,9 @@ def get_params() -> AttributeDict:
             "best_train_epoch": -1,
             "best_valid_epoch": -1,
             "batch_idx_train": 0,
-            "log_interval": 500,  # same as fairseq
+            "log_interval": 500,  # same as fairseq, default 500
             "reset_interval": 200,
-            # "valid_interval": 1500,  # same as fairseq
-            "valid_interval": 500,
-            # "ignore_id": -1,
-            # "label_smoothing": 0.1,
+            "valid_interval": 500,  # default is 500
             "batch_size": 64,
         }
     )
@@ -407,10 +381,14 @@ def get_params() -> AttributeDict:
 
 def calculate_loss(outs, labels, labels_len):
     total_loss = 0
+    logging.debug(f"outs: {outs},outs shape: {outs.shape}")
+    logging.debug(f"labels: {labels},labels shape: {labels.shape}")
     for i in range(labels_len.size(0)):
         total_loss += F.binary_cross_entropy_with_logits(
             outs[i, :, : labels_len[i]], labels[i, :, : labels_len[i]]
         )
+        logging.debug(f"total_loss: {total_loss}")
+    logging.debug(f"labels_len.shape: {labels_len.shape}")
     return total_loss / labels_len.size(0)
 
 
@@ -912,20 +890,22 @@ def main(args):
     model_cfg.wavlm_fuse_feat_post_norm = (
         params.wavlm_fuse_feat_post_norm
     )  # only for self.speech_encoder_type == "WavLM_weight_sum"
-    model_cfg.speech_encoder_config=params.speech_encoder_config # only for w2v-bert2.0 ssl model
+    model_cfg.speech_encoder_config = (
+        params.speech_encoder_config
+    )  # only for w2v-bert2.0 ssl model
 
     ## fuse feat method
     model_cfg.freeze_speaker_encoder_updates = params.freeze_speaker_encoder_updates
     model_cfg.fuse_fbank_feat = params.fuse_fbank_feat
     model_cfg.fuse_speaker_embedding_feat = params.fuse_speaker_embedding_feat
 
-
     logging.info(f"model_cfg: {model_cfg}")
-    model = TSVADModel(cfg=model_cfg)
-    #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg)
+    # model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
-    logging.info(f"Number of model parameters: {num_param}")
+    num_param = round(num_param / 1000 / 1000)
+    logging.info(f"Number of model parameters: {num_param}M")
 
     assert params.save_every_n >= params.average_period
     model_avg: Optional[nn.Module] = None
@@ -972,7 +952,7 @@ def main(args):
 
     # the below combine ddp find_unused_parameters=True in accelerate package.
     # it will solve the strange error.
-    #if True:
+    # if True:
     #    from functools import partial
 
     #    notfailing_checkpoint = partial(
@@ -981,8 +961,12 @@ def main(args):
     #    torch.utils.checkpoint.checkpoint = notfailing_checkpoint
     #    model.gradient_checkpointing_enable()
     if True:
-        model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        model.speech_encoder.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
+        model.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
 
@@ -1034,4 +1018,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.exp_dir = Path(args.exp_dir)
 
+    setup_logging(args.verbose)
     main(args)
