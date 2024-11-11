@@ -9,6 +9,7 @@ from tqdm import tqdm
 import numpy as np
 import soundfile as sf
 
+from torch.nn.utils.rnn import pad_sequence
 import torch
 import librosa
 import torchaudio.compliance.kaldi as kaldi
@@ -102,6 +103,9 @@ class TSVADDataset(torch.utils.data.Dataset):
         rir_path: str = None,
         noise_ratio: float = 0.5,
         spk_path: str = None,
+        fbank_spk_path: str = None,
+        frame_spk_path: str = None,
+        multi_level_fuse_spk: bool = False,
         rs_segment_shift: int = 2,
         zero_ratio: float = 0.5,
         max_num_speaker: int = 4,
@@ -120,6 +124,9 @@ class TSVADDataset(torch.utils.data.Dataset):
     ):
         self.audio_path = audio_path
         self.spk_path = spk_path
+        self.fbank_spk_path = fbank_spk_path
+        self.frame_spk_path = frame_spk_path
+        self.multi_level_fuse_spk = multi_level_fuse_spk
         self.ts_len = ts_len  # Number of second for target speech
 
         self.dataset_name = dataset_name
@@ -381,6 +388,135 @@ class TSVADDataset(torch.utils.data.Dataset):
         labels = torch.from_numpy(np.array(labels)).float()  # 4, T
         return ref_speech, labels, new_speaker_ids, rc
 
+    def load_alimeeting_multi_level_ts_embed(self,file,speaker_ids):
+        """
+        For target speaker embedding processing.
+        silence case:
+           inference: fill zero vector
+           train: random other target speaker embedding and mean it.
+        target speaker case:
+           inference: random one segement (i.e. 6s ) from target speaker embedding
+           train : mean on total segement target speaker embeddings.
+        """
+        target_speeches = [] # utterance level speaker embedding
+        fbank_feats = [] # fbank level speaker embedding
+        frame_feats = [] # frame level speaker embedding
+        exist_spk = []
+        # print(f"file:{file}, speaker_ids: {speaker_ids}")
+        for speaker_id in speaker_ids:
+            if speaker_id != -1 and speaker_id != -2:
+                audio_filename = speaker_id
+                exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
+
+        for speaker_id in speaker_ids:
+            if speaker_id == -1:  # Obatin the labels for silence
+                ## prepared silence embedding at inference stage and dev set and testset
+                if (
+                    np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 1
+                    or not self.is_train
+                ):
+
+                    # (TODO) maduo add speaker embedding dimension parameter to replace hard code.
+                    feature = torch.zeros(
+                        self.speaker_embed_dim
+                    )  # speaker embedding dimension of speaker model
+                    if self.fbank_spk_path is not None:
+                        fbank_feat = torch.zeros(self.ts_len*100,80) # (T,D) # T: 1s have 100frames, i.e.ts_len=6s, T=600,80 means fbank dimension
+                    if self.frame_spk_path is not None:
+                        frame_feat = torch.zeros(512,self.ts_len*100//2) # i.e. cam++ model, subsample is 2. frame dimension is 512.
+                else:
+                    # ## prepared silence embedding at train stage and trainset
+                    random_spk = random.choice(list(self.spk2data))
+
+                    while random_spk in exist_spk:
+                        random_spk = random.choice(list(self.spk2data))
+                    exist_spk.append(random_spk)
+
+                    random_spk_embed=random.choice(self.spk2data[random_spk])
+                    logger.debug(f"random_spk_embed: {random_spk_embed}")
+                    path = os.path.join(
+                        self.spk_path,## utterance level speaker embedding
+                        f"{random_spk_embed}.pt",
+                    )
+                    feature = torch.load(path, map_location="cpu")
+                    if self.fbank_spk_path is not None:
+                        fbank_path = os.path.join(
+                            self.fbank_spk_path,
+                            f"{random_spk_embed}.pt",
+                        )
+                        fbank_feat = torch.load(fbank_path,map_location="cpu")
+                    if self.frame_spk_path is not None:
+                        frame_path = os.path.join(
+                            self.frame_spk_path,
+                            f"{random_spk_embed}.pt",
+                        )
+                        frame_feat = torch.load(frame_path,map_location="cpu")
+
+            elif speaker_id == -2:  # # Obatin the labels for extral
+                feature = torch.zeros(
+                    self.speaker_embed_dim
+                )  # speaker embedding dimension of speaker model
+                if self.fbank_spk_path is not None:
+                    fbank_feat = torch.zeros(self.ts_len*100,80) # (T,D) # T: 1s have 100frames, i.e.ts_len=6s, T=600,80 means fbank dimension
+                if self.frame_spk_path is not None:
+                    fbank_feat = torch.zeros(512,self.ts_len*100//2) #(F,T//2) i.e. cam++ model, subsample is 2. frame dimension is 512.
+            else:  # # Obatin the labels for speaker
+                audio_filename = speaker_id
+                path = os.path.join(self.spk_path, file, str(audio_filename) + ".pt")
+                logger.debug(f"file, str(audio_filename): {file}/{str(audio_filename)}")
+                logger.debug(f"feature path: {path}")
+                feature = torch.load(path, map_location="cpu")
+                if self.fbank_spk_path is not None:
+                    fbank_path = os.path.join(self.fbank_spk_path,file, str(audio_filename) + ".pt")
+                    fbank_feat = torch.load(fbank_path,map_location="cpu") # (num_segments, T,80)
+
+                if self.frame_spk_path is not None:
+                    frame_path = os.path.join(self.frame_spk_path,file, str(audio_filename) + ".pt")
+                    logger.debug(f"frame_path: {frame_path}")
+                    frame_feat = torch.load(frame_path,map_location="cpu") # (num_segments, 512,T//2)
+
+
+            if len(feature.size()) == 2 :
+                if self.is_train:
+                    segments_index = random.randint(0, feature.shape[0] - 1) #
+                    logger.debug(f"feature shape: {feature.shape}, segments_index: {segments_index}")
+                    feature = feature[segments_index, :]
+                    if self.fbank_spk_path is not None and len(fbank_feat.size()) == 3:
+                        fbank_feat = fbank_feat[segments_index,:,:]
+                    if self.frame_spk_path is not None and len(frame_feat.size()) == 3:
+                        logger.debug(f"frame_feat shape: {frame_feat.shape}, segments_index: {segments_index}")
+                        frame_feat = frame_feat[segments_index,:,:]
+                else:
+                    # feature = torch.mean(feature, dim = 0)
+                    feature = torch.mean(feature, dim=0)
+                    if self.fbank_spk_path is not None and len(fbank_feat.size()) == 3:
+                        fbank_feat = torch.mean(fbank_feat,dim=0)
+                    if self.frame_spk_path is not None and len(frame_feat.size()) == 3:
+                        frame_feat = torch.mean(frame_feat,dim=0)
+            target_speeches.append(feature)
+            if self.fbank_spk_path is not None:
+                fbank_feats.append(fbank_feat)
+            if self.frame_spk_path is not None:
+                frame_feats.append(frame_feat)
+        target_speeches = torch.stack(target_speeches)
+        fbank_featss = torch.zeros(4,self.ts_len*100,80)
+        frame_featss = torch.zeros(4,512,self.ts_len*100//2)
+        if self.fbank_spk_path is not None:
+            #if fbank_feats.size(1)!=self.ts_len*100:
+            #    pad_len=self.ts_len*100-fbank_feats.size(1)
+                #fbank_feats = torch.nn.functional.pad(fbank_feats,(0,0,0,pad_len),mode='constant', value=0)
+            fbank_featss = pad_sequence(fbank_feats,batch_first=True)
+            logger.debug(f"fbank_featss: {fbank_featss},its shape: {fbank_featss.shape}")
+            #fbank_featss = torch.stack(fbank_feats)
+        if self.frame_spk_path is not None:
+            # frame_feats: [(D,T1),(D,T2)...] ->[(T1,D),(T2,D),...]
+            frame_feats = [frame_feat.permute(1,0) for frame_feat in frame_feats]
+            frame_featss = pad_sequence(frame_feats,batch_first=True) #(4,T,D)
+            #frame_featss = frame_featss.permute(0,2,1) #(4,D,T)
+
+            logger.debug(f"frame_featss: {frame_featss},its shape: {frame_featss.shape}")
+        return target_speeches,fbank_featss, frame_featss
+
     def load_alimeeting_ts_embed(self, file, speaker_ids):
         """
         For target speaker embedding processing.
@@ -440,7 +576,6 @@ class TSVADDataset(torch.utils.data.Dataset):
                 else:
                     # feature = torch.mean(feature, dim = 0)
                     feature = torch.mean(feature, dim=0)
-
             target_speeches.append(feature)
         target_speeches = torch.stack(target_speeches)
         return target_speeches
@@ -448,8 +583,9 @@ class TSVADDataset(torch.utils.data.Dataset):
     def load_ts_embed(self, file, speaker_ids):
         ## prepared target speaker embedding data
         if self.dataset_name == "alimeeting":
-            target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
-        return target_speeches
+            target_speeches, fbank_feats, frame_feats = self.load_alimeeting_multi_level_ts_embed(file, speaker_ids)
+                #target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
+            return target_speeches,fbank_feats, frame_feats
 
     def load_ts(self, file, speaker_ids):
         ## prepared target speaker wavform data
@@ -498,8 +634,8 @@ class TSVADDataset(torch.utils.data.Dataset):
                     path = os.path.join(self.audio_path, f"{random.choice(self.spk2data[random_spk])}.wav")
                     logger.debug(
                          f"speaker_id==-1,random target speech :{path} random_spk: {random_spk}")
-                    #target_speech = self.cut_target_speech(path,rc)
-                    target_speech = self.cut_target_speech_v2(path,rc)
+                    target_speech = self.cut_target_speech(path,rc)
+                    #target_speech = self.cut_target_speech_v2(path,rc)
                 else:
                     # for inference silence case or use zeros vector to instead random target speech.
                     target_speech = torch.zeros(self.ts_len * self.sample_rate)  # fake one
@@ -509,8 +645,8 @@ class TSVADDataset(torch.utils.data.Dataset):
             else:  # # Obatin the labels for speaker
                 audio_filename = speaker_id
                 path = os.path.join(self.audio_path, file, str(audio_filename) + ".wav")
-                #target_speech = self.cut_target_speech(path,rc)
-                target_speech = self.cut_target_speech_v2(path,rc)
+                target_speech = self.cut_target_speech(path,rc)
+                #target_speech = self.cut_target_speech_v2(path,rc)
                 logger.debug(f"target speaker wavform: {path},self.audio_path: {self.audio_path}, file: {file},str(audio_filename): {str(audio_filename)}!!!")
             target_speeches.append(target_speech)
         logger.debug(f"target_speeches: {target_speeches}")
@@ -533,8 +669,8 @@ class TSVADDataset(torch.utils.data.Dataset):
             target_speechss, _ = sf.read(path)
             target_speechss = torch.from_numpy(target_speechss)
         else:
-            for start in range(0,wav_length - int(args.ts_len * 16000), int(1* 16000)):
-                stop = random_start + int(args.ts_len * 16000)
+            for start in range(0,wav_length - int(self.ts_len * 16000), int(1* 16000)):
+                stop = random_start + int(self.ts_len * 16000)
                 target_speech, _ = sf.read(path, start=random_start, stop=stop)
                 target_speechs.append(torch.from_numpy(target_speech))
             target_speechss = torch.stack(target_speechs) #(num_segs,args.ts_len * 16000)
@@ -646,7 +782,7 @@ class TSVADDataset(torch.utils.data.Dataset):
 
     def num_tokens(self, index):
         return self.size(index)
-
+    # for batch
     def collater(self, samples):
         if len([s["labels"] for s in samples]) == 0:
             return {}
@@ -662,6 +798,15 @@ class TSVADDataset(torch.utils.data.Dataset):
             )
 
         target_speech = torch.stack([s["target_speech"] for s in samples], dim=0)
+        #fbank_feat = torch.stack([s["fbank_feat"] for s in samples], dim=0)
+        fbank_feat = _collate_data(
+            [s["fbank_feat"] for s in samples], is_embed_input=True
+        )# (B,4,T,F)
+        #frame_feat = torch.stack([s["frame_feat"] for s in samples], dim=0)
+        frame_feat = _collate_data(
+                [s["frame_feat"] for s in samples], is_embed_input=True
+        ) #(B,4,T,D)
+        frame_feat = frame_feat.permute(0,1,3,2) #(B,4,D,T)
         labels_len = torch.tensor(
             [s["labels"].size(1) for s in samples], dtype=torch.long
         )
@@ -672,6 +817,8 @@ class TSVADDataset(torch.utils.data.Dataset):
         net_input = {
             "ref_speech": ref_speech,
             "target_speech": target_speech,
+            "fbank_feat": fbank_feat,
+            "frame_feat": frame_feat,
             "labels": labels,
             "labels_len": labels_len,
             "file_path": [s["file_path"] for s in samples],
@@ -713,12 +860,14 @@ class TSVADDataset(torch.utils.data.Dataset):
             target_speech = self.load_ts(file, new_speaker_ids)
             # logger.info(f"in the __getitem__ fn: target_speech shape: {target_speech.shape}")
         else:
-            target_speech = self.load_ts_embed(file, new_speaker_ids)
+            target_speech,fbank_feat,frame_feat = self.load_ts_embed(file, new_speaker_ids)
 
         samples = {
             "id": index,
             "ref_speech": ref_speech,
             "target_speech": target_speech,
+            "fbank_feat": fbank_feat,
+            "frame_feat": frame_feat,
             "labels": labels,
             "file_path": file,
             "speaker_ids": np.array(speaker_ids),

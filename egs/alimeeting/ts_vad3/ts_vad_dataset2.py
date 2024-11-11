@@ -440,7 +440,6 @@ class TSVADDataset(torch.utils.data.Dataset):
                 else:
                     # feature = torch.mean(feature, dim = 0)
                     feature = torch.mean(feature, dim=0)
-
             target_speeches.append(feature)
         target_speeches = torch.stack(target_speeches)
         return target_speeches
@@ -498,8 +497,8 @@ class TSVADDataset(torch.utils.data.Dataset):
                     path = os.path.join(self.audio_path, f"{random.choice(self.spk2data[random_spk])}.wav")
                     logger.debug(
                          f"speaker_id==-1,random target speech :{path} random_spk: {random_spk}")
-                    #target_speech = self.cut_target_speech(path,rc)
-                    target_speech = self.cut_target_speech_v2(path,rc)
+                    target_speech = self.cut_target_speech(path,rc)
+                    #target_speech = self.cut_target_speech_v2(path,rc)
                 else:
                     # for inference silence case or use zeros vector to instead random target speech.
                     target_speech = torch.zeros(self.ts_len * self.sample_rate)  # fake one
@@ -509,8 +508,8 @@ class TSVADDataset(torch.utils.data.Dataset):
             else:  # # Obatin the labels for speaker
                 audio_filename = speaker_id
                 path = os.path.join(self.audio_path, file, str(audio_filename) + ".wav")
-                #target_speech = self.cut_target_speech(path,rc)
-                target_speech = self.cut_target_speech_v2(path,rc)
+                target_speech = self.cut_target_speech(path,rc)
+                #target_speech = self.cut_target_speech_v2(path,rc)
                 logger.debug(f"target speaker wavform: {path},self.audio_path: {self.audio_path}, file: {file},str(audio_filename): {str(audio_filename)}!!!")
             target_speeches.append(target_speech)
         logger.debug(f"target_speeches: {target_speeches}")
@@ -533,8 +532,8 @@ class TSVADDataset(torch.utils.data.Dataset):
             target_speechss, _ = sf.read(path)
             target_speechss = torch.from_numpy(target_speechss)
         else:
-            for start in range(0,wav_length - int(args.ts_len * 16000), int(1* 16000)):
-                stop = random_start + int(args.ts_len * 16000)
+            for start in range(0,wav_length - int(self.ts_len * 16000), int(1* 16000)):
+                stop = random_start + int(self.ts_len * 16000)
                 target_speech, _ = sf.read(path, start=random_start, stop=stop)
                 target_speechs.append(torch.from_numpy(target_speech))
             target_speechss = torch.stack(target_speechs) #(num_segs,args.ts_len * 16000)

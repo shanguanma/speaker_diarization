@@ -38,6 +38,8 @@ def setup_logging(verbose):
         #logging.debug("Skip DEBUG/INFO messages")
 
 def fix_random_seed2(seed: int):
+    import random
+    torch.random.manual_seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)

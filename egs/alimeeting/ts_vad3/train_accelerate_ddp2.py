@@ -51,8 +51,8 @@ from utils import (
     none_or_str,
 )
 
-from datasets import load_dataset
-from datasets import TSVADDataConfig
+from datasets2 import load_dataset
+from datasets2 import TSVADDataConfig
 from model import TSVADModel
 from model import TSVADConfig
 
@@ -849,6 +849,7 @@ def main(args):
     data_cfg.speaker_embedding_name_dir = params.speaker_embedding_name_dir
     data_cfg.data_dir = params.data_dir
     data_cfg.speaker_embed_dim = params.speaker_embed_dim
+    data_cfg.ts_len = params.ts_len
     logging.info(f"data_cfg: {data_cfg}")
     valid_dataset = load_dataset(data_cfg, "Eval")
     train_dataset = load_dataset(data_cfg, "Train")

@@ -229,8 +229,8 @@ def load_model(
 def main(args):
     setup_logging(verbose=2)
     ## load dataset
-    from datasets import TSVADDataConfig
-    from datasets import load_dataset
+    from datasets2 import TSVADDataConfig
+    from datasets2 import load_dataset
     from model import TSVADModel
     from model import TSVADConfig
 
@@ -447,7 +447,7 @@ def get_args():
         default="ts_vad/exp",
         help="The experiment dir",
     )
-    from train_accelerate_ddp import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    from train_accelerate_ddp2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)

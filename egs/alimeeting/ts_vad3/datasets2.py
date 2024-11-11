@@ -3,7 +3,7 @@
 # Email: maduo@cuhk.edu.cn
 
 from torch.utils.data import DataLoader
-from ts_vad_dataset import TSVADDataset
+from ts_vad_dataset2 import TSVADDataset
 from dataclasses import dataclass
 
 

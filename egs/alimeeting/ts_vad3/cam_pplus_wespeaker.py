@@ -440,8 +440,15 @@ if __name__ == '__main__':
         print(f"name: {name}, v: {v.shape}")
     print("{} M".format(num_params / 1e6)) # 6.61M
     """
-    x = torch.zeros(10, 600, 80) # B,T,F
+    #x = torch.zeros(10, 600, 80) # B,T,F
+    wav_path="/mntcephfs/lab_data/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/target_audio/R8001_M8004_MS801/1.wav"
+    import torchaudio.compliance.kaldi as Kaldi
+    import torchaudio
+    x,_ = torchaudio.load(wav_path)
+    x = x*(1<<15)
+    x =  Kaldi.fbank(x,num_mel_bins=80,sample_frequency=16000,dither=0)
+    x = x.unsqueeze(0)
     model = CAMPPlus(feat_dim=80,embedding_size=192)
     model.eval()
     utt_feat, frame_feat = model(x)
-    print(utt_feat.shape, frame_feat.shape) # utt_feat: (10,192) frame_feat: (10, 512, 300)
+    print(utt_feat, utt_feat.shape,frame_feat, frame_feat.shape) # utt_feat: (10,192) frame_feat: (10, 512, 300)

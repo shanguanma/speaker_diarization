@@ -3,7 +3,7 @@
 # Email: maduo@cuhk.edu.cn
 
 from torch.utils.data import DataLoader
-from ts_vad_dataset import TSVADDataset
+from ts_vad_dataset3 import TSVADDataset
 from dataclasses import dataclass
 
 
@@ -21,10 +21,14 @@ class TSVADDataConfig:
     rs_segment_shift: int = 2
     """The number of seconds for sliding to capture the reference(mix) speech"""
 
-    spk_path: str = (
-        "/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding"
-    )
+    spk_path: str = "/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding"
     """path to target speaker embedding directory, if it is not None, otherwise we will use target speaker wavfrom via `data_dir` """
+
+    fbank_spk_path: str ="/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/spk_embed/alimeeting/fbank_featSpeakerEmbedding"
+    """path to target speaker fbank embedding directory, if it is not None, we will fuse this feature into speech encoder"""
+
+    frame_spk_path: str = "/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/spk_embed/alimeeting/frame_featSpeakerEmbedding"
+    """path to target speaker frame level embedding directory, if it is not None, we will fuse this feature into speech encoder"""
 
     speech_encoder_type: str = "cam++"
     """path to pretrained speaker encoder path."""
@@ -98,6 +102,15 @@ def load_dataset(
                 spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
             else:
                 spk_path = None # we will use target speaker wavform via `audio_path`
+            if cfg.fbank_spk_path is not None:
+                fbank_spk_path = f"{cfg.fbank_spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## fbank speaker embedding directory
+            else:
+                fbank_spk_path = None
+            if cfg.frame_spk_path is not None:
+                frame_spk_path = f"{cfg.frame_spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## fbank speaker embedding directory
+            else:
+                frame_spk_path = None
+
             json_path = f"{cfg.data_dir}/{split}_Ali/{split}_Ali_far/{split}.json"  ## offer mixer wavform name,
             audio_path = f"{cfg.data_dir}/{split}_Ali/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
         elif split == "Train":
@@ -105,6 +118,15 @@ def load_dataset(
                 spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
             else:
                 spk_path = None # we will use target speaker wavform via `audio_path`
+            if cfg.fbank_spk_path is not None:
+                fbank_spk_path = f"{cfg.fbank_spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## fbank speaker embedding directory
+            else:
+                fbank_spk_path = None
+            if cfg.frame_spk_path is not None:
+                frame_spk_path = f"{cfg.frame_spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## fbank speaker embedding directory
+            else:
+                frame_spk_path = None
+
             json_path = f"{cfg.data_dir}/{split}_Ali_far/{split}.json"  ## offer mixer wavform name,
             audio_path = f"{cfg.data_dir}/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
     else:
@@ -124,6 +146,8 @@ def load_dataset(
         ts_len=cfg.ts_len,
         rs_len=cfg.rs_len,
         spk_path=spk_path,
+        fbank_spk_path=fbank_spk_path,
+        frame_spk_path=frame_spk_path,
         is_train="train" in split.lower(),
         rs_segment_shift=cfg.rs_segment_shift, # cut mixer wavform
         zero_ratio=cfg.zero_ratio,
@@ -152,7 +176,8 @@ if __name__ == "__main__":
             level=logging.DEBUG,
             format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
         )
-    cfg.spk_path = None
+    #cfg.frame_spk_path = None
+    #cfg.fbank_spk_path = None
     eval_dataset = load_dataset(cfg, "Train")
 
     print(eval_dataset)

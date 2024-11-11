@@ -51,10 +51,10 @@ from utils import (
     none_or_str,
 )
 
-from datasets import load_dataset
-from datasets import TSVADDataConfig
-from model import TSVADModel
-from model import TSVADConfig
+from datasets3 import load_dataset
+from datasets3 import TSVADDataConfig
+from model2 import TSVADModel
+from model2 import TSVADConfig
 
 # logging.basicConfig(
 #    level=logging.INFO,
@@ -243,7 +243,22 @@ def add_data_arguments(parser: argparse.ArgumentParser):
         default=None,
         help="target speaker embedding path.i.e./mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding",
     )
-
+    parser.add_argument(
+        "--fbank-spk-path",
+        type=none_or_str,
+        nargs="?",
+        default=None,
+        help="""target speaker fbank level feat embedding path,if it is not None, we will fuse this feature into speech encoder
+        i.e./mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/spk_embed/alimeeting/fbank_featSpeakerEmbedding/""",
+    )
+    parser.add_argument(
+        "--frame-spk-path",
+        type=none_or_str,
+        nargs="?",
+        default=None,
+        help="""target speaker frame level embedding path,if it is not None, we will fuse this feature into speech encoder
+        i.e./mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/spk_embed/alimeeting/frame_featSpeakerEmbedding/""",
+    )
     parser.add_argument(
         "--speaker-embedding-name-dir",
         type=none_or_str,
@@ -347,7 +362,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         "--fuse-speaker-embedding-feat",
         type=str2bool,
         default=False,
-        help="""if it is true, at embedding feat level, target speaker and mix speech interact with each other """,
+        help="""if it is true, at embedding frame level, target speaker and mix speech interact with each other """,
     )
     return parser
 
@@ -441,11 +456,15 @@ def compute_loss(
     with torch.set_grad_enabled(is_training):
         ref_speech = batch["net_input"]["ref_speech"]
         target_speech = batch["net_input"]["target_speech"]
+        fbank_feat = batch["net_input"]["fbank_feat"]
+        frame_feat = batch["net_input"]["frame_feat"]
         labels = batch["net_input"]["labels"]
         labels_len = batch["net_input"]["labels_len"]
         outs = model(
             ref_speech=ref_speech,
             target_speech=target_speech,
+            fbank_feat=fbank_feat,
+            frame_feat=frame_feat,
             labels=labels,
             num_updates=batch_idx_train,
         )
@@ -846,9 +865,12 @@ def main(args):
     data_cfg.rir_path = params.rir_path
     data_cfg.speech_encoder_type = params.speech_encoder_type
     data_cfg.spk_path = params.spk_path
+    data_cfg.fbank_spk_path = params.fbank_spk_path
+    data_cfg.frame_spk_path = params.frame_spk_path
     data_cfg.speaker_embedding_name_dir = params.speaker_embedding_name_dir
     data_cfg.data_dir = params.data_dir
     data_cfg.speaker_embed_dim = params.speaker_embed_dim
+    data_cfg.ts_len = params.ts_len
     logging.info(f"data_cfg: {data_cfg}")
     valid_dataset = load_dataset(data_cfg, "Eval")
     train_dataset = load_dataset(data_cfg, "Train")
@@ -1035,6 +1057,8 @@ def main(args):
 
 
 if __name__ == "__main__":
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
     parser = get_parser()
     args = parser.parse_args()
     args.exp_dir = Path(args.exp_dir)

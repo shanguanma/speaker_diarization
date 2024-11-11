@@ -387,3 +387,202 @@ done
 #
 #Eval for threshold 0.80: DER 9.30%, MS 8.74%, FA 0.19%, SC 0.37%
 fi
+
+if [ ${stage} -le 105 ] && [ ${stop_stage} -ge 105 ];then
+ exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=4
+ segment_shift=1
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="Eval Test"
+ #infer_sets="Test"
+ rttm_dir=/mntcephfs/lab_data/maduo/model_hub/ts_vad
+ sctk_tool_path="./SCTK-2.4.12"
+ collar=0.25
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+ speech_encoder_type="w2v-bert2"
+ speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/model.safetensors"
+ speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+ # for loading speaker embedding file
+ #spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+ spk_path=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2_based_on_system_sad/exp/iter1_again/SpeakerEmbedding # store speaker embedding directory
+ speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
+ # data_dir="/mntcephfs/lab_data/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
+ data_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2_based_on_system_sad/exp/iter1_again
+ for name in $infer_sets;do
+    results_path=$exp_dir/sys_cam++_w2v-bert2.0_${name}
+  python3 ts_vad2/infer2.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name alimeeting_${name}.rttm\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $collar\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --speech-encoder-config $speech_encoder_config\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir
+done
+# sbatch --nodes 1 --ntasks-per-node=32 --cpus-per-task=1  -p p-cpu -A t00120220002 -o logs/run_ts_vad2_based_on_system_sad2_stag105.log run_ts_vad2_based_on_system_sad2.sh  --stage 105 --stop-stage 105
+#Submitted batch job 201895
+# cat logs/run_ts_vad2_based_on_system_sad2_stag105.log
+# Eval set
+# Model DER:  0.3327398234301163
+#Model ACC:  0.916309349110277
+#100%|██████████| 25/25 [00:29<00:00,  1.17s/it]
+#Eval for threshold 0.20: DER 8.59%, MS 0.75%, FA 7.62%, SC 0.22%
+#
+#Eval for threshold 0.30: DER 5.72%, MS 1.15%, FA 4.35%, SC 0.22%
+#
+#Eval for threshold 0.35: DER 5.08%, MS 1.38%, FA 3.45%, SC 0.25%
+#
+#Eval for threshold 0.40: DER 4.54%, MS 1.66%, FA 2.64%, SC 0.25%
+#
+#Eval for threshold 0.45: DER 4.26%, MS 1.96%, FA 2.05%, SC 0.25%
+#
+#Eval for threshold 0.50: DER 4.19%, MS 2.31%, FA 1.65%, SC 0.23%
+#
+#Eval for threshold 0.55: DER 4.18%, MS 2.68%, FA 1.28%, SC 0.22%
+#
+#Eval for threshold 0.60: DER 4.29%, MS 3.09%, FA 1.01%, SC 0.19%
+#
+#Eval for threshold 0.70: DER 5.16%, MS 4.37%, FA 0.65%, SC 0.14%
+#
+#Eval for threshold 0.80: DER 7.08%, MS 6.56%, FA 0.45%, SC 0.07%
+
+## Test set
+#Model DER:  0.5342115560678277
+#Model ACC:  0.7266891025710713
+#100%|██████████| 60/60 [01:11<00:00,  1.19s/it]
+#Eval for threshold 0.20: DER 8.78%, MS 0.85%, FA 7.51%, SC 0.42%
+#
+#Eval for threshold 0.30: DER 5.93%, MS 1.36%, FA 4.02%, SC 0.54%
+#
+#Eval for threshold 0.35: DER 5.28%, MS 1.68%, FA 3.01%, SC 0.59%
+#
+#Eval for threshold 0.40: DER 4.87%, MS 2.04%, FA 2.21%, SC 0.62%
+#
+#Eval for threshold 0.45: DER 4.75%, MS 2.49%, FA 1.64%, SC 0.62%
+#
+#Eval for threshold 0.50: DER 4.79%, MS 2.98%, FA 1.21%, SC 0.60%
+#
+#Eval for threshold 0.55: DER 5.03%, MS 3.58%, FA 0.91%, SC 0.54%
+#
+#Eval for threshold 0.60: DER 5.49%, MS 4.35%, FA 0.67%, SC 0.48%
+#
+#Eval for threshold 0.70: DER 6.76%, MS 6.06%, FA 0.35%, SC 0.35%
+#
+#Eval for threshold 0.80: DER 9.03%, MS 8.61%, FA 0.19%, SC 0.24%
+fi
+
+if [ ${stage} -le 106 ] && [ ${stop_stage} -ge 106 ];then
+ exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=4
+ segment_shift=1
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="Eval Test"
+ #infer_sets="Test"
+ rttm_dir=/mntcephfs/lab_data/maduo/model_hub/ts_vad
+ sctk_tool_path="./SCTK-2.4.12"
+ collar=0.25
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+ speech_encoder_type="w2v-bert2"
+ speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/model.safetensors"
+ speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+ # for loading speaker embedding file
+ #spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+ spk_path=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2_based_on_system_sad/exp/iter1_resnet34-lm_spectral_cluster/SpeakerEmbedding # store speaker embedding directory
+ speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
+ #data_dir="/mntcephfs/lab_data/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
+ # # spectral cluster target audio , mix audio and labels path
+ data_dir="/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2_based_on_system_sad/exp/iter1_resnet34-lm_spectral_cluster"
+ for name in $infer_sets;do
+    results_path=$exp_dir/sys_cam++_w2v-bert2.0_${name}
+  python3 ts_vad2/infer2.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name alimeeting_${name}.rttm\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $collar\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --speech-encoder-config $speech_encoder_config\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir
+done
+# sbatch --nodes 1 --ntasks-per-node=32 --cpus-per-task=1  -p p-cpu -A t00120220002 -o logs/run_ts_vad2_based_on_system_sad2_stag106.log run_ts_vad2_based_on_system_sad2.sh  --stage 106 --stop-stage 106
+# Submitted batch job 201973
+#Eval set
+#Model DER:  0.3405243176169101
+#Model ACC:  0.9122704355128971
+#100%|██████████| 24/24 [00:28<00:00,  1.18s/it]
+#Eval for threshold 0.20: DER 10.00%, MS 0.82%, FA 7.39%, SC 1.79%
+#
+#Eval for threshold 0.30: DER 7.24%, MS 1.25%, FA 4.30%, SC 1.69%
+#
+#Eval for threshold 0.35: DER 6.50%, MS 1.50%, FA 3.35%, SC 1.65%
+#
+#Eval for threshold 0.40: DER 6.01%, MS 1.79%, FA 2.62%, SC 1.59%
+#
+#Eval for threshold 0.45: DER 5.70%, MS 2.16%, FA 2.03%, SC 1.50%
+#
+#Eval for threshold 0.50: DER 5.58%, MS 2.55%, FA 1.62%, SC 1.41%
+#
+#Eval for threshold 0.55: DER 5.55%, MS 2.96%, FA 1.27%, SC 1.33%
+#
+#Eval for threshold 0.60: DER 5.62%, MS 3.45%, FA 0.96%, SC 1.20%
+#
+#Eval for threshold 0.70: DER 6.41%, MS 4.81%, FA 0.65%, SC 0.94%
+#
+#Eval for threshold 0.80: DER 8.19%, MS 7.08%, FA 0.45%, SC 0.65%
+#
+# Test set
+#Model DER:  0.4018500236023503
+#Model ACC:  0.9086337977600223
+#100%|██████████| 59/59 [01:10<00:00,  1.19s/it]
+#Eval for threshold 0.20: DER 8.87%, MS 1.02%, FA 7.17%, SC 0.67%
+#
+#Eval for threshold 0.30: DER 6.12%, MS 1.54%, FA 3.81%, SC 0.77%
+#
+#Eval for threshold 0.35: DER 5.46%, MS 1.83%, FA 2.84%, SC 0.79%
+#
+#Eval for threshold 0.40: DER 5.11%, MS 2.19%, FA 2.11%, SC 0.81%
+#
+#Eval for threshold 0.45: DER 5.00%, MS 2.62%, FA 1.57%, SC 0.81%
+#
+#Eval for threshold 0.50: DER 5.02%, MS 3.10%, FA 1.13%, SC 0.79%
+#
+#Eval for threshold 0.55: DER 5.27%, MS 3.70%, FA 0.85%, SC 0.73%
+#
+#Eval for threshold 0.60: DER 5.69%, MS 4.40%, FA 0.61%, SC 0.67%
+#
+#Eval for threshold 0.70: DER 6.93%, MS 6.09%, FA 0.34%, SC 0.50%
+#
+#Eval for threshold 0.80: DER 9.09%, MS 8.57%, FA 0.18%, SC 0.35%
+
+fi

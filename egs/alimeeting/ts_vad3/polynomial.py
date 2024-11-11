@@ -20,6 +20,10 @@ from torch.optim.lr_scheduler import _LRScheduler
 
 LRScheduler: TypeAlias = _LRScheduler
 
+def get_effective_lr(scheduler: LRScheduler) -> float:
+    """Return the effective learning rate computed by ``scheduler``."""
+    return scheduler.get_last_lr()[0]
+
 
 class AbstractLRScheduler(ABC, LRScheduler):
     """Provides a skeletal implementation of :class:`LRScheduler`."""

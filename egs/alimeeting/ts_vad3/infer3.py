@@ -229,10 +229,10 @@ def load_model(
 def main(args):
     setup_logging(verbose=2)
     ## load dataset
-    from datasets import TSVADDataConfig
-    from datasets import load_dataset
-    from model import TSVADModel
-    from model import TSVADConfig
+    from datasets3 import TSVADDataConfig
+    from datasets3 import load_dataset
+    from model2 import TSVADModel
+    from model2 import TSVADConfig
 
     model_cfg = TSVADConfig()
     data_cfg = TSVADDataConfig()
@@ -243,6 +243,8 @@ def main(args):
     data_cfg.rs_len = args.rs_len
     data_cfg.rs_segment_shift = args.rs_segment_shift
     data_cfg.spk_path = args.spk_path
+    data_cfg.fbank_spk_path = args.fbank_spk_path
+    data_cfg.frame_spk_path = args.frame_spk_path
     data_cfg.speaker_embedding_name_dir = args.speaker_embedding_name_dir
     data_cfg.data_dir = args.data_dir
     data_cfg.speaker_embed_dim = args.speaker_embed_dim
@@ -447,7 +449,7 @@ def get_args():
         default="ts_vad/exp",
         help="The experiment dir",
     )
-    from train_accelerate_ddp import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    from train_accelerate_ddp3 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)
