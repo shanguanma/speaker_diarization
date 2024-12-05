@@ -1,0 +1,36 @@
+
+srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
+
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage23.log run_ts_vad3_hltsz.sh --stage 23 --stop-stage 23
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage25.log run_ts_vad3_hltsz.sh --stage 25 --stop-stage 25
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage22_23.log run_ts_vad3_hltsz.sh --stage 22 --stop-stage 23
+Submitted batch job 12373
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage24_25.log run_ts_vad3_hltsz.sh --stage 24 --stop-stage 25
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage21.log run_ts_vad3_hltsz.sh --stage 21 --stop-stage 21
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage19.log run_ts_vad3_hltsz.sh --stage 19 --stop-stage 19
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage17.log run_ts_vad3_hltsz.sh --stage 17 --stop-stage 17
+Submitted batch job 12326
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage22_23.log run_ts_vad3_hltsz.sh --stage 22 --stop-stage 23
+Submitted batch job 12325
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage20_21.log run_ts_vad3_hltsz.sh --stage 20 --stop-stage 21
+Submitted batch job 12324 
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage18_19.log run_ts_vad3_hltsz.sh --stage 18 --stop-stage 19
+Submitted batch job 12273
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage16_17.log run_ts_vad3_hltsz.sh --stage 16 --stop-stage 17
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage14_15.log run_ts_vad3_hltsz.sh --stage 14 --stop-stage 15
+Submitted batch job 12183
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage12_13.log run_ts_vad3_hltsz.sh --stage 12 --stop-stage 13
+Submitted batch job 12182
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage11_debug.log run_ts_vad3_hltsz.sh --stage 11 --stop-stage 11
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage2_onegpu.log run_ts_vad3_hltsz.sh --stage 2 --stop-stage 2
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad3_hltsz_stage10_debug.log run_ts_vad3_hltsz.sh --stage 10 --stop-stage 10
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage5-6_onegpu.log run_ts_vad3_hltsz.sh --stage 5 --stop-stage 6
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage3-4_onegpu.log run_ts_vad3_hltsz.sh --stage 3 --stop-stage 4
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage1-2_onegpu.log run_ts_vad3_hltsz.sh --stage 1 --stop-stage 2
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage1-2.log run_ts_vad3_hltsz.sh --stage 1 --stop-stage 2
