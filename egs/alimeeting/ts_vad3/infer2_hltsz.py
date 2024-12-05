@@ -267,6 +267,8 @@ def main(args):
     # load model
     model_cfg.speech_encoder_type = args.speech_encoder_type  #
     model_cfg.speech_encoder_path = args.speech_encoder_path
+    model_cfg.speaker_encoder_type = args.speaker_encoder_type
+    model_cfg.speaker_encoder_path = args.speaker_encoder_path
     model_cfg.speaker_embed_dim = args.speaker_embed_dim
     model_cfg.select_encoder_layer_nums = (
         args.select_encoder_layer_nums
@@ -275,6 +277,8 @@ def main(args):
     model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
     model_cfg.fuse_fbank_feat = args.fuse_fbank_feat
     model_cfg.fuse_speaker_embedding_feat = args.fuse_speaker_embedding_feat
+    model_cfg.fuse_attn_type = args.fuse_attn_type
+
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
 
@@ -447,7 +451,7 @@ def get_args():
         default="ts_vad/exp",
         help="The experiment dir",
     )
-    from train_accelerate_ddp2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    from train_accelerate_ddp2_debug_hltsz2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)

@@ -8,6 +8,8 @@ from torch import nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as cp
 
+from torch.utils.checkpoint import checkpoint
+from typing import Any, Callable
 
 def get_nonlinear(config_str, channels):
     nonlinear = nn.Sequential()
@@ -319,10 +321,177 @@ class CAMPPlus(nn.Module):
         init_channels=128,
         config_str="batchnorm-relu",
         memory_efficient=True,
-        #speech_encoder=False,
+        speech_encoder=False,
         #speech_encoder=True,
     ):
         super(CAMPPlus, self).__init__()
+
+        self.head = FCM(feat_dim=feat_dim)
+        channels = self.head.out_channels
+
+        self.xvector = nn.Sequential(
+            OrderedDict(
+                [
+                    (
+                        "tdnn",
+                        TDNNLayer(
+                            channels,
+                            init_channels,
+                            5,
+                            stride=2,
+                            dilation=1,
+                            padding=-1,
+                            config_str=config_str,
+                        ),
+                    ),
+                ]
+            )
+        )
+        channels = init_channels
+        for i, (num_layers, kernel_size, dilation) in enumerate(
+            zip((12, 24, 16), (3, 3, 3), (1, 2, 2))
+        ):
+            block = CAMDenseTDNNBlock(
+                num_layers=num_layers,
+                in_channels=channels,
+                out_channels=growth_rate,
+                bn_channels=bn_size * growth_rate,
+                kernel_size=kernel_size,
+                dilation=dilation,
+                config_str=config_str,
+                memory_efficient=memory_efficient,
+            )
+            self.xvector.add_module("block%d" % (i + 1), block)
+            channels = channels + num_layers * growth_rate
+            self.xvector.add_module(
+                "transit%d" % (i + 1),
+                TransitLayer(
+                    channels, channels // 2, bias=False, config_str=config_str
+                ),
+            )
+            channels //= 2
+
+        self.xvector.add_module("out_nonlinear", get_nonlinear(config_str, channels))
+
+        self.xvector.add_module("stats", StatsPool())
+        if not speech_encoder:
+            self.xvector.add_module(
+               "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
+            )
+        #self.xvector.add_module(
+        #    "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
+        #)
+        for m in self.modules():
+            if isinstance(m, (nn.Conv1d, nn.Linear)):
+                nn.init.kaiming_normal_(m.weight.data)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+        self.gradient_checkpointing = False  # for DDP of pytorch
+
+    def _freeze_parameters(self):
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def get_frame_level_feat(self, x):
+        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
+        x = self.head(x)
+        for layer in self.xvector[:-2]:
+            x = layer(x)
+        return x # (B,F,T)
+
+    def forward(self,x):
+        frame_x = self.get_frame_level_feat(x)
+        x = frame_x
+        for layer in self.xvector[-2:]:
+            x = layer(x)
+        return x,frame_x
+    """
+    def forward(self, x, get_time_out=False):
+        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
+        x = self.head(x)
+        if get_time_out:
+            #print(f"self.xvector[:-2]: {self.xvector[:-2]}")
+            #print(f"self.xvector[-1]: {self.xvector[-1]}")
+            x = self.xvector[:-2](x) # (B,F,T)
+            #x = self.xvector[:-1](x)
+            #x = self.xvector(x)
+        else:
+            x = self.xvector(x)
+        return x
+
+    """
+    def gradient_checkpointing_enable(self, gradient_checkpointing_kwargs=None):
+        """
+        Activates gradient checkpointing for the current model.
+
+        Note that in other frameworks this feature can be referred to as "activation checkpointing" or "checkpoint
+        activations".
+
+        We pass the `__call__` method of the modules instead of `forward` because `__call__` attaches all the hooks of
+        the module. https://discuss.pytorch.org/t/any-different-between-model-input-and-model-forward-input/3690/2
+
+        Args:
+            gradient_checkpointing_kwargs (dict, *optional*):
+                Additional keyword arguments passed along to the `torch.utils.checkpoint.checkpoint` function.
+        """
+        # if not self.supports_gradient_checkpointing:
+        #    raise ValueError(f"{self.__class__.__name__} does not support gradient checkpointing.")
+
+        if gradient_checkpointing_kwargs is None:
+            gradient_checkpointing_kwargs = {"use_reentrant": True}
+        import functools
+
+        gradient_checkpointing_func = functools.partial(
+            checkpoint, **gradient_checkpointing_kwargs
+        )
+
+        # For old GC format (transformers < 4.35.0) for models that live on the Hub
+        # we will fall back to the overwritten `_set_gradient_checkpointing` method
+        # _is_using_old_format = "value" in inspect.signature(self._set_gradient_checkpointing).parameters
+
+        # if not _is_using_old_format:
+        self._set_gradient_checkpointing(
+            enable=True, gradient_checkpointing_func=gradient_checkpointing_func
+        )
+    def _set_gradient_checkpointing(
+        self, enable: bool = True, gradient_checkpointing_func: Callable = checkpoint
+    ):
+        is_gradient_checkpointing_set = False
+
+        # Apply it on the top-level module in case the top-level modules supports it
+        # for example, LongT5Stack inherits from `PreTrainedModel`.
+        if hasattr(self, "gradient_checkpointing"):
+            self._gradient_checkpointing_func = gradient_checkpointing_func
+            self.gradient_checkpointing = enable
+            is_gradient_checkpointing_set = True
+
+        for module in self.modules():
+            if hasattr(module, "gradient_checkpointing"):
+                module._gradient_checkpointing_func = gradient_checkpointing_func
+                module.gradient_checkpointing = enable
+                is_gradient_checkpointing_set = True
+
+        if not is_gradient_checkpointing_set:
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with gradient checkpointing. Make sure all the architecture support it by setting a boolean attribute"
+                " `gradient_checkpointing` to modules of the model that uses checkpointing."
+            )
+        
+
+class CAMPPlusFrame(nn.Module):
+    def __init__(
+        self,
+        feat_dim=80,
+        #embedding_size=512,
+        embedding_size=192,
+        growth_rate=32,
+        bn_size=4,
+        init_channels=128,
+        config_str="batchnorm-relu",
+        memory_efficient=True,
+        #speech_encoder=True,
+    ):
+        super(CAMPPlusFrame, self).__init__()
 
         self.head = FCM(feat_dim=feat_dim)
         channels = self.head.out_channels
@@ -376,46 +545,82 @@ class CAMPPlus(nn.Module):
         #    self.xvector.add_module(
         #       "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
         #    )
-        self.xvector.add_module(
-            "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
-        )
+        #self.xvector.add_module(
+        #    "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
+        #)
         for m in self.modules():
             if isinstance(m, (nn.Conv1d, nn.Linear)):
                 nn.init.kaiming_normal_(m.weight.data)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
+        self.gradient_checkpointing = False  # for DDP of pytorch
+
     def _freeze_parameters(self):
         for param in self.parameters():
             param.requires_grad = False
-
-    def get_frame_level_feat(self, x):
+    def forward(self, x):
         x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
         x = self.head(x)
+        #print(f"")
         for layer in self.xvector[:-2]:
             x = layer(x)
         return x # (B,F,T)
+    def gradient_checkpointing_enable(self, gradient_checkpointing_kwargs=None):
+        """
+        Activates gradient checkpointing for the current model.
 
-    def forward(self,x):
-        frame_x = self.get_frame_level_feat(x)
-        x = frame_x
-        for layer in self.xvector[-2:]:
-            x = layer(x)
-        return x,frame_x
-    """
-    def forward(self, x, get_time_out=False):
-        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
-        x = self.head(x)
-        if get_time_out:
-            #print(f"self.xvector[:-2]: {self.xvector[:-2]}")
-            #print(f"self.xvector[-1]: {self.xvector[-1]}")
-            x = self.xvector[:-2](x) # (B,F,T)
-            #x = self.xvector[:-1](x)
-            #x = self.xvector(x)
-        else:
-            x = self.xvector(x)
-        return x
+        Note that in other frameworks this feature can be referred to as "activation checkpointing" or "checkpoint
+        activations".
 
-    """
+        We pass the `__call__` method of the modules instead of `forward` because `__call__` attaches all the hooks of
+        the module. https://discuss.pytorch.org/t/any-different-between-model-input-and-model-forward-input/3690/2
+
+        Args:
+            gradient_checkpointing_kwargs (dict, *optional*):
+                Additional keyword arguments passed along to the `torch.utils.checkpoint.checkpoint` function.
+        """
+        # if not self.supports_gradient_checkpointing:
+        #    raise ValueError(f"{self.__class__.__name__} does not support gradient checkpointing.")
+
+        if gradient_checkpointing_kwargs is None:
+            gradient_checkpointing_kwargs = {"use_reentrant": True}
+        import functools
+
+        gradient_checkpointing_func = functools.partial(
+            checkpoint, **gradient_checkpointing_kwargs
+        )
+
+        # For old GC format (transformers < 4.35.0) for models that live on the Hub
+        # we will fall back to the overwritten `_set_gradient_checkpointing` method
+        # _is_using_old_format = "value" in inspect.signature(self._set_gradient_checkpointing).parameters
+
+        # if not _is_using_old_format:
+        self._set_gradient_checkpointing(
+            enable=True, gradient_checkpointing_func=gradient_checkpointing_func
+        )
+    def _set_gradient_checkpointing(
+        self, enable: bool = True, gradient_checkpointing_func: Callable = checkpoint
+    ):
+        is_gradient_checkpointing_set = False
+
+        # Apply it on the top-level module in case the top-level modules supports it
+        # for example, LongT5Stack inherits from `PreTrainedModel`.
+        if hasattr(self, "gradient_checkpointing"):
+            self._gradient_checkpointing_func = gradient_checkpointing_func
+            self.gradient_checkpointing = enable
+            is_gradient_checkpointing_set = True
+
+        for module in self.modules():
+            if hasattr(module, "gradient_checkpointing"):
+                module._gradient_checkpointing_func = gradient_checkpointing_func
+                module.gradient_checkpointing = enable
+                is_gradient_checkpointing_set = True
+
+        if not is_gradient_checkpointing_set:
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with gradient checkpointing. Make sure all the architecture support it by setting a boolean attribute"
+                " `gradient_checkpointing` to modules of the model that uses checkpointing."
+            )
 
 if __name__ == '__main__':
     """
@@ -441,7 +646,7 @@ if __name__ == '__main__':
     print("{} M".format(num_params / 1e6)) # 6.61M
     """
     #x = torch.zeros(10, 600, 80) # B,T,F
-    wav_path="/mntcephfs/lab_data/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/target_audio/R8001_M8004_MS801/1.wav"
+    wav_path="/data/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/target_audio/R8001_M8004_MS801/1.wav"
     import torchaudio.compliance.kaldi as Kaldi
     import torchaudio
     x,_ = torchaudio.load(wav_path)
@@ -452,3 +657,13 @@ if __name__ == '__main__':
     model.eval()
     utt_feat, frame_feat = model(x)
     print(utt_feat, utt_feat.shape,frame_feat, frame_feat.shape) # utt_feat: (10,192) frame_feat: (10, 512, 300)
+    #for name, v in model.named_parameters():
+    #    print(f"name: {name}, v: {v.shape}")
+    #num_params = sum(param.numel() for param in model.parameters())
+    #print("{} M".format(num_params / 1e6)) # 6.61M
+    model_1 = CAMPPlusFrame(feat_dim=80,embedding_size=192)
+    model_1.eval()
+    frame_feat = model_1(x)
+    print(frame_feat.shape)
+    #for name, v in model_1.named_parameters():
+    #    print(f"name: {name}, v: {v.shape}")

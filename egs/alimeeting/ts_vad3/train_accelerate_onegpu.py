@@ -258,7 +258,7 @@ def add_data_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
         help="path to target audio and mixture labels root directory.",
     )
-    #parser.add_argument("--batch-size",type=int, default=64,help="")
+    parser.add_argument("--batch-size",type=int, default=64,help="")
     return parser
 
 
@@ -440,7 +440,6 @@ def compute_loss(
     batch: dict,
     is_training: bool,
     batch_idx_train: int,
-    params: AttributeDict,
 ):
     with torch.set_grad_enabled(is_training):
         ref_speech = batch["net_input"]["ref_speech"]
@@ -460,18 +459,12 @@ def compute_loss(
         # convert tensor to numpy
         # logging.info(f"outs_prob requries_grad: {outs_prob.requries_grad}")
         outs_prob = outs_prob.data.cpu().numpy()
-        if params.world_size==1: # one gpu
-            mi, fa, cf, acc, der = model.calc_diarization_result(
+        mi, fa, cf, acc, der = model.calc_diarization_result(
+            # mi, fa, cf, acc, der = model.calc_diarization_result(
             outs_prob.transpose((0, 2, 1)),
             labels.transpose(1, 2),
             labels_len,
-            )
-        else: # multi-gpu,DDP mode
-            mi, fa, cf, acc, der = model.module.calc_diarization_result(
-            outs_prob.transpose((0, 2, 1)),
-            labels.transpose(1, 2),
-            labels_len,
-            )
+        )
 
     assert loss.requires_grad == is_training
     info = {}
@@ -502,7 +495,6 @@ def compute_validation_loss(
             batch=batch,
             is_training=False,
             batch_idx_train=batch_idx_train,
-            params=params,
         )
         batch_nums.append(batch_idx)
         assert loss.requires_grad is False
@@ -635,7 +627,6 @@ def train_one_epoch(
             batch=batch,
             is_training=True,
             batch_idx_train=params.batch_idx_train,
-            params=params,
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
@@ -998,14 +989,14 @@ def main(args):
     #    model.gradient_checkpointing_enable()
     if True:
         #if params.speech_encoder_type=="w2v-bert2":
-        model.speech_encoder.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
-        )
+        #model.speech_encoder.gradient_checkpointing_enable(
+        #    gradient_checkpointing_kwargs={"use_reentrant": False}
+        #)
         #model.speaker_encoder.gradient_checkpointing_enable(
         #    gradient_checkpointing_kwargs={"use_reentrant": False}
         #)
         model.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
+            gradient_checkpointing_kwargs={"use_reentrant": True}
         )
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)

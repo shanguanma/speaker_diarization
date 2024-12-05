@@ -258,7 +258,7 @@ def add_data_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
         help="path to target audio and mixture labels root directory.",
     )
-    #parser.add_argument("--batch-size",type=int, default=64,help="")
+    parser.add_argument("--batch-size",type=int, default=64,help="")
     return parser
 
 
@@ -988,25 +988,25 @@ def main(args):
 
     # the below combine ddp find_unused_parameters=True in accelerate package.
     # it will solve the strange error.
-    # if True:
-    #    from functools import partial
-
-    #    notfailing_checkpoint = partial(
-    #        torch.utils.checkpoint.checkpoint, use_reentrant=False
-    #    )
-    #    torch.utils.checkpoint.checkpoint = notfailing_checkpoint
-    #    model.gradient_checkpointing_enable()
     if True:
+        from functools import partial
+
+        notfailing_checkpoint = partial(
+            torch.utils.checkpoint.checkpoint, use_reentrant=False
+        )
+        torch.utils.checkpoint.checkpoint = notfailing_checkpoint
+        model.gradient_checkpointing_enable()
+    #if True:
         #if params.speech_encoder_type=="w2v-bert2":
-        model.speech_encoder.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
-        )
-        #model.speaker_encoder.gradient_checkpointing_enable(
-        #    gradient_checkpointing_kwargs={"use_reentrant": False}
-        #)
-        model.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
-        )
+    #    model.speech_encoder.gradient_checkpointing_enable(
+    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #    )
+    #    model.speaker_encoder.gradient_checkpointing_enable(
+    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #    )
+    #    model.gradient_checkpointing_enable(
+    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #    )
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
 

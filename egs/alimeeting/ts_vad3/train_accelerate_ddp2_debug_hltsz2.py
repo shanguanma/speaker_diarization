@@ -214,6 +214,7 @@ def get_parser():
         default=False,
         help="train on the average model, how to average model, you can see '--average-period'",
     )
+    parser.add_argument("--batch-size",type=int, default=64,help="")
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)
@@ -350,8 +351,12 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         default=False,
         help="""if it is true, at embedding feat level, target speaker and mix speech interact with each other """,
     )
+    parser.add_argument("--fuse-attn-type",type=str,default="native", help="choice from `native, attn, attn2`")
     parser.add_argument("--speaker-encoder-type",type=str,default="CAM++",help="choice it  from CAM++ as speaker encoder of our TSVAD")
     parser.add_argument("--speaker-encoder-path",type=str,default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt",help="path to pretrained speaker encoder path.")
+    
+
+
     return parser
 
 
@@ -934,6 +939,9 @@ def main(args):
     model_cfg.freeze_speaker_encoder_updates = params.freeze_speaker_encoder_updates
     model_cfg.fuse_fbank_feat = params.fuse_fbank_feat
     model_cfg.fuse_speaker_embedding_feat = params.fuse_speaker_embedding_feat
+    model_cfg.fuse_attn_type=params.fuse_attn_type
+
+
 
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg)
@@ -988,25 +996,28 @@ def main(args):
 
     # the below combine ddp find_unused_parameters=True in accelerate package.
     # it will solve the strange error.
-    # if True:
-    #    from functools import partial
-
-    #    notfailing_checkpoint = partial(
-    #        torch.utils.checkpoint.checkpoint, use_reentrant=False
-    #    )
-    #    torch.utils.checkpoint.checkpoint = notfailing_checkpoint
-    #    model.gradient_checkpointing_enable()
     if True:
-        #if params.speech_encoder_type=="w2v-bert2":
+        from functools import partial
+
+        notfailing_checkpoint = partial(
+            torch.utils.checkpoint.checkpoint, use_reentrant=False
+        )
+        torch.utils.checkpoint.checkpoint = notfailing_checkpoint
+        model.gradient_checkpointing_enable()
         model.speech_encoder.gradient_checkpointing_enable(
             gradient_checkpointing_kwargs={"use_reentrant": False}
         )
-        #model.speaker_encoder.gradient_checkpointing_enable(
-        #    gradient_checkpointing_kwargs={"use_reentrant": False}
-        #)
-        model.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
-        )
+    #if True:
+        #if params.speech_encoder_type=="w2v-bert2":
+    #    model.speech_encoder.gradient_checkpointing_enable(
+    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #    )
+    #    model.speaker_encoder.gradient_checkpointing_enable(
+    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #    )
+    #    model.gradient_checkpointing_enable(
+    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #    )
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
 

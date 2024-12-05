@@ -258,7 +258,6 @@ def add_data_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
         help="path to target audio and mixture labels root directory.",
     )
-    #parser.add_argument("--batch-size",type=int, default=64,help="")
     return parser
 
 
@@ -440,7 +439,6 @@ def compute_loss(
     batch: dict,
     is_training: bool,
     batch_idx_train: int,
-    params: AttributeDict,
 ):
     with torch.set_grad_enabled(is_training):
         ref_speech = batch["net_input"]["ref_speech"]
@@ -460,18 +458,12 @@ def compute_loss(
         # convert tensor to numpy
         # logging.info(f"outs_prob requries_grad: {outs_prob.requries_grad}")
         outs_prob = outs_prob.data.cpu().numpy()
-        if params.world_size==1: # one gpu
-            mi, fa, cf, acc, der = model.calc_diarization_result(
+        mi, fa, cf, acc, der = model.module.calc_diarization_result(
+            # mi, fa, cf, acc, der = model.calc_diarization_result(
             outs_prob.transpose((0, 2, 1)),
             labels.transpose(1, 2),
             labels_len,
-            )
-        else: # multi-gpu,DDP mode
-            mi, fa, cf, acc, der = model.module.calc_diarization_result(
-            outs_prob.transpose((0, 2, 1)),
-            labels.transpose(1, 2),
-            labels_len,
-            )
+        )
 
     assert loss.requires_grad == is_training
     info = {}
@@ -502,7 +494,6 @@ def compute_validation_loss(
             batch=batch,
             is_training=False,
             batch_idx_train=batch_idx_train,
-            params=params,
         )
         batch_nums.append(batch_idx)
         assert loss.requires_grad is False
@@ -563,6 +554,22 @@ def save_checkpoint(
         copyfile(src=filename, dst=best_valid_filename)
         copyfile(src=filename, dst=best_valid_der_filename)
 
+def save_checkpoint_fsdp(
+    params: AttributeDict,
+) -> None:
+    filename = params.exp_dir / f"epoch-{params.cur_epoch}.pt"
+    accelerator.save_state(filename)
+    logging.info(f" end of epoch {params.cur_epoch}, Saved checkpoint to {filename} ")
+    if params.best_train_epoch == params.cur_epoch:
+        best_train_filename = params.exp_dir / "best-train-loss.pt"
+        best_train_der_filename = params.exp_dir / "best-train-der.pt"
+        copyfile(src=filename, dst=best_train_filename)
+        copyfile(src=filename, dst=best_train_der_filename)
+    if params.best_valid_epoch == params.cur_epoch:
+        best_valid_filename = params.exp_dir / "best-valid-loss.pt"
+        best_valid_der_filename = params.exp_dir / "best-valid-der.pt"
+        copyfile(src=filename, dst=best_valid_filename)
+        copyfile(src=filename, dst=best_valid_der_filename)
 
 def do_save_and_remove_once(
     params, model, model_avg, optimizer, scheduler, train_dl, scaler
@@ -635,7 +642,6 @@ def train_one_epoch(
             batch=batch,
             is_training=True,
             batch_idx_train=params.batch_idx_train,
-            params=params,
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
@@ -786,7 +792,6 @@ def load_model_params(
 
     return None
 
-
 def load_checkpoint_if_available(
     params: AttributeDict,
     model: nn.Module,
@@ -886,11 +891,13 @@ def main(args):
     )
 
     from accelerate import (
-        Accelerator,
-        DDPCommunicationHookType,
-        DistributedDataParallelKwargs,
-    )
+        #Accelerator,
+        #DDPCommunicationHookType,
+        #DistributedDataParallelKwargs,
+        FullyShardedDataParallelPlugin,
 
+    )
+    from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
     gradient_accumulation = 1
     scale_window = max(int(2**14 / world_size / gradient_accumulation), 1)
     logging.info(f"The scale window is set to {scale_window}.")
@@ -902,14 +909,25 @@ def main(args):
         enabled=True,
     )
 
-    ddp_kwargs = DistributedDataParallelKwargs(
-        comm_hook=DDPCommunicationHookType.FP16, find_unused_parameters=True
+    #ddp_kwargs = DistributedDataParallelKwargs(
+    #    comm_hook=DDPCommunicationHookType.FP16, find_unused_parameters=True
+    #)
+    #accelerator = Accelerator(
+    #    kwargs_handlers=[ddp_kwargs, scaler_kwargs],
+    #    mixed_precision="fp16",
+    #    project_dir=args.exp_dir,
+    #)
+    fsdp_plugin = FullyShardedDataParallelPlugin(
+         state_dict_config=FullStateDictConfig(offload_to_cpu=False,rank0_only=False),
+         optim_state_dict_config=FullOptimStateDictConfig(offload_to_cpu=False,rank0_only=False)
     )
     accelerator = Accelerator(
-        kwargs_handlers=[ddp_kwargs, scaler_kwargs],
+        kwargs_handlers=[scaler_kwargs],
+        fsdp_plugin=fsdp_plugin,
         mixed_precision="fp16",
         project_dir=args.exp_dir,
     )
+   
 
     model_cfg = TSVADConfig()
     # here ,modified model cfg
@@ -998,14 +1016,14 @@ def main(args):
     #    model.gradient_checkpointing_enable()
     if True:
         #if params.speech_encoder_type=="w2v-bert2":
-        model.speech_encoder.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
-        )
+        #model.speech_encoder.gradient_checkpointing_enable(
+        #    gradient_checkpointing_kwargs={"use_reentrant": False}
+        #)
         #model.speaker_encoder.gradient_checkpointing_enable(
         #    gradient_checkpointing_kwargs={"use_reentrant": False}
         #)
         model.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs={"use_reentrant": False}
+            gradient_checkpointing_kwargs={"use_reentrant": True}
         )
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
@@ -1035,12 +1053,13 @@ def main(args):
             model_avg=model_avg,
         )
         if accelerator.is_main_process:
-            save_checkpoint(
-                params=params,
-                model=model,
-                optimizer=optimizer,
-                scheduler=scheduler,
-            )
+            #save_checkpoint(
+            #    params=params,
+            #    model=model,
+            #    optimizer=optimizer,
+            #    scheduler=scheduler,
+            #)
+            save_checkpoint_fsdp(params=params)
         # early stop(TODO) Duo Ma
         # Assume `should_do_breakpoint` is a custom defined function that returns a conditional,
         # and that conditional might be true only on process 1
@@ -1050,6 +1069,7 @@ def main(args):
         # if params.batch_idx_train>=params.max_updates:
         #    logging.info(f"batch_idx_train >= {params.max_updates}, stop training")
         #    break
+    accelerator.end_training()
     logging.info("Done!")
 
 
