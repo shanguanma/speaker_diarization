@@ -1,0 +1,26 @@
+srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
+
+
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage15-16.log run_ts_vad2_hltsz.sh --stage 15  --stop-stage 16
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage13.log run_ts_vad2_hltsz.sh --stage 13  --stop-stage 13
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage12_cder.log run_ts_vad2_hltsz.sh --stage 12  --stop-stage 12
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage11_collar0.25.log run_ts_vad2_hltsz.sh --stage 11  --stop-stage 11
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage10-11.log run_ts_vad2_hltsz.sh --stage 10  --stop-stage 11
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage5_cder_again.log run_ts_vad2_hltsz.sh --stage 5  --stop-stage 5
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage5_collar0.0_again.log run_ts_vad2_hltsz.sh --stage 4  --stop-stage 4
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage5_cder.log run_ts_vad2_hltsz.sh --stage 5  --stop-stage 5
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage5_collar0.0.log run_ts_vad2_hltsz.sh --stage 4  --stop-stage 4
+Submitted batch job 12817
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage5.log run_ts_vad2_hltsz.sh --stage 5  --stop-stage 5
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage3-4.log run_ts_vad2_hltsz.sh --stage 3  --stop-stage 4
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage23.log run_ts_vad2_hltsz.sh --stage 1  --stop-stage 2
+Submitted batch job 12669
