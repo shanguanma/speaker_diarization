@@ -214,7 +214,6 @@ def get_parser():
         default=False,
         help="train on the average model, how to average model, you can see '--average-period'",
     )
-    parser.add_argument("--batch-size",type=int, default=64,help="")
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)
@@ -259,7 +258,6 @@ def add_data_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
         help="path to target audio and mixture labels root directory.",
     )
-    #parser.add_argument("--batch-size",type=int, default=64,help="")
     return parser
 
 
@@ -351,12 +349,6 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         default=False,
         help="""if it is true, at embedding feat level, target speaker and mix speech interact with each other """,
     )
-    parser.add_argument("--fuse-attn-type",type=str,default="native", help="choice from `native, attn, attn2`")
-    parser.add_argument("--speaker-encoder-type",type=str,default="CAM++",help="choice it  from CAM++ as speaker encoder of our TSVAD")
-    parser.add_argument("--speaker-encoder-path",type=str,default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt",help="path to pretrained speaker encoder path.")
-
-
-
     return parser
 
 
@@ -445,7 +437,6 @@ def compute_loss(
     batch: dict,
     is_training: bool,
     batch_idx_train: int,
-    params: AttributeDict,
 ):
     with torch.set_grad_enabled(is_training):
         ref_speech = batch["net_input"]["ref_speech"]
@@ -465,18 +456,12 @@ def compute_loss(
         # convert tensor to numpy
         # logging.info(f"outs_prob requries_grad: {outs_prob.requries_grad}")
         outs_prob = outs_prob.data.cpu().numpy()
-        if params.world_size==1: # one gpu
-            mi, fa, cf, acc, der = model.calc_diarization_result(
+        mi, fa, cf, acc, der = model.module.calc_diarization_result(
+            # mi, fa, cf, acc, der = model.calc_diarization_result(
             outs_prob.transpose((0, 2, 1)),
             labels.transpose(1, 2),
             labels_len,
-            )
-        else: # multi-gpu,DDP mode
-            mi, fa, cf, acc, der = model.module.calc_diarization_result(
-            outs_prob.transpose((0, 2, 1)),
-            labels.transpose(1, 2),
-            labels_len,
-            )
+        )
 
     assert loss.requires_grad == is_training
     info = {}
@@ -507,7 +492,6 @@ def compute_validation_loss(
             batch=batch,
             is_training=False,
             batch_idx_train=batch_idx_train,
-            params=params,
         )
         batch_nums.append(batch_idx)
         assert loss.requires_grad is False
@@ -640,7 +624,6 @@ def train_one_epoch(
             batch=batch,
             is_training=True,
             batch_idx_train=params.batch_idx_train,
-            params=params,
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
@@ -920,8 +903,6 @@ def main(args):
     # here ,modified model cfg
     model_cfg.speech_encoder_type = params.speech_encoder_type
     model_cfg.speech_encoder_path = params.speech_encoder_path
-    model_cfg.speaker_encoder_type = params.speaker_encoder_type
-    model_cfg.speaker_encoder_path = params.speaker_encoder_path
     model_cfg.speaker_embed_dim = params.speaker_embed_dim
     model_cfg.freeze_speech_encoder_updates = params.freeze_speech_encoder_updates
     model_cfg.feature_grad_mult = params.feature_grad_mult
@@ -939,9 +920,6 @@ def main(args):
     model_cfg.freeze_speaker_encoder_updates = params.freeze_speaker_encoder_updates
     model_cfg.fuse_fbank_feat = params.fuse_fbank_feat
     model_cfg.fuse_speaker_embedding_feat = params.fuse_speaker_embedding_feat
-    model_cfg.fuse_attn_type=params.fuse_attn_type
-
-
 
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg)
@@ -1004,16 +982,16 @@ def main(args):
         )
         torch.utils.checkpoint.checkpoint = notfailing_checkpoint
         model.gradient_checkpointing_enable()
+
         model.speech_encoder.gradient_checkpointing_enable(
             gradient_checkpointing_kwargs={"use_reentrant": False}
         )
     #if True:
-        #if params.speech_encoder_type=="w2v-bert2":
     #    model.speech_encoder.gradient_checkpointing_enable(
     #        gradient_checkpointing_kwargs={"use_reentrant": False}
     #    )
     #    model.speaker_encoder.gradient_checkpointing_enable(
-    #        gradient_checkpointing_kwargs={"use_reentrant": False}
+    #       gradient_checkpointing_kwargs={"use_reentrant": False}
     #    )
     #    model.gradient_checkpointing_enable(
     #        gradient_checkpointing_kwargs={"use_reentrant": False}
