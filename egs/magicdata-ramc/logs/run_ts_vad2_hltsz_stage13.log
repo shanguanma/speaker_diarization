@@ -1,0 +1,68 @@
+2024-12-13 09:33:05,650 (infer:249) INFO: infer data_cfg: TSVADDataConfig(data_dir='/data/maduo/datasets/alimeeting', ts_len=6000, rs_len=4, segment_shift=1, spk_path='/data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding', speech_encoder_type='CAM++', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=4, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2024-12-13 09:33:05,651 (infer:250) INFO: currently, it will infer Eval set.
+  0%|          | 0/25 [00:00<?, ?it/s]100%|██████████| 25/25 [00:00<00:00, 267.67it/s]
+2024-12-13 09:33:06,043 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2024-12-13 09:33:06,044 (ts_vad_dataset:160) INFO: loaded sentence=15141, shortest sent=5120.0, longest sent=64000.0, rs_len=4, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2024-12-13 09:33:06,206 (infer:272) INFO: Device: cuda:0
+2024-12-13 09:33:06,206 (infer:283) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', speech_encoder_type='CAM++', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json')
+/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/torch/nn/modules/transformer.py:282: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+2024-12-13 09:37:16,642 (infer:89) INFO: frame_len: 0.04!!
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.30794058000259933
+Model ACC:  0.8928656015263309
+  0%|          | 0/25 [00:00<?, ?it/s]  4%|▍         | 1/25 [00:00<00:20,  1.15it/s]  8%|▊         | 2/25 [00:01<00:19,  1.17it/s] 12%|█▏        | 3/25 [00:02<00:18,  1.18it/s] 16%|█▌        | 4/25 [00:03<00:17,  1.18it/s] 20%|██        | 5/25 [00:04<00:18,  1.08it/s] 24%|██▍       | 6/25 [00:05<00:18,  1.03it/s] 28%|██▊       | 7/25 [00:06<00:17,  1.02it/s] 32%|███▏      | 8/25 [00:07<00:16,  1.01it/s] 36%|███▌      | 9/25 [00:08<00:18,  1.13s/it] 40%|████      | 10/25 [00:09<00:16,  1.09s/it] 44%|████▍     | 11/25 [00:11<00:15,  1.09s/it] 48%|████▊     | 12/25 [00:12<00:14,  1.10s/it] 52%|█████▏    | 13/25 [00:13<00:13,  1.10s/it] 56%|█████▌    | 14/25 [00:14<00:12,  1.11s/it] 60%|██████    | 15/25 [00:15<00:10,  1.09s/it] 64%|██████▍   | 16/25 [00:16<00:09,  1.07s/it] 68%|██████▊   | 17/25 [00:17<00:09,  1.13s/it] 72%|███████▏  | 18/25 [00:18<00:07,  1.06s/it] 76%|███████▌  | 19/25 [00:19<00:06,  1.04s/it] 80%|████████  | 20/25 [00:20<00:05,  1.03s/it] 84%|████████▍ | 21/25 [00:21<00:04,  1.02s/it] 88%|████████▊ | 22/25 [00:22<00:03,  1.01s/it] 92%|█████████▏| 23/25 [00:23<00:02,  1.07s/it] 96%|█████████▌| 24/25 [00:25<00:01,  1.11s/it]100%|██████████| 25/25 [00:26<00:00,  1.14s/it]100%|██████████| 25/25 [00:26<00:00,  1.05s/it]
+Eval for threshold 0.20: DER 18.45%, MS 13.53%, FA 3.71%, SC 1.22%
+
+Eval for threshold 0.30: DER 18.68%, MS 15.76%, FA 1.79%, SC 1.14%
+
+Eval for threshold 0.35: DER 19.12%, MS 16.80%, FA 1.25%, SC 1.07%
+
+Eval for threshold 0.40: DER 19.68%, MS 17.73%, FA 0.92%, SC 1.03%
+
+Eval for threshold 0.45: DER 20.28%, MS 18.71%, FA 0.58%, SC 0.99%
+
+Eval for threshold 0.50: DER 20.99%, MS 19.71%, FA 0.38%, SC 0.90%
+
+Eval for threshold 0.55: DER 22.02%, MS 20.96%, FA 0.36%, SC 0.71%
+
+Eval for threshold 0.60: DER 23.04%, MS 22.17%, FA 0.35%, SC 0.53%
+
+Eval for threshold 0.70: DER 25.37%, MS 24.75%, FA 0.32%, SC 0.30%
+
+Eval for threshold 0.80: DER 29.05%, MS 28.62%, FA 0.30%, SC 0.13%
+
+2024-12-13 09:37:54,805 (infer:249) INFO: infer data_cfg: TSVADDataConfig(data_dir='/data/maduo/datasets/alimeeting', ts_len=6000, rs_len=4, segment_shift=1, spk_path='/data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding', speech_encoder_type='CAM++', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=4, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2024-12-13 09:37:54,805 (infer:250) INFO: currently, it will infer Test set.
+  0%|          | 0/60 [00:00<?, ?it/s] 33%|███▎      | 20/60 [00:00<00:00, 195.94it/s] 67%|██████▋   | 40/60 [00:00<00:00, 116.00it/s]100%|██████████| 60/60 [00:00<00:00, 145.59it/s]
+2024-12-13 09:37:55,367 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2024-12-13 09:37:55,369 (ts_vad_dataset:160) INFO: loaded sentence=38807, shortest sent=640.0, longest sent=64000.0, rs_len=4, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2024-12-13 09:37:55,535 (infer:272) INFO: Device: cuda:0
+2024-12-13 09:37:55,535 (infer:283) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', speech_encoder_type='CAM++', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json')
+/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/torch/nn/modules/transformer.py:282: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+2024-12-13 09:48:55,667 (infer:89) INFO: frame_len: 0.04!!
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.32313878303933546
+Model ACC:  0.8758894112054267
+  0%|          | 0/60 [00:00<?, ?it/s]  2%|▏         | 1/60 [00:01<01:05,  1.12s/it]  3%|▎         | 2/60 [00:02<01:03,  1.10s/it]  5%|▌         | 3/60 [00:03<01:02,  1.10s/it]  7%|▋         | 4/60 [00:04<01:01,  1.10s/it]  8%|▊         | 5/60 [00:05<01:00,  1.10s/it] 10%|█         | 6/60 [00:06<00:59,  1.09s/it] 12%|█▏        | 7/60 [00:07<00:57,  1.09s/it] 13%|█▎        | 8/60 [00:08<00:56,  1.09s/it] 15%|█▌        | 9/60 [00:09<00:55,  1.10s/it] 17%|█▋        | 10/60 [00:10<00:54,  1.10s/it] 18%|█▊        | 11/60 [00:12<01:06,  1.36s/it] 20%|██        | 12/60 [00:14<01:01,  1.28s/it] 22%|██▏       | 13/60 [00:15<00:56,  1.21s/it] 23%|██▎       | 14/60 [00:16<00:53,  1.16s/it] 25%|██▌       | 15/60 [00:17<00:50,  1.12s/it] 27%|██▋       | 16/60 [00:18<00:48,  1.09s/it] 28%|██▊       | 17/60 [00:19<00:45,  1.07s/it] 30%|███       | 18/60 [00:20<00:43,  1.04s/it] 32%|███▏      | 19/60 [00:21<00:42,  1.02s/it] 33%|███▎      | 20/60 [00:22<00:40,  1.01s/it] 35%|███▌      | 21/60 [00:23<00:39,  1.02s/it] 37%|███▋      | 22/60 [00:24<00:38,  1.02s/it] 38%|███▊      | 23/60 [00:25<00:37,  1.02s/it] 40%|████      | 24/60 [00:26<00:36,  1.02s/it] 42%|████▏     | 25/60 [00:27<00:35,  1.01s/it] 43%|████▎     | 26/60 [00:28<00:34,  1.01s/it] 45%|████▌     | 27/60 [00:29<00:33,  1.00s/it] 47%|████▋     | 28/60 [00:30<00:31,  1.01it/s] 48%|████▊     | 29/60 [00:31<00:30,  1.01it/s] 50%|█████     | 30/60 [00:32<00:37,  1.24s/it] 52%|█████▏    | 31/60 [00:33<00:33,  1.16s/it] 53%|█████▎    | 32/60 [00:34<00:30,  1.10s/it] 55%|█████▌    | 33/60 [00:35<00:29,  1.09s/it] 57%|█████▋    | 34/60 [00:37<00:28,  1.08s/it] 58%|█████▊    | 35/60 [00:38<00:26,  1.08s/it] 60%|██████    | 36/60 [00:39<00:25,  1.07s/it] 62%|██████▏   | 37/60 [00:40<00:24,  1.06s/it] 63%|██████▎   | 38/60 [00:41<00:23,  1.05s/it] 65%|██████▌   | 39/60 [00:42<00:21,  1.03s/it] 67%|██████▋   | 40/60 [00:43<00:20,  1.01s/it] 68%|██████▊   | 41/60 [00:44<00:19,  1.04s/it] 70%|███████   | 42/60 [00:45<00:18,  1.05s/it] 72%|███████▏  | 43/60 [00:46<00:17,  1.05s/it] 73%|███████▎  | 44/60 [00:47<00:16,  1.04s/it] 75%|███████▌  | 45/60 [00:48<00:15,  1.03s/it] 77%|███████▋  | 46/60 [00:49<00:14,  1.02s/it] 78%|███████▊  | 47/60 [00:50<00:13,  1.02s/it] 80%|████████  | 48/60 [00:51<00:12,  1.01s/it] 82%|████████▏ | 49/60 [00:53<00:13,  1.24s/it] 83%|████████▎ | 50/60 [00:54<00:11,  1.18s/it] 85%|████████▌ | 51/60 [00:55<00:10,  1.14s/it] 87%|████████▋ | 52/60 [00:56<00:08,  1.10s/it] 88%|████████▊ | 53/60 [00:57<00:07,  1.05s/it] 90%|█████████ | 54/60 [00:58<00:06,  1.02s/it] 92%|█████████▏| 55/60 [00:59<00:04,  1.01it/s] 93%|█████████▎| 56/60 [01:00<00:03,  1.02it/s] 95%|█████████▌| 57/60 [01:01<00:02,  1.03it/s] 97%|█████████▋| 58/60 [01:01<00:01,  1.03it/s] 98%|█████████▊| 59/60 [01:02<00:00,  1.03it/s]100%|██████████| 60/60 [01:03<00:00,  1.03it/s]100%|██████████| 60/60 [01:03<00:00,  1.07s/it]
+Eval for threshold 0.20: DER 20.76%, MS 12.44%, FA 4.39%, SC 3.94%
+
+Eval for threshold 0.30: DER 20.97%, MS 14.76%, FA 2.25%, SC 3.97%
+
+Eval for threshold 0.35: DER 21.31%, MS 15.76%, FA 1.53%, SC 4.02%
+
+Eval for threshold 0.40: DER 21.73%, MS 16.71%, FA 0.93%, SC 4.09%
+
+Eval for threshold 0.45: DER 22.28%, MS 17.69%, FA 0.51%, SC 4.08%
+
+Eval for threshold 0.50: DER 22.97%, MS 18.79%, FA 0.17%, SC 4.01%
+
+Eval for threshold 0.55: DER 23.85%, MS 20.03%, FA 0.07%, SC 3.76%
+
+Eval for threshold 0.60: DER 24.98%, MS 21.46%, FA 0.06%, SC 3.46%
+
+Eval for threshold 0.70: DER 27.49%, MS 24.50%, FA 0.05%, SC 2.94%
+
+Eval for threshold 0.80: DER 30.95%, MS 28.44%, FA 0.04%, SC 2.47%
+
