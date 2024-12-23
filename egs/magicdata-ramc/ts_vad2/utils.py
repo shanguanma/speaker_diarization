@@ -22,6 +22,20 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
 Pathlike = Union[str, Path]
+
+def setup_logging(verbose):
+    """Make logging setup with a given log level."""
+    if verbose > 0:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
+    else:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
+
 def fix_random_seed2(seed: int):
     torch.manual_seed(seed)
     if torch.cuda.is_available():

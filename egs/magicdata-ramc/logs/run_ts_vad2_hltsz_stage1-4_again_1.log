@@ -1,0 +1,1173 @@
+get target audio and json label file from rttm file
+CTS-CN-F2F-2019-11-15-1421
+{'G00000224': 1, 'G00000225': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1421_1': 'G00000224', 'CTS-CN-F2F-2019-11-15-1421_2': 'G00000225'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1422
+{'G00000248': 1, 'G00000249': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1422_1': 'G00000248', 'CTS-CN-F2F-2019-11-15-1422_2': 'G00000249'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1423
+{'G00000461': 1, 'G00000462': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1423_1': 'G00000461', 'CTS-CN-F2F-2019-11-15-1423_2': 'G00000462'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1426
+{'G00000069': 1, 'G00000070': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1426_1': 'G00000069', 'CTS-CN-F2F-2019-11-15-1426_2': 'G00000070'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1428
+{'G00000619': 1, 'G00000620': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1428_1': 'G00000619', 'CTS-CN-F2F-2019-11-15-1428_2': 'G00000620'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1434
+{'G00000096': 1, 'G00000097': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1434_1': 'G00000096', 'CTS-CN-F2F-2019-11-15-1434_2': 'G00000097'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1447
+{'G00000234': 1, 'G00000235': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1447_1': 'G00000234', 'CTS-CN-F2F-2019-11-15-1447_2': 'G00000235'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1448
+{'G00000200': 1, 'G00000201': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1448_1': 'G00000200', 'CTS-CN-F2F-2019-11-15-1448_2': 'G00000201'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1449
+{'G00000144': 1, 'G00000145': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1449_1': 'G00000144', 'CTS-CN-F2F-2019-11-15-1449_2': 'G00000145'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1452
+{'G00000079': 1, 'G00000080': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1452_1': 'G00000079', 'CTS-CN-F2F-2019-11-15-1452_2': 'G00000080'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1458
+{'G00000701': 1, 'G00000702': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1458_1': 'G00000701', 'CTS-CN-F2F-2019-11-15-1458_2': 'G00000702'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1461
+{'G00000057': 1, 'G00000058': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1461_1': 'G00000057', 'CTS-CN-F2F-2019-11-15-1461_2': 'G00000058'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1463
+{'G00000613': 1, 'G00000614': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1463_1': 'G00000613', 'CTS-CN-F2F-2019-11-15-1463_2': 'G00000614'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1468
+{'G00000553': 1, 'G00000554': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1468_1': 'G00000553', 'CTS-CN-F2F-2019-11-15-1468_2': 'G00000554'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1469
+{'G00000579': 1, 'G00000580': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1469_1': 'G00000579', 'CTS-CN-F2F-2019-11-15-1469_2': 'G00000580'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1470
+{'G00000073': 1, 'G00000074': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1470_1': 'G00000073', 'CTS-CN-F2F-2019-11-15-1470_2': 'G00000074'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1473
+{'G00000423': 1, 'G00000448': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1473_1': 'G00000423', 'CTS-CN-F2F-2019-11-15-1473_2': 'G00000448'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1475
+{'G00000294': 1, 'G00000295': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1475_1': 'G00000294', 'CTS-CN-F2F-2019-11-15-1475_2': 'G00000295'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+CTS-CN-F2F-2019-11-15-1477
+{'G00000312': 1, 'G00000313': 2}
+dic: defaultdict(None, {'CTS-CN-F2F-2019-11-15-1477_1': 'G00000312', 'CTS-CN-F2F-2019-11-15-1477_2': 'G00000313'}), its len: 2
+intervals.keys(): dict_keys([1, 2])
+generate oracle vad speaker embedding
+extract dev target speaker embedding
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1421/1.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1421/2.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1422/1.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1422/2.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1423/1.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1423/2.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1426/1.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1426/2.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1428/1.wav
+/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1428/2.wav
+2024-12-18 15:19:54,948 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:337) INFO: Extracting embeddings...
+2024-12-18 15:19:56,162 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:19:56,807 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:19:57,692 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:19:58,401 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:19:58,884 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:19:59,091 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:19:59,803 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:00,154 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:00,359 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:01,297 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:01,682 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:01,962 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:04,006 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:04,480 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:04,909 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:05,939 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:06,385 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:07,104 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:09,401 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:09,743 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:09,954 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:10,638 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:11,022 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:11,360 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:13,961 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:14,458 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:14,668 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:16,285 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:16,737 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:16,962 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:17,375 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:17,789 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:18,128 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([2, 192]) !
+2024-12-18 15:20:18,390 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1421/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1421/1.pt.
+2024-12-18 15:20:19,138 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:19,490 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:19,715 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:27,036 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:27,397 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:27,618 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:28,357 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:28,811 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:29,010 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:29,707 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:30,440 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:31,170 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([34, 192]) !
+2024-12-18 15:20:31,200 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1421/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1421/2.pt.
+2024-12-18 15:20:32,182 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:32,575 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:32,784 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:33,441 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:33,837 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:34,099 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:34,896 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:35,348 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:35,548 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:37,424 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:37,778 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:37,984 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:38,658 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:39,080 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:39,277 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:39,984 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:40,382 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:40,588 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:41,294 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:41,610 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:41,811 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:42,485 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:42,825 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:43,025 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:44,215 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:44,587 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:44,804 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:45,339 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:45,872 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:46,210 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([40, 192]) !
+2024-12-18 15:20:46,275 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1422/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1422/1.pt.
+2024-12-18 15:20:47,025 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:47,391 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:47,744 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:48,428 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:48,788 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:49,014 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:49,690 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:50,049 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:50,266 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:50,996 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:51,361 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:52,089 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:54,026 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:54,580 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:54,886 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:57,935 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:58,330 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:58,549 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:20:59,245 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:20:59,616 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:20:59,841 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:02,014 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:02,428 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:02,741 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([69, 192]) !
+2024-12-18 15:21:02,811 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1422/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1422/2.pt.
+2024-12-18 15:21:03,492 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:03,904 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:04,104 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:04,796 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:05,227 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:05,432 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:06,109 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:06,473 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:06,674 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:07,346 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:07,747 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:07,945 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:08,611 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:08,990 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:09,211 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:09,948 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:10,312 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:10,528 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:11,073 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:11,609 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:11,952 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([44, 192]) !
+2024-12-18 15:21:12,010 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1423/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1423/1.pt.
+2024-12-18 15:21:12,750 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:13,132 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:13,356 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:14,090 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:14,447 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:14,665 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:16,134 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:16,536 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:16,746 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:17,515 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:17,845 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:18,043 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:18,698 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:19,138 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:19,336 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:22,041 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:22,572 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:22,807 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:23,605 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:23,963 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:24,419 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:25,346 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:25,705 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:25,908 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:26,539 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:26,994 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:27,227 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:27,958 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:28,422 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:28,735 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([48, 192]) !
+2024-12-18 15:21:28,806 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1423/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1423/2.pt.
+2024-12-18 15:21:29,545 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:29,932 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:30,223 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:31,972 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:32,322 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:32,526 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:33,203 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:33,569 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:33,769 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:34,901 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:35,286 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:35,650 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([33, 192]) !
+2024-12-18 15:21:35,678 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1426/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1426/1.pt.
+2024-12-18 15:21:36,589 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:37,025 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:37,226 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:37,877 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:38,249 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:38,450 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:39,102 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:39,461 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:39,660 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:40,388 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:40,746 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:40,947 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:42,285 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:42,711 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:42,919 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:44,653 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:45,100 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:45,301 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:46,261 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:46,674 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:46,883 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:47,609 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:47,996 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:48,196 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:48,819 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:49,183 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:49,385 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:50,906 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:51,267 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:51,678 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:52,664 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:53,146 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:53,365 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:54,163 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:54,584 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:54,810 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:55,727 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:56,093 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:56,308 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:57,253 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:57,609 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:57,828 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:21:58,781 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:21:59,157 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:21:59,514 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([84, 192]) !
+2024-12-18 15:21:59,602 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1426/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1426/2.pt.
+2024-12-18 15:22:02,784 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:03,231 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:03,477 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:04,268 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:04,648 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:04,871 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:05,684 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:06,161 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:06,381 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:07,085 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:07,437 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:07,716 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:09,511 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:09,849 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:10,084 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:11,554 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:11,981 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:12,185 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:17,894 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:18,265 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:18,473 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:20,065 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:20,463 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:20,939 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:21,610 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:21,961 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:22,165 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:22,837 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:23,194 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:23,398 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:24,963 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:25,396 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:25,633 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:26,620 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:27,011 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:27,211 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([84, 192]) !
+2024-12-18 15:22:27,336 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1428/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1428/1.pt.
+2024-12-18 15:22:28,109 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:28,448 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:28,660 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:29,469 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:29,820 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:30,133 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:31,005 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:31,382 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:31,584 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:32,328 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:32,748 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:33,067 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([68, 192]) !
+2024-12-18 15:22:33,118 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1428/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1428/2.pt.
+2024-12-18 15:22:34,413 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:34,792 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:35,068 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:35,793 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:36,130 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:36,333 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:38,136 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:38,498 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:38,713 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:39,563 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:39,899 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:40,100 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:40,723 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:41,198 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:41,397 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:41,966 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:42,405 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:42,725 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([61, 192]) !
+2024-12-18 15:22:42,795 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1434/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1434/1.pt.
+2024-12-18 15:22:43,669 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:44,037 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:44,268 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:45,689 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:46,083 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:46,309 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:47,034 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:47,403 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:47,626 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:48,297 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:48,821 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:49,042 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:50,035 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:50,416 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:50,643 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:52,236 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:52,602 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:52,837 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:54,581 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:54,946 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:55,191 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:56,298 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:56,754 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:56,973 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:22:58,873 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:22:59,446 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:22:59,646 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:01,192 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:01,645 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:01,847 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:02,749 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:03,094 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:03,412 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([28, 192]) !
+2024-12-18 15:23:03,488 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1434/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1434/2.pt.
+2024-12-18 15:23:04,139 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:04,481 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:04,682 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:08,452 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:08,838 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:09,076 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:10,420 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:10,849 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:11,070 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:11,739 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:12,108 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:12,331 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:17,966 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:18,337 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:18,543 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:19,259 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:19,610 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:19,833 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:21,152 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:21,526 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:21,731 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:22,491 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:22,917 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:23,245 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:23,655 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:24,024 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:24,346 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([4, 192]) !
+2024-12-18 15:23:24,408 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1447/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1447/1.pt.
+2024-12-18 15:23:25,810 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:26,141 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:26,358 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:27,249 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:27,593 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:27,879 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:28,735 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:29,198 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:29,447 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:30,222 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:30,643 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:30,841 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:32,088 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:32,464 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:32,678 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:33,348 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:33,680 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:33,883 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:34,542 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:34,911 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:35,213 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:35,750 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:36,099 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:36,419 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([49, 192]) !
+2024-12-18 15:23:36,498 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1447/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1447/2.pt.
+2024-12-18 15:23:37,370 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:37,850 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:38,075 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:38,769 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:39,140 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:39,518 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:41,014 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:41,385 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:41,612 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:42,293 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:42,680 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:42,920 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:43,558 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:43,902 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:44,104 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:44,879 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:45,306 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:45,508 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:46,186 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:46,619 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:46,821 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:48,130 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:48,469 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:48,938 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([22, 192]) !
+2024-12-18 15:23:49,025 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1448/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1448/1.pt.
+2024-12-18 15:23:50,009 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:50,355 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:50,629 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:51,335 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:51,702 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:51,927 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:52,619 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:53,044 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:53,267 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:54,030 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:54,377 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:54,578 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:55,260 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:55,611 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:55,812 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:56,498 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:56,918 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:57,118 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:57,797 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:58,128 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:58,327 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:23:59,157 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:23:59,583 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:23:59,782 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:01,538 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:02,096 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:02,421 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([65, 192]) !
+2024-12-18 15:24:02,527 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1448/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1448/2.pt.
+2024-12-18 15:24:04,381 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:04,825 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:05,036 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:06,425 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:06,773 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:07,022 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:08,358 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:08,720 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:08,975 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:09,761 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:10,214 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:10,484 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:11,135 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:11,523 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:11,747 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:12,437 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:12,801 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:13,025 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:13,800 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:14,141 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:14,365 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:15,853 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:16,226 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:16,441 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:17,123 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:17,528 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:17,730 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:18,334 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:18,671 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:18,999 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([76, 192]) !
+2024-12-18 15:24:19,075 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1449/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1449/1.pt.
+2024-12-18 15:24:19,724 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:20,168 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:20,372 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:21,030 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:21,364 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:21,567 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:22,214 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:22,591 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:22,795 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:23,435 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:23,882 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:24,083 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:24,745 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:25,073 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:25,276 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:25,932 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:26,401 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:26,603 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:27,269 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:27,649 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:27,853 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:28,465 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:28,856 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:29,185 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([86, 192]) !
+2024-12-18 15:24:29,240 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1449/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1449/2.pt.
+2024-12-18 15:24:29,877 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:30,384 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:30,586 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:31,226 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:31,559 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:31,764 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:32,429 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:32,824 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:33,027 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:33,715 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:34,168 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:34,371 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:35,009 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:35,382 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:35,585 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:36,239 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:36,721 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:36,925 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:37,617 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:38,083 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:38,286 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:38,936 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:39,314 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:39,517 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:40,168 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:40,515 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:40,720 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:41,372 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:41,775 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:41,978 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:42,462 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:42,873 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:43,193 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([31, 192]) !
+2024-12-18 15:24:43,273 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1452/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1452/1.pt.
+2024-12-18 15:24:44,745 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:45,107 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:45,311 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:45,977 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:46,339 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:46,542 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:47,196 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:47,560 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:47,766 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:48,506 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:48,873 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:49,076 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:49,745 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:50,190 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:50,392 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:50,927 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:51,359 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:51,683 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([43, 192]) !
+2024-12-18 15:24:51,724 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1452/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1452/2.pt.
+2024-12-18 15:24:52,419 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:52,784 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:52,989 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:53,629 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:53,979 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:54,188 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:54,798 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:55,249 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:55,452 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:56,131 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:56,554 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:56,756 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:57,381 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:57,715 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:57,919 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:58,653 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:24:59,025 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:24:59,228 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:24:59,873 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:00,206 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:00,409 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:02,015 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:02,417 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:02,621 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:03,268 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:03,682 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:03,884 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:04,550 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:04,998 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:05,201 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:05,773 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:06,176 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:06,376 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([48, 192]) !
+2024-12-18 15:25:06,444 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1458/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1458/1.pt.
+2024-12-18 15:25:07,106 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:07,470 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:07,674 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:08,323 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:08,759 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:08,962 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:09,641 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:10,069 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:10,272 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:10,963 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:11,356 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:11,560 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:12,358 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:12,725 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:12,929 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:13,577 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:13,968 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:14,172 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:14,746 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:15,101 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:15,422 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([36, 192]) !
+2024-12-18 15:25:15,463 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1458/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1458/2.pt.
+2024-12-18 15:25:16,120 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:16,516 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:16,720 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:17,389 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:17,749 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:17,954 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:18,606 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:18,934 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:19,138 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:19,798 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:20,140 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:20,344 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:21,161 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:21,481 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:21,688 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:22,904 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:23,401 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:23,655 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:25,525 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:25,851 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:26,177 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([50, 192]) !
+2024-12-18 15:25:26,217 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1461/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1461/1.pt.
+2024-12-18 15:25:26,900 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:27,265 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:27,471 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:28,150 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:28,502 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:28,762 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:30,169 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:30,505 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:30,838 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:31,700 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:32,168 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:32,487 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:33,176 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:33,541 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:33,769 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:34,504 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:34,878 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:35,106 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:37,565 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:37,916 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:38,136 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:38,924 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:39,294 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:39,498 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:40,164 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:40,587 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:40,879 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:41,718 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:42,092 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:42,295 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:42,959 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:43,313 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:43,517 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:44,260 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:44,656 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:44,982 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([47, 192]) !
+2024-12-18 15:25:45,057 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1461/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1461/2.pt.
+2024-12-18 15:25:45,772 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:46,178 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:46,431 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:47,103 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:47,522 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:47,727 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:49,276 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:49,651 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:49,877 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:50,617 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:51,056 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:51,321 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:51,992 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:52,346 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:52,576 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:53,275 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:53,660 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:53,890 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:54,675 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:55,093 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:55,467 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:56,234 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:56,605 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:56,834 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:57,943 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:25:58,290 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:25:58,532 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:25:59,836 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:00,186 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:00,513 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:01,434 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:01,902 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:02,224 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([29, 192]) !
+2024-12-18 15:26:02,313 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1463/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1463/1.pt.
+2024-12-18 15:26:03,132 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:03,573 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:03,777 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:04,428 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:05,759 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:06,018 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:06,684 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:07,038 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:07,242 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:08,083 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:08,429 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:08,653 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:11,559 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:11,924 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:12,130 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:13,107 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:13,543 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:13,756 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:14,550 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:14,884 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:15,224 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([93, 192]) !
+2024-12-18 15:26:15,283 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1463/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1463/2.pt.
+2024-12-18 15:26:16,297 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:16,623 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:16,833 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:17,571 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:17,956 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:18,162 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:18,866 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:19,223 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:19,428 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:20,097 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:20,622 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:20,827 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:21,529 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:21,872 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:22,127 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:22,812 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:23,151 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:23,357 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:24,029 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:24,434 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:24,759 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:26,337 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:26,687 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:26,895 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:27,496 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:27,984 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:28,315 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([77, 192]) !
+2024-12-18 15:26:28,386 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1468/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1468/1.pt.
+2024-12-18 15:26:29,057 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:29,493 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:29,701 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:30,403 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:30,779 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:30,986 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:31,665 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:32,019 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:32,225 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:34,423 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:34,808 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:35,189 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:36,569 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:37,063 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:37,277 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:42,972 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:43,347 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:43,553 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:44,273 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:44,776 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:44,981 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:45,560 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:45,900 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:46,226 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([60, 192]) !
+2024-12-18 15:26:46,291 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1468/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1468/2.pt.
+2024-12-18 15:26:47,007 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:47,369 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:47,576 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:48,224 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:48,637 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:48,842 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:49,564 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:49,913 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:50,122 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:50,813 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:51,289 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:51,497 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:52,059 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:52,442 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:52,772 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([63, 192]) !
+2024-12-18 15:26:52,825 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1469/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1469/1.pt.
+2024-12-18 15:26:53,489 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:53,862 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:54,070 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:54,710 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:55,245 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:55,453 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:56,214 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:56,563 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:56,772 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:57,435 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:57,754 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:57,962 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:26:58,724 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:26:59,077 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:26:59,285 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:00,101 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:01,957 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:02,190 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:02,886 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:03,523 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:03,730 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:04,498 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:04,869 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:05,079 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:05,754 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:06,121 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:06,329 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:06,823 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:07,205 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:07,531 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([24, 192]) !
+2024-12-18 15:27:07,566 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1469/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1469/2.pt.
+2024-12-18 15:27:08,276 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:08,643 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:08,854 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:09,507 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:10,114 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:10,321 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:11,028 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:11,402 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:11,611 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:12,242 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:12,579 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:12,788 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:13,534 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:13,993 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:14,202 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:14,857 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:15,198 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:15,407 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:16,123 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:16,674 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:16,882 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:17,533 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:17,896 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:18,106 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:18,759 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:19,100 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:19,309 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:20,032 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:20,496 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:20,705 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:21,376 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:21,755 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:21,963 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:22,652 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:23,065 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:23,273 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:23,952 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:24,399 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:24,724 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([13, 192]) !
+2024-12-18 15:27:24,791 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1470/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1470/1.pt.
+2024-12-18 15:27:25,485 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:25,807 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:26,014 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:26,682 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:27,028 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:27,236 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:27,873 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:28,248 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:28,458 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:29,163 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:29,603 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:29,810 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:30,444 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:30,830 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:31,165 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([80, 192]) !
+2024-12-18 15:27:31,208 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1470/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1470/2.pt.
+2024-12-18 15:27:31,877 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:32,229 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:32,439 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:33,115 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:33,484 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:33,693 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:34,553 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:34,952 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:35,161 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:35,851 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:36,259 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:36,469 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:37,129 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:37,516 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:37,878 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([90, 192]) !
+2024-12-18 15:27:37,927 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1473/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1473/1.pt.
+2024-12-18 15:27:38,650 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:39,127 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:39,363 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:40,017 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:40,410 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:40,646 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:41,366 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:41,706 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:41,941 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:42,648 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:43,097 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:43,332 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:44,063 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:44,463 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:44,700 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:45,402 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:45,797 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:46,128 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:47,775 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:48,141 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:48,381 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:49,372 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:49,706 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:49,927 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:50,583 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:50,989 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:51,222 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:51,862 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:52,312 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:52,523 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:53,165 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:53,491 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:53,705 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:54,403 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:54,764 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:54,973 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([90, 192]) !
+2024-12-18 15:27:55,083 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1473/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1473/2.pt.
+2024-12-18 15:27:55,767 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:56,117 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:56,327 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:56,975 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:57,380 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:57,588 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:58,317 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:27:58,751 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:27:59,036 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:27:59,713 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:00,100 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:00,340 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:02,279 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:03,170 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:03,406 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:05,361 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:05,723 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:05,961 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:06,706 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:07,137 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:07,345 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:08,028 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:08,439 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:08,737 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:09,418 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:09,767 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:09,977 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:10,454 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:10,822 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:11,152 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([23, 192]) !
+2024-12-18 15:28:11,230 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1475/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1475/1.pt.
+2024-12-18 15:28:12,509 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:12,961 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:13,172 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:14,230 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:14,708 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:14,976 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:15,788 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:16,146 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:16,387 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:16,916 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:17,269 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:17,647 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([47, 192]) !
+2024-12-18 15:28:17,680 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1475/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1475/2.pt.
+2024-12-18 15:28:18,385 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:18,729 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:18,967 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:19,683 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:20,032 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:20,270 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:21,214 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:21,684 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:21,921 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:24,007 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:24,368 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:24,587 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:25,257 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:25,695 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:26,184 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:26,898 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:27,266 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:27,601 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([87, 192]) !
+2024-12-18 15:28:27,662 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1477/1.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1477/1.pt.
+2024-12-18 15:28:28,355 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:28,695 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:28,907 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:29,597 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:30,022 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:30,233 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:30,901 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:31,254 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:31,570 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:32,459 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:32,826 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:33,040 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:33,683 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:34,143 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:34,357 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:35,624 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:35,994 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:36,238 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:36,995 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:37,420 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:37,639 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:38,408 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:38,789 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:39,002 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([96, 192]) !
+2024-12-18 15:28:39,640 - modelscope - INFO - Use user-specified model revision: v1.0.0
+2024-12-18 15:28:40,017 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:248) INFO: Using gpu for inference.
+2024-12-18 15:28:40,351 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:267) INFO: embeddings shape: torch.Size([74, 192]) !
+2024-12-18 15:28:40,428 (generate_chunk_speaker_embedding_from_modelscope_for_diarization:352) INFO: The extracted embedding from /data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc/dev/target_audio/CTS-CN-F2F-2019-11-15-1477/2.wav is saved to /data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/dev/cam++_zh-cn_200k_feature_dir/CTS-CN-F2F-2019-11-15-1477/2.pt.
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `2`
+		More than one GPU was found, enabling multi-GPU training.
+		If this was unintended please pass in `--num_processes=1`.
+	`--num_machines` was set to a value of `1`
+	`--mixed_precision` was set to a value of `'no'`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+Traceback (most recent call last):
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/train_accelerate_ddp.py", line 86, in <module>
+Traceback (most recent call last):
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/train_accelerate_ddp.py", line 86, in <module>
+    from datasets import load_dataset
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/datasets.py", line 82, in <module>
+    from datasets import load_dataset
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/datasets.py", line 82, in <module>
+    from model import TSVADConfig
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/model.py", line 218
+    self.pos_encoder = PositionalEncoding(
+    ^
+IndentationError: expected an indented block after 'elif' statement on line 216
+    from model import TSVADConfig
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/model.py", line 218
+    self.pos_encoder = PositionalEncoding(
+    ^
+IndentationError: expected an indented block after 'elif' statement on line 216
+[2024-12-18 15:28:49,147] torch.distributed.elastic.multiprocessing.api: [WARNING] Sending process 2518739 closing signal SIGTERM
+[2024-12-18 15:28:49,179] torch.distributed.elastic.multiprocessing.api: [ERROR] failed (exitcode: 1) local_rank: 1 (pid: 2518740) of binary: /home/maduo/.conda/envs/speaker_diarization/bin/python
+Traceback (most recent call last):
+  File "/home/maduo/.conda/envs/speaker_diarization/bin/accelerate", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/accelerate/commands/accelerate_cli.py", line 48, in main
+    args.func(args)
+  File "/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/accelerate/commands/launch.py", line 1159, in launch_command
+    multi_gpu_launcher(args)
+  File "/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/accelerate/commands/launch.py", line 793, in multi_gpu_launcher
+    distrib_run.run(args)
+  File "/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/torch/distributed/run.py", line 797, in run
+    elastic_launch(
+  File "/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 134, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 264, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+ts_vad2/train_accelerate_ddp.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2024-12-18_15:28:49
+  host      : hltsz02
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 2518740)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+Traceback (most recent call last):
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/infer.py", line 27, in <module>
+    from datasets import TSVADDataConfig
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/datasets.py", line 82, in <module>
+    from model import TSVADConfig
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/model.py", line 218
+    self.pos_encoder = PositionalEncoding(
+    ^
+IndentationError: expected an indented block after 'elif' statement on line 216
+Traceback (most recent call last):
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/infer.py", line 27, in <module>
+    from datasets import TSVADDataConfig
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/datasets.py", line 82, in <module>
+    from model import TSVADConfig
+  File "/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2/model.py", line 218
+    self.pos_encoder = PositionalEncoding(
+    ^
+IndentationError: expected an indented block after 'elif' statement on line 216

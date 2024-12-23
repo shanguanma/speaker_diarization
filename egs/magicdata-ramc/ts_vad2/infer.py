@@ -150,22 +150,24 @@ def postprocess(res_dict_all, args):
             ]
         )
         out = out.decode("utf-8")
-        DER, MS, FA, SC = (
-            float(out.split("/")[0]),
-            float(out.split("/")[1]),
-            float(out.split("/")[2]),
-            float(out.split("/")[3]),
-        )
-
-        print(
-            "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
-            % (threshold, DER, MS, FA, SC)
-        )
-        print(
-            "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
-            % (threshold, DER, MS, FA, SC),
-            file=der_write,
-        )
+        #out = str(out)
+        #DER, MS, FA, SC = (
+        #    float(out.split(",")[0].split("=")[1]),
+        #    float(out.split(",")[1].split("=")[1]),
+        #    float(out.split(",")[2].split("=")[1]),
+        #    float(out.split(",")[3].split("=")[1]),
+        #)
+        print(f"Eval for threshold {threshold} {out}\n")
+        print(f"Eval for threshold {threshold} {out}\n",file=der_write)
+        #print(
+        #    "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
+        #    % (threshold, DER, MS, FA, SC)
+        #)
+        #print(
+        #    "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
+        #    % (threshold, DER, MS, FA, SC),
+        #    file=der_write,
+        #)
     der_write.close()
 
 
@@ -196,6 +198,7 @@ def load_model(
         if model_file is not None:
             # case1 load one best checkpoint model
             model = model.to(device)
+            logging.info(f"params.model_file: {params.model_file}")
             model.load_state_dict(
                 torch.load(params.model_file, map_location=device)["model"]
             )
@@ -280,6 +283,10 @@ def main(args):
     )  # only for speech_encoder_type=="WavLm"
     model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
     model_cfg.speech_encoder_config = args.speech_encoder_config # only for wav-bert2 ssl model
+    model_cfg.single_backend_type=args.single_backend_type
+    model_cfg.multi_backend_type=args.multi_backend_type
+    model_cfg.num_transformer_layer=args.num_transformer_layer
+
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
 

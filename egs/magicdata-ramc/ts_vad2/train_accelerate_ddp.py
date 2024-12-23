@@ -65,7 +65,7 @@ from accelerate.utils import GradScalerKwargs
 
 import logging
 
-from utils import fix_random_seed
+from utils import fix_random_seed,setup_logging
 from checkpoint import (
     load_checkpoint,
     remove_checkpoints,
@@ -88,10 +88,10 @@ from datasets import TSVADDataConfig
 from model import TSVADModel
 from model import TSVADConfig
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
-)
+#logging.basicConfig(
+#    level=logging.INFO,
+#    format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+#)
 LRSchedulerType = Union[torch.optim.lr_scheduler._LRScheduler]
 
 
@@ -99,7 +99,12 @@ def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-
+    parser.add_argument(
+        "--verbose",
+        type=int,
+        default=1,
+        help=">0,INFO level log, <0, DEBUG level log",
+    )
     parser.add_argument(
         "--world-size",
         type=int,
@@ -310,6 +315,8 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
         default=1,
         help="mix audio segment shift stride of per sample in ts vad model",
     )
+    parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` or `mamba` ")
+    parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` or `mamba` ")
     return parser
 
 def add_model_arguments(parser: argparse.ArgumentParser):
@@ -337,6 +344,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json",
         help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model."""
     )
+    parser.add_argument("--num-transformer-layer",type=int,default=2, help="""single_backend or multi_backend number of layers""")
     return parser
 
 
@@ -926,6 +934,10 @@ def main(args):
         params.wavlm_fuse_feat_post_norm
     )  # only for self.speech_encoder_type == "WavLM_weight_sum"
     model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
+    model_cfg.single_backend_type=params.single_backend_type
+    model_cfg.multi_backend_type=params.multi_backend_type
+    model_cfg.num_transformer_layer=params.num_transformer_layer
+
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg,task_cfg=data_cfg)
     #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
@@ -1052,4 +1064,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.exp_dir = Path(args.exp_dir)
 
+    setup_logging(args.verbose)
     main(args)

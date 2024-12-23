@@ -28,6 +28,7 @@ from ecapa_tdnn_wespeaker import ECAPA_TDNN_GLOB_c1024
 from ecapa_tdnn import ECAPA_TDNN
 from whisper_encoder import ModelDimensions
 from whisper_encoder import WhisperEncoder
+from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2 
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,10 @@ class TSVADConfig:
     """
     this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model.
     """
+    single_backend_type: str="transformer"
+    """single backend type choices from `transformer or mamba or mamba_v2`"""
+    multi_backend_type: str='transformer'
+    """multi backend type choices from `transformer or mamba or mamba_v2`"""
 
 model_cfg = TSVADConfig()
 
@@ -199,45 +204,123 @@ class TSVADModel(nn.Module):
             )
         else:
             self.proj_layer = None
+        
+        self.single_backend,self.pos_encoder,self.backend_down = self.create_single_backend(cfg,task_cfg)
 
-        self.single_backend = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(
-                d_model=cfg.transformer_embed_dim,
-                dim_feedforward=cfg.transformer_ffn_embed_dim,
-                nhead=cfg.num_attention_head,
-                dropout=cfg.dropout,
-            ),
-            num_layers=cfg.num_transformer_layer,
-        )
-        self.pos_encoder = PositionalEncoding(
-            cfg.transformer_embed_dim,
-            dropout=cfg.dropout,
-            max_len=(task_cfg.rs_len * self.label_rate),
-        )
+        self.multi_backend,self.fc = self.create_multi_backend(cfg)
 
-        self.backend_down = nn.Sequential(
-            nn.Conv1d(
-                cfg.transformer_embed_dim * self.max_num_speaker,
+        #self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+    
+    def create_single_backend(self,cfg,task_cfg):
+        self.single_backend_proj_for_mamba2: nn.Module=None
+        self.single_backend: Optional[nn.Module] = None
+        self.pos_encoder: Optional[nn.Module] = None
+        self.backend_down: Optional[nn.Module] = None
+        if cfg.single_backend_type=="transformer":
+            self.single_backend = nn.TransformerEncoder(
+                nn.TransformerEncoderLayer(
+                    d_model=cfg.transformer_embed_dim,
+                    dim_feedforward=cfg.transformer_ffn_embed_dim,
+                    nhead=cfg.num_attention_head,
+                    dropout=cfg.dropout,
+                ),
+                num_layers=cfg.num_transformer_layer,
+            )
+            self.pos_encoder = PositionalEncoding(
                 cfg.transformer_embed_dim,
-                5,
-                stride=1,
-                padding=2,
-            ),
-            BatchNorm1D(num_features=cfg.transformer_embed_dim),
-            nn.ReLU(),
-        )
-
-        self.multi_backend = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(
-                d_model=cfg.transformer_embed_dim,
-                dim_feedforward=cfg.transformer_ffn_embed_dim,
-                nhead=cfg.num_attention_head,
                 dropout=cfg.dropout,
-            ),
-            num_layers=cfg.num_transformer_layer,
+                max_len=(task_cfg.rs_len * self.label_rate),
+            )
+            self.backend_down = nn.Sequential(
+                nn.Conv1d(
+                    cfg.transformer_embed_dim * self.max_num_speaker,
+                    cfg.transformer_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                nn.ReLU(),
+            )
+        elif cfg.single_backend_type=="mamba":
+            ## because I use concat resual, so self.single_backend output feature dimension equal to cfg.transformer_embed_dim *2
+            self.single_backend = MambaBlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
+            self.pos_encoder = PositionalEncoding(
+                cfg.transformer_embed_dim,
+                dropout=cfg.dropout,
+                max_len=(task_cfg.rs_len * self.label_rate),
+            )
+            self.backend_down = nn.Sequential(
+                nn.Conv1d(
+                    2*cfg.transformer_embed_dim * self.max_num_speaker,
+                    cfg.transformer_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                nn.ReLU(),
         )
+        elif cfg.single_backend_type=="mamba_v2":
+            ## because I use "add" resual, so self.single_backend output feature dimension equal to cfg.transformer_embed_dim
+            self.single_backend = MambaBlock(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=2,bidirectional=True,bidirectional_merging="add")
+            self.pos_encoder = PositionalEncoding(
+                cfg.transformer_embed_dim,
+                dropout=cfg.dropout,
+                max_len=(task_cfg.rs_len * self.label_rate),
+            )
+            self.backend_down = nn.Sequential(
+                nn.Conv1d(
+                    cfg.transformer_embed_dim * self.max_num_speaker,
+                    cfg.transformer_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                nn.ReLU(),
+        )
+#        elif cfg.single_backend_type=="mamba2":
+#            self.single_backend_proj_for_mamba2 = nn.Linear(
+#                cfg.transformer_embed_dim,256
+#            )
+#            self.single_backend = Mamba2BlockV2(256,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
+#            self.pos_encoder = PositionalEncoding(
+#                256,
+#                dropout=cfg.dropout,
+#                max_len=(task_cfg.rs_len * self.label_rate),
+#            )
+        return self.single_backend,self.pos_encoder,self.backend_down
 
-        self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+    def create_multi_backend(self,cfg):
+        self.multi_backend: Optional[nn.Module] = None
+        self.fc: Optional[nn.Module] = None
+        #self.multi_backend_proj_for_mamba2: nn.Module=None
+        if cfg.multi_backend_type=="transformer":
+            self.multi_backend = nn.TransformerEncoder(
+                nn.TransformerEncoderLayer(
+                    d_model=cfg.transformer_embed_dim,
+                    dim_feedforward=cfg.transformer_ffn_embed_dim,
+                    nhead=cfg.num_attention_head,
+                    dropout=cfg.dropout,
+                ),
+                num_layers=cfg.num_transformer_layer,
+            )
+            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+        elif cfg.multi_backend_type=="mamba":
+            self.multi_backend= MambaBlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
+            self.fc = nn.Linear(2*cfg.transformer_embed_dim, self.max_num_speaker)
+
+
+        elif cfg.multi_backend_type=="mamba_v2":
+            self.multi_backend= MambaBlock(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=2,bidirectional=True,bidirectional_merging="add")
+            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+        #elif cfg.multi_backend_type=="mamba2":
+        #    self.multi_backend_proj_for_mamba2 = nn.Linear(
+        #        cfg.transformer_embed_dim,256
+        #    )
+        #    self.multi_backend = Mamba2BlockV2(256,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
+        return self.multi_backend,self.fc
 
     def create_speech_encoder(self, sample_times, cfg, device):
         self.speech_encoder: Optional[nn.Module] = None
@@ -612,6 +695,7 @@ class TSVADModel(nn.Module):
             cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T,2D
             if self.proj_layer is not None:
                 cat_embed = self.proj_layer(cat_embed)
+            logging.debug(f"cat_embed: shape: {cat_embed.shape}") #(B,T,384)
             cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
             cat_embed = self.pos_encoder(cat_embed)
             cat_embed = self.single_backend(cat_embed)  # T, B, F
