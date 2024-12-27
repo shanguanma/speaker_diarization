@@ -155,7 +155,7 @@ class Mamba2BlockV2(nn.Module):
     it required nvcc ,if you haven't it, you can install it via conda , i.e. you install pytorch on cuda11.8, you can `conda install nvidia/label/cuda-11.8.0::cuda-nvcc`
     you install other version via url `https://anaconda.org/nvidia/cuda-nvcc`
     you need to install mamba-ssm via `pip install mamba-ssm  --no-build-isolation`
-    you need to install causal-conv1d via `pip install causal-conv1d>=1.4.0 --no-build-isolation
+    you need to install causal-conv1d via ` pip install 'causal-conv1d==1.2.1' --no-cache-dir --no-build-isolation`
     
     It requires that the input of forward() feature dimension is a multiple of 8. In fact, this requirement comes from causal_conv1d 
     """
@@ -211,13 +211,13 @@ class Mamba2BlockV2(nn.Module):
 if __name__ == "__main__":
     input=torch.randn(64,200,192).to("cuda")
     print(f"input device: {input.device}")
-    model=MambaBlockV2(192,n_layer=2,d_state=64,d_conv=4,expand=2,bidirectional=True).to("cuda")
-    #model2=Mamba2BlockV2(256,n_layer=7,d_state=64,d_conv=4,expand=4,bidirectional=False).to("cuda")
+    model=MambaBlockV2(192,n_layer=2,d_state=64,d_conv=4,expand=4,bidirectional=True).to("cuda")
+    model2=Mamba2BlockV2(256,n_layer=2,d_state=64,d_conv=4,expand=4,bidirectional=True).to("cuda")
     output = model(input)
     print(f"output shape: {output.shape}")
-    #input2=torch.randn(64,200,256).to("cuda")
-    #output2 = model2(input2)
-    #print(f"output2 shape: {output2.shape}")
-    model3 = MambaBlock(192,n_layer=2,d_state=64,d_conv=4,expand=2,bidirectional=True,bidirectional_merging= "concat",).to("cuda")
+    input2=torch.randn(64,200,256).to("cuda")
+    output2 = model2(input2)
+    print(f"output2 shape: {output2.shape}")
+    model3 = MambaBlock(192,n_layer=2,d_state=64,d_conv=4,expand=4,bidirectional=True,bidirectional_merging= "concat",).to("cuda")
     output3 = model3(input)
     print(f"output3 shape: {output3.shape}")
