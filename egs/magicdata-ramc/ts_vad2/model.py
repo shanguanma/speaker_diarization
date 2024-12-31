@@ -28,7 +28,7 @@ from ecapa_tdnn_wespeaker import ECAPA_TDNN_GLOB_c1024
 from ecapa_tdnn import ECAPA_TDNN
 from whisper_encoder import ModelDimensions
 from whisper_encoder import WhisperEncoder
-#from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2 
+#from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 try:
     from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 except ImportError:
@@ -100,6 +100,8 @@ class TSVADConfig:
     """single backend type choices from `transformer or mamba or mamba_v2`"""
     multi_backend_type: str='transformer'
     """multi backend type choices from `transformer or mamba or mamba_v2`"""
+    d_state: int = 64
+    """d_state of mamba or mamba2 """
 
 model_cfg = TSVADConfig()
 
@@ -208,7 +210,7 @@ class TSVADModel(nn.Module):
             )
         else:
             self.proj_layer = None
-       
+
         self.single_backend_type=cfg.single_backend_type
         self.single_backend,self.pos_encoder,self.backend_down = self.create_single_backend(cfg,task_cfg)
 
@@ -216,7 +218,7 @@ class TSVADModel(nn.Module):
         self.multi_backend,self.fc,self.multi_backend_proj = self.create_multi_backend(cfg)
 
         #self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-    
+
     def create_single_backend(self,cfg,task_cfg):
         self.single_backend_proj_for_mamba2: nn.Module=None
         self.single_backend: Optional[nn.Module] = None
@@ -293,8 +295,8 @@ class TSVADModel(nn.Module):
                 max_len=(task_cfg.rs_len * self.label_rate),
             )
             # causal_conv1d  channel must be multiples of 8  , So I select 384=192*2 as model dimension.
-            self.single_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
-            
+            self.single_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=4,bidirectional=True)
+
             self.backend_down = nn.Sequential(
                 nn.Conv1d(
                     2*cfg.transformer_embed_dim * self.max_num_speaker,
@@ -306,6 +308,7 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.transformer_embed_dim),
                 nn.ReLU(),
         )
+
         return self.single_backend,self.pos_encoder,self.backend_down
 
     def create_multi_backend(self,cfg):
@@ -323,7 +326,7 @@ class TSVADModel(nn.Module):
                 num_layers=cfg.num_transformer_layer,
             )
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-        
+
         elif cfg.multi_backend_type=="mamba":
             self.multi_backend= MambaBlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
             self.fc = nn.Linear(2*cfg.transformer_embed_dim, self.max_num_speaker)
@@ -331,13 +334,12 @@ class TSVADModel(nn.Module):
         elif cfg.multi_backend_type=="mamba_v2":
             self.multi_backend= MambaBlock(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=2,bidirectional=True,bidirectional_merging="add")
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-        
+
         elif cfg.multi_backend_type=="mamba2":
-            self.multi_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
+            self.multi_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=4,bidirectional=True)
             self.multi_backend_proj = nn.Linear(
                 2*cfg.transformer_embed_dim, cfg.transformer_embed_dim)
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-
         return self.multi_backend,self.fc,self.multi_backend_proj
 
     def create_speech_encoder(self, sample_times, cfg, device):

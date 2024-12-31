@@ -286,6 +286,7 @@ def main(args):
     model_cfg.single_backend_type=args.single_backend_type
     model_cfg.multi_backend_type=args.multi_backend_type
     model_cfg.num_transformer_layer=args.num_transformer_layer
+    model_cfg.d_state = args.d_state
 
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
