@@ -315,8 +315,8 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
         default=1,
         help="mix audio segment shift stride of per sample in ts vad model",
     )
-    parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` or `mamba` ")
-    parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` or `mamba` ")
+    parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2`")
+    parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2` ")
     return parser
 
 def add_model_arguments(parser: argparse.ArgumentParser):
@@ -345,6 +345,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model."""
     )
     parser.add_argument("--num-transformer-layer",type=int,default=2, help="""single_backend or multi_backend number of layers""")
+    parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba or mamba2 network""")
     return parser
 
 
@@ -937,6 +938,7 @@ def main(args):
     model_cfg.single_backend_type=params.single_backend_type
     model_cfg.multi_backend_type=params.multi_backend_type
     model_cfg.num_transformer_layer=params.num_transformer_layer
+    model_cfg.d_state = params.d_state
 
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg,task_cfg=data_cfg)
@@ -1001,7 +1003,7 @@ def main(args):
     #if True:
     #    model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     #    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    
+
     ## prepared optimizer,
     optimizer = get_optimizer(params, model)
     ## accelerated model, optimizer, scheduler ,train_dl, valid_dl
@@ -1017,7 +1019,7 @@ def main(args):
         max_num_updates = params.max_updates
     scheduler = get_scheduler(params, optimizer, max_num_updates)
     scheduler = accelerator.prepare(scheduler)
-    
+
 
 
     # logging.info(f"After accelerator: model: {model}")
