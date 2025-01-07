@@ -345,7 +345,9 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model."""
     )
     parser.add_argument("--num-transformer-layer",type=int,default=2, help="""single_backend or multi_backend number of layers""")
-    parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba or mamba2 network""")
+    parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba2 network""")
+    parser.add_argument("--expand",type=int,default=4,help="""expand of mamba2 network""")
+
     return parser
 
 
@@ -939,6 +941,7 @@ def main(args):
     model_cfg.multi_backend_type=params.multi_backend_type
     model_cfg.num_transformer_layer=params.num_transformer_layer
     model_cfg.d_state = params.d_state
+    model_cfg.expand = params.expand
 
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg,task_cfg=data_cfg)
@@ -992,17 +995,19 @@ def main(args):
 
     # the below combine ddp find_unused_parameters=True in accelerate package.
     # it will solve the strange error.
-    if True:
-        from functools import partial
+    if params.speech_encoder_type!="w2v-bert2":
+        if True:
+            from functools import partial
 
-        notfailing_checkpoint = partial(
-            torch.utils.checkpoint.checkpoint, use_reentrant=False
-        )
-        torch.utils.checkpoint.checkpoint = notfailing_checkpoint
-        model.gradient_checkpointing_enable()
-    #if True:
-    #    model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    #    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            notfailing_checkpoint = partial(
+                torch.utils.checkpoint.checkpoint, use_reentrant=False
+            )
+            torch.utils.checkpoint.checkpoint = notfailing_checkpoint
+            model.gradient_checkpointing_enable()
+    else:
+        if True:
+            model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
 
     ## prepared optimizer,
     optimizer = get_optimizer(params, model)

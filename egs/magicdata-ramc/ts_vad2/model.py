@@ -101,7 +101,9 @@ class TSVADConfig:
     multi_backend_type: str='transformer'
     """multi backend type choices from `transformer or mamba or mamba_v2`"""
     d_state: int = 64
-    """d_state of mamba or mamba2 """
+    """d_state of mamba2 """
+    expand: int = 4
+    """expand of mamba2"""
 
 model_cfg = TSVADConfig()
 
@@ -295,7 +297,7 @@ class TSVADModel(nn.Module):
                 max_len=(task_cfg.rs_len * self.label_rate),
             )
             # causal_conv1d  channel must be multiples of 8  , So I select 384=192*2 as model dimension.
-            self.single_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=4,bidirectional=True)
+            self.single_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=cfg.expand,bidirectional=True)
 
             self.backend_down = nn.Sequential(
                 nn.Conv1d(
@@ -336,7 +338,7 @@ class TSVADModel(nn.Module):
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
 
         elif cfg.multi_backend_type=="mamba2":
-            self.multi_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=4,bidirectional=True)
+            self.multi_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=cfg.expand,bidirectional=True)
             self.multi_backend_proj = nn.Linear(
                 2*cfg.transformer_embed_dim, cfg.transformer_embed_dim)
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)

@@ -409,7 +409,7 @@ def get_params() -> AttributeDict:
             # "ignore_id": -1,
             # "label_smoothing": 0.1,
             "batch_size": 64,
-            "cur_step": 0,
+            "cur_step":0,
         }
     )
     return params
@@ -552,6 +552,7 @@ def compute_validation_loss(
         params.best_valid_der = der_value
         params.best_valid_step = batch_idx_train
         params.best_valid_step_der = der_value
+
     return tot_loss
 
 
@@ -596,8 +597,8 @@ def save_checkpoint(
 
 def do_save_and_remove_once(
     params, model, model_avg, optimizer, scheduler, train_dl, scaler
-):
-    # save model
+    ):
+    # save cur checkpoint model and best step checkpoint model
     save_checkpoint_with_global_batch_idx(
         out_dir=params.exp_dir,
         global_batch_idx=params.batch_idx_train,
@@ -608,6 +609,7 @@ def do_save_and_remove_once(
         scheduler=scheduler,
         sampler=train_dl.sampler,
         scaler=scaler,
+        #cur_valid_der=cur_valid_der,
     )
     # remove unsed ckpt
     remove_checkpoints(
@@ -942,12 +944,12 @@ def main(args):
         magicdata_valid_dataset = load_dataset(data_cfg, "dev","magicdata-ramc")
         magicdata_train_dataset = load_dataset(data_cfg, "train","magicdata-ramc")
 
-    concatenated_dataset = torch.utils.data.ConcatDataset([magicdata_valid_dataset, alimeeting_valid_dataset])
+    #concatenated_dataset = torch.utils.data.ConcatDataset([magicdata_valid_dataset, alimeeting_valid_dataset])
     #logging.info(f"{dir(valid_dataset)},{valid_dataset.datasets}")
     #logging.info(f"{valid_dataset.collater}")
 
     valid_dl = DataLoader(
-        dataset=concatenated_dataset,  # the dataset instance
+        dataset=magicdata_valid_dataset,  # the dataset instance
         batch_size=params.batch_size,  # automatic batching
         drop_last=False,  # drops the last incomplete batch in case the dataset size is not divisible by 64
         shuffle=False,  # shuffles the dataset before every epoch

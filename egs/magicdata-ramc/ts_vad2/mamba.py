@@ -19,8 +19,8 @@ class MambaBlockV2(nn.Module):
     """
     Parametrized bidirectional Mamba block from SPMamba https://github.com/JusperLee/SPMamba/blob/main/look2hear/models/SPMamba.py.
     Under Apache License 2.0 (not provided in the original repository).
-    
-    
+
+
     # note: 2024-12-18, Block class api required offer mlp_cls
     it required nvcc ,if you haven't it, you can install it via conda , i.e. you install pytorch on cuda11.8, you can `conda install nvidia/label/cuda-11.8.0::cuda-nvcc`
     you install other version via url `https://anaconda.org/nvidia/cuda-nvcc`
@@ -156,8 +156,8 @@ class Mamba2BlockV2(nn.Module):
     you install other version via url `https://anaconda.org/nvidia/cuda-nvcc`
     you need to install mamba-ssm via `pip install mamba-ssm  --no-build-isolation`
     you need to install causal-conv1d via ` pip install 'causal-conv1d==1.2.1' --no-cache-dir --no-build-isolation`
-    
-    It requires that the input of forward() feature dimension is a multiple of 8. In fact, this requirement comes from causal_conv1d 
+
+    It requires that the input of forward() feature dimension is a multiple of 8. In fact, this requirement comes from causal_conv1d
     """
 
     def __init__(self, in_channels, n_layer=1, d_state=64, d_conv=4, expand=2, rmsnorm_eps=1e-5, bidirectional=False):

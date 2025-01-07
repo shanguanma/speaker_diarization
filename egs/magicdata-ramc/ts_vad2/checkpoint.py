@@ -202,6 +202,7 @@ def save_checkpoint_with_global_batch_idx(
     scaler: Optional[GradScaler] = None,
     sampler: Optional[CutSampler] = None,
     rank: int = 0,
+    #cur_valid_der: int = 0,
 ):
     """Save training info after processing given number of batches.
 
@@ -248,7 +249,12 @@ def save_checkpoint_with_global_batch_idx(
         sampler=sampler,
         rank=rank,
     )
-
+    #if params.best_valid_step == params.cur_step:
+    #logging.info(f"params: {params} in fn save_checkpoint_with_global_batch_idx")
+    #if cur_valid_der < params.best_valid_step_der :
+    #    best_valid_der_filename = out_dir / "best-valid-step-der.pt"
+    #    copyfile(src=filename, dst=best_valid_der_filename)
+    #    logging.info(f" end of step {params.cur_step}, Saved best checkpoint to {best_valid_der_filename} ")
 
 def find_checkpoints(out_dir: Path, iteration: int = 0) -> List[str]:
     """Find all available checkpoints in a directory.
