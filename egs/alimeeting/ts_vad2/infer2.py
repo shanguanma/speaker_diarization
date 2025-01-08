@@ -384,18 +384,18 @@ def get_args():
         default=25,
         help="diarization label rate",
     )
-    parser.add_argument(
-        "--rs-len",
-        type=int,
-        default=4,
-        help="for infer",
-    )
-    parser.add_argument(
-        "--segment-shift",
-        type=int,
-        default=1,
-        help="for infer",
-    )
+    #parser.add_argument(
+    #    "--rs-len",
+    #    type=int,
+    #    default=4,
+    #    help="for infer",
+    #)
+    #parser.add_argument(
+    #    "--segment-shift",
+    #    type=int,
+    #    default=1,
+    #    help="for infer",
+    #)
 
     parser.add_argument(
         "--model-file",

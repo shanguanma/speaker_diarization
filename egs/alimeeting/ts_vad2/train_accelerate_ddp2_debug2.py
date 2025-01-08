@@ -921,7 +921,7 @@ def main(args):
 
 
     logging.info(f"model_cfg: {model_cfg}")
-    model = TSVADModel(cfg=model_cfg)
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg)
     #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
