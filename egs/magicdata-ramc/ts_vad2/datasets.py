@@ -101,14 +101,14 @@ def load_dataset(
             spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
             json_path = f"{cfg.data_dir}/{split}_Ali_far/{split}.json"  ## offer mixer wavform name,
             audio_path = f"{cfg.data_dir}/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
-    
+
     elif cfg.dataset_name == "magicdata-ramc":
         spk_path=f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
         json_path=f"{cfg.data_dir}/{split}/{split}.json"  ## offer mixer wavform name,
         audio_path = f"{cfg.data_dir}/{split}/target_audio" ## offer number of speaker, offer mixer wavform name, offer target speaker wav
     else:
         raise Exception(f"The given dataset {cfg.dataset_name} is not supported.")
-    
+
     if (
         cfg.speech_encoder_type == "WavLM"
         or cfg.speech_encoder_type == "WavLM_weight_sum"
