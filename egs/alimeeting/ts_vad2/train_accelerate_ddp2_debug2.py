@@ -281,6 +281,8 @@ def add_data_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/datasets/alimeeting",  # oracle target audio and labels path
         help="path to target audio and mixture labels root directory.",
     )
+    parser.add_argument("--dataset-name",type=str,default="magicdata-ramc",help="dataset name", )
+    parser.add_argument("--max-num-speaker", type=int, default=4, help="support max number of speaker in ts_vad")
     return parser
 
 def add_data_model_common_arguments(parser: argparse.ArgumentParser):
@@ -296,6 +298,20 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
         default=192,
         help="target speaker model output feature dimension and is also tsvad speech encoder output feature dimension ",
     )
+    parser.add_argument(
+        "--rs-len",
+        type=int,
+        default=4,
+        help="mix audio lenght of per sample in ts vad model",
+    )
+    parser.add_argument(
+        "--segment-shift",
+        type=int,
+        default=1,
+        help="mix audio segment shift stride of per sample in ts vad model",
+    )
+    parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2`")
+    parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2` ")
     return parser
 
 def add_model_arguments(parser: argparse.ArgumentParser):
@@ -323,6 +339,9 @@ def add_model_arguments(parser: argparse.ArgumentParser):
         default="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json",
         help="""this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model."""
     )
+    parser.add_argument("--num-transformer-layer",type=int,default=2, help="""single_backend or multi_backend number of layers""")
+    parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba2 network""")
+    parser.add_argument("--expand",type=int,default=4,help="""expand of mamba2 network""")
     return parser
 
 
@@ -822,9 +841,17 @@ def main(args):
     data_cfg.speaker_embedding_name_dir = params.speaker_embedding_name_dir
     data_cfg.data_dir = params.data_dir
     data_cfg.speaker_embed_dim = params.speaker_embed_dim
+    data_cfg.max_num_speaker = params.max_num_speaker
+    data_cfg.rs_len = params.rs_len
+    data_cfg.segment_shift = params.segment_shift
     logging.info(f"data_cfg: {data_cfg}")
-    valid_dataset = load_dataset(data_cfg, "Eval")
-    train_dataset = load_dataset(data_cfg, "Train")
+    data_cfg.dataset_name = params.dataset_name
+    if params.dataset_name=="alimeeting":
+        valid_dataset = load_dataset(data_cfg, "Eval")
+        train_dataset = load_dataset(data_cfg, "Train")
+    elif params.dataset_name=="magicdata-ramc":
+        valid_dataset = load_dataset(data_cfg, "dev")
+        train_dataset = load_dataset(data_cfg, "train")
 
     valid_dl = DataLoader(
         dataset=valid_dataset,  # the dataset instance
@@ -885,6 +912,14 @@ def main(args):
         params.wavlm_fuse_feat_post_norm
     )  # only for self.speech_encoder_type == "WavLM_weight_sum"
     model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
+    model_cfg.single_backend_type=params.single_backend_type
+    model_cfg.multi_backend_type=params.multi_backend_type
+    model_cfg.num_transformer_layer=params.num_transformer_layer
+    model_cfg.d_state = params.d_state
+    model_cfg.expand = params.expand
+
+
+
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg)
     #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
@@ -945,13 +980,6 @@ def main(args):
     #    )
     #    torch.utils.checkpoint.checkpoint = notfailing_checkpoint
     #    model.gradient_checkpointing_enable()
-    #if True:
-    #    if params.speech_encoder_type=="CAM++":
-    #        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    #    else:
-    #    model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    #    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-
 
     if params.speech_encoder_type!="w2v-bert2":
         if True:
@@ -966,7 +994,12 @@ def main(args):
         if True:
             model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
             model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-
+    #if True:
+    #    if params.speech_encoder_type=="CAM++":
+    #        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    #    else:
+    #    model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    #    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     ## get optimizer, scheduler
     optimizer, scheduler = get_optimizer_scheduler(params, model, world_size)
 
