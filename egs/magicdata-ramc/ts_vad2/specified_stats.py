@@ -56,12 +56,6 @@ def filter_sys_rttm(oracle_dict: Dict, seg_dur: float, file: str):
                     s,e = interval
                     if start>=s and end <=e:
                         fw.write(line)
-            #for key in oracle_dict:
-            #    if key==line_list[1] and float(line_list[4])<= float(seg_dur):
-            #        for interval in oracle_dict[key]:
-            #            s,e = interval
-            #            if start<=s and end <=e:
-            #                fw.write(line)
 
 
 
