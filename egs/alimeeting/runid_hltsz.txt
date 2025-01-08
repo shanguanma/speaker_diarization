@@ -2,6 +2,15 @@
 srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
 
 
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage124-125.log run_ts_vad2_hltsz.sh --stage 124 --stop-stage 125
+Submitted batch job 13600
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage126-127.log run_ts_vad2_hltsz.sh --stage 126 --stop-stage 127
+Submitted batch job 13599
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -w nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage124-125.log run_ts_vad2_hltsz.sh --stage 124 --stop-stage 125
+Submitted batch job 13597
+
 sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage23.log run_ts_vad3_hltsz.sh --stage 23 --stop-stage 23
 
 sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad3_hltsz_stage25.log run_ts_vad3_hltsz.sh --stage 25 --stop-stage 25
