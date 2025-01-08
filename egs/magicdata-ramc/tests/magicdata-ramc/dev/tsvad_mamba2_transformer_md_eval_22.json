@@ -1,0 +1,7 @@
+{
+  "error_rate": 0.05266996160255064661212658485,
+  "scored_speaker_time": 24333.908000,
+  "missed_speaker_time": 167.838000,
+  "falarm_speaker_time": 314.887000,
+  "speaker_error_time": 798.941000
+}

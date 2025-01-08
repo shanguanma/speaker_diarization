@@ -1,0 +1,135 @@
+{
+  "CTS-CN-F2F-2019-11-15-1448": {
+    "error_rate": 0.0431,
+    "scored_speaker_time": 1220.100000,
+    "missed_speaker_time": 17.731000,
+    "falarm_speaker_time": 5.337000,
+    "speaker_error_time": 29.537000
+  },
+  "CTS-CN-F2F-2019-11-15-1426": {
+    "error_rate": 0.0831,
+    "scored_speaker_time": 1439.554000,
+    "missed_speaker_time": 24.643000,
+    "falarm_speaker_time": 63.120000,
+    "speaker_error_time": 31.928000
+  },
+  "CTS-CN-F2F-2019-11-15-1473": {
+    "error_rate": 0.0198,
+    "scored_speaker_time": 1329.088000,
+    "missed_speaker_time": 6.429000,
+    "falarm_speaker_time": 15.351000,
+    "speaker_error_time": 4.536000
+  },
+  "CTS-CN-F2F-2019-11-15-1468": {
+    "error_rate": 0.015,
+    "scored_speaker_time": 1358.870000,
+    "missed_speaker_time": 1.823000,
+    "falarm_speaker_time": 9.597000,
+    "speaker_error_time": 8.944000
+  },
+  "CTS-CN-F2F-2019-11-15-1475": {
+    "error_rate": 0.0822,
+    "scored_speaker_time": 928.740000,
+    "missed_speaker_time": 3.731000,
+    "falarm_speaker_time": 71.722000,
+    "speaker_error_time": 0.882000
+  },
+  "CTS-CN-F2F-2019-11-15-1428": {
+    "error_rate": 0.0181,
+    "scored_speaker_time": 1271.795000,
+    "missed_speaker_time": 1.626000,
+    "falarm_speaker_time": 21.441000,
+    "speaker_error_time": 0.000000
+  },
+  "CTS-CN-F2F-2019-11-15-1434": {
+    "error_rate": 0.0219,
+    "scored_speaker_time": 1257.128000,
+    "missed_speaker_time": 8.594000,
+    "falarm_speaker_time": 4.538000,
+    "speaker_error_time": 14.454000
+  },
+  "CTS-CN-F2F-2019-11-15-1449": {
+    "error_rate": 0.0261,
+    "scored_speaker_time": 1441.441000,
+    "missed_speaker_time": 24.152000,
+    "falarm_speaker_time": 7.454000,
+    "speaker_error_time": 5.953000
+  },
+  "CTS-CN-F2F-2019-11-15-1469": {
+    "error_rate": 0.014,
+    "scored_speaker_time": 1048.001000,
+    "missed_speaker_time": 3.161000,
+    "falarm_speaker_time": 11.088000,
+    "speaker_error_time": 0.372000
+  },
+  "CTS-CN-F2F-2019-11-15-1477": {
+    "error_rate": 0.0101,
+    "scored_speaker_time": 1131.285000,
+    "missed_speaker_time": 2.933000,
+    "falarm_speaker_time": 2.497000,
+    "speaker_error_time": 6.023000
+  },
+  "CTS-CN-F2F-2019-11-15-1422": {
+    "error_rate": 0.4064,
+    "scored_speaker_time": 1433.930000,
+    "missed_speaker_time": 10.836000,
+    "falarm_speaker_time": 18.558000,
+    "speaker_error_time": 553.350000
+  },
+  "CTS-CN-F2F-2019-11-15-1470": {
+    "error_rate": 0.0418,
+    "scored_speaker_time": 1383.921000,
+    "missed_speaker_time": 22.693000,
+    "falarm_speaker_time": 29.607000,
+    "speaker_error_time": 5.549000
+  },
+  "CTS-CN-F2F-2019-11-15-1452": {
+    "error_rate": 0.0119,
+    "scored_speaker_time": 1227.986000,
+    "missed_speaker_time": 3.424000,
+    "falarm_speaker_time": 10.352000,
+    "speaker_error_time": 0.868000
+  },
+  "CTS-CN-F2F-2019-11-15-1421": {
+    "error_rate": 0.0425,
+    "scored_speaker_time": 1062.112000,
+    "missed_speaker_time": 9.250000,
+    "falarm_speaker_time": 12.211000,
+    "speaker_error_time": 23.667000
+  },
+  "CTS-CN-F2F-2019-11-15-1461": {
+    "error_rate": 0.0011,
+    "scored_speaker_time": 1545.816000,
+    "missed_speaker_time": 0.040000,
+    "falarm_speaker_time": 1.655000,
+    "speaker_error_time": 0.000000
+  },
+  "CTS-CN-F2F-2019-11-15-1447": {
+    "error_rate": 0.0227,
+    "scored_speaker_time": 1199.243000,
+    "missed_speaker_time": 1.646000,
+    "falarm_speaker_time": 13.718000,
+    "speaker_error_time": 11.905000
+  },
+  "CTS-CN-F2F-2019-11-15-1423": {
+    "error_rate": 0.0212,
+    "scored_speaker_time": 1247.702000,
+    "missed_speaker_time": 11.474000,
+    "falarm_speaker_time": 3.044000,
+    "speaker_error_time": 11.914000
+  },
+  "CTS-CN-F2F-2019-11-15-1458": {
+    "error_rate": 0.059,
+    "scored_speaker_time": 1365.306000,
+    "missed_speaker_time": 5.016000,
+    "falarm_speaker_time": 10.487000,
+    "speaker_error_time": 65.093000
+  },
+  "CTS-CN-F2F-2019-11-15-1463": {
+    "error_rate": 0.0248,
+    "scored_speaker_time": 1441.890000,
+    "missed_speaker_time": 8.636000,
+    "falarm_speaker_time": 3.110000,
+    "speaker_error_time": 23.966000
+  }
+}
