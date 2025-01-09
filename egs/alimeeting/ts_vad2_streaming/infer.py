@@ -23,6 +23,7 @@ from checkpoint import (
 )
 from utils import str2bool
 
+
 # remove the short silence
 def change_zeros_to_ones(inputs, min_silence, threshold, frame_len):
     res = []
@@ -80,7 +81,7 @@ def postprocess(res_dict_all, args):
         rttms[threshold] = open(f"{rttm_path}_{threshold}", "w")
 
     frame_len = 1 / args.label_rate
-    print(f"frame_len: {frame_len}!!")
+    logging.info(f"frame_len: {frame_len}!!")
     rttm_name = args.rttm_name  # test dataset groud truth rttm name
 
     for filename in tqdm(res_dict_all):
@@ -177,12 +178,23 @@ def setup_logging(verbose=2):
         )
         logging.warning("Skip DEBUG/INFO messages")
 
-def load_model(device, params, model: torch.nn.Module, model_file:str=None,use_averaged_model: bool=False):
-    if model_file is not None:
-        # case1 load one best checkpoint model
-        model = model.to(device)
-        model.load_state_dict(torch.load(params.model_file, map_location=device)["model"])
-        model.eval()
+
+def load_model(
+    device,
+    params,
+    model: torch.nn.Module,
+    model_file: str = None,
+    use_averaged_model: bool = False,
+):
+    #
+    if not use_averaged_model:
+        if model_file is not None:
+            # case1 load one best checkpoint model
+            model = model.to(device)
+            model.load_state_dict(
+                torch.load(params.model_file, map_location=device)["model"]
+            )
+            model.eval()
     elif use_averaged_model:
         if params.iter > 0:
             filenames = find_checkpoints(params.exp_dir, iteration=-params.iter)[
@@ -213,19 +225,33 @@ def load_model(device, params, model: torch.nn.Module, model_file:str=None,use_a
             model.load_state_dict(average_checkpoints(filenames, device=device))
             model.eval()
 
+
 def main(args):
     setup_logging(verbose=2)
     ## load dataset
     from datasets import TSVADDataConfig
     from datasets import load_dataset
     from model import TSVADModel
+    from model import TSVADConfig
 
+    model_cfg = TSVADConfig()
     data_cfg = TSVADDataConfig()
-
+    data_cfg.speech_encoder_type = (
+        args.speech_encoder_type
+    )  # for fbank_input parameter determination in dataset preparing stage.
     ## overload config
     data_cfg.rs_len = args.rs_len
     data_cfg.segment_shift = args.segment_shift
-    print(f"infer data_cfg: {data_cfg}")
+    data_cfg.spk_path = args.spk_path
+    data_cfg.speaker_embedding_name_dir = args.speaker_embedding_name_dir
+    data_cfg.data_dir = args.data_dir
+    data_cfg.speaker_embed_dim = args.speaker_embed_dim
+    data_cfg.max_num_speaker = args.max_num_speaker
+    data_cfg.rs_len = args.rs_len
+    data_cfg.segment_shift = args.segment_shift
+
+    logging.info(f"infer data_cfg: {data_cfg}")
+    logging.info(f"currently, it will infer {args.split} set.")
     # split=args.split # i.e.: Eval , Test
     infer_dataset = load_dataset(data_cfg, args.split)
 
@@ -243,9 +269,31 @@ def main(args):
     logging.info(f"Device: {device}")
 
     # load model
-    model = TSVADModel(device=device)
-    #logging.info(f"model: {model}")
-    load_model(device,args, model,model_file=args.model_file,use_averaged_model=args.use_averaged_model)
+    model_cfg.speech_encoder_type = args.speech_encoder_type  #
+    model_cfg.speech_encoder_path = args.speech_encoder_path
+    model_cfg.speaker_embed_dim = args.speaker_embed_dim
+    model_cfg.select_encoder_layer_nums = (
+        args.select_encoder_layer_nums
+    )  # only for speech_encoder_type=="WavLm"
+    model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
+    model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
+    model_cfg.single_backend_type=args.single_backend_type
+    model_cfg.multi_backend_type=args.multi_backend_type
+    model_cfg.num_transformer_layer=args.num_transformer_layer
+    model_cfg.d_state = args.d_state
+    model_cfg.expand = args.expand  
+  
+    logging.info(f"infer model_cfg: {model_cfg}")
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
+
+    # logging.info(f"model: {model}")
+    load_model(
+        device,
+        args,
+        model,
+        model_file=args.model_file,
+        use_averaged_model=args.use_averaged_model,
+    )
 
     ## compute model predict DER
     DER = []
@@ -258,16 +306,16 @@ def main(args):
         labels = batch["net_input"]["labels"].to(device)
         labels_len = batch["net_input"]["labels_len"].to(device)
         with torch.no_grad():
-            #print(f"ref_speech: {ref_speech}")
-            #print(f"target_speech shape: {target_speech.shape}")
-            #print(f"labels shape: {labels.shape}")
-            #print(f"labels_len shape: {labels_len.shape}")
+            # print(f"ref_speech: {ref_speech}")
+            # print(f"target_speech shape: {target_speech.shape}")
+            # print(f"labels shape: {labels.shape}")
+            # print(f"labels_len shape: {labels_len.shape}")
             result, res_dict = model.infer(
                 ref_speech=ref_speech,
                 target_speech=target_speech,
                 labels=labels,
                 labels_len=labels_len,
-                #inference=True,
+                # inference=True,
                 file_path=batch["net_input"]["file_path"],
                 speaker_ids=batch["net_input"]["speaker_ids"],
                 start=batch["net_input"]["start"],
@@ -346,18 +394,18 @@ def get_args():
         default=25,
         help="diarization label rate",
     )
-    parser.add_argument(
-        "--rs-len",
-        type=int,
-        default=4,
-        help="for infer",
-    )
-    parser.add_argument(
-        "--segment-shift",
-        type=int,
-        default=1,
-        help="for infer",
-    )
+    #parser.add_argument(
+    #    "--rs-len",
+    #    type=int,
+    #    default=4,
+    #    help="for infer",
+    #)
+    #parser.add_argument(
+    #    "--segment-shift",
+    #    type=int,
+    #    default=1,
+    #    help="for infer",
+    #)
 
     parser.add_argument(
         "--model-file",
@@ -419,7 +467,11 @@ def get_args():
         default="ts_vad/exp",
         help="The experiment dir",
     )
-
+    #from train_accelerate_ddp2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    from train_accelerate_ddp2_debug2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    add_data_arguments(parser)
+    add_model_arguments(parser)
+    add_data_model_common_arguments(parser)
     args = parser.parse_args()
     return args
 
