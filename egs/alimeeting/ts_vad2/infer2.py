@@ -246,6 +246,10 @@ def main(args):
     data_cfg.speaker_embedding_name_dir = args.speaker_embedding_name_dir
     data_cfg.data_dir = args.data_dir
     data_cfg.speaker_embed_dim = args.speaker_embed_dim
+    data_cfg.max_num_speaker = args.max_num_speaker
+    data_cfg.rs_len = args.rs_len
+    data_cfg.segment_shift = args.segment_shift
+
     logging.info(f"infer data_cfg: {data_cfg}")
     logging.info(f"currently, it will infer {args.split} set.")
     # split=args.split # i.e.: Eval , Test
@@ -273,6 +277,12 @@ def main(args):
     )  # only for speech_encoder_type=="WavLm"
     model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
     model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
+    model_cfg.single_backend_type=args.single_backend_type
+    model_cfg.multi_backend_type=args.multi_backend_type
+    model_cfg.num_transformer_layer=args.num_transformer_layer
+    model_cfg.d_state = args.d_state
+    model_cfg.expand = args.expand  
+  
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
 
