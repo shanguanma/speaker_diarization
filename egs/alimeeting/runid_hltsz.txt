@@ -2,6 +2,19 @@
 srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
 
 
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage130-131_rs_len4_d_state64.log run_ts_vad2_hltsz.sh --stage 130 --stop-stage 131
+Submitted batch job 13622
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage127.log run_ts_vad2_hltsz.sh --stage 127 --stop-stage 127
+Submitted batch job 13615
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage125.log run_ts_vad2_hltsz.sh --stage 125 --stop-stage 125
+Submitted batch job 13614
+
+# botch transformer rs_len=6
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage128-129.log run_ts_vad2_hltsz.sh --stage 128 --stop-stage 129
+Submitted batch job 13613
+
 sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage124-125.log run_ts_vad2_hltsz.sh --stage 124 --stop-stage 125
 Submitted batch job 13600
 
