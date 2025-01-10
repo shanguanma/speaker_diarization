@@ -242,6 +242,7 @@ class TSVADModel(nn.Module):
                 ),
                 num_layers=cfg.num_transformer_layer,
             )
+            # no subsample
             self.backend_down = nn.Sequential(
                 nn.Conv1d(
                     cfg.transformer_embed_dim * self.max_num_speaker,
@@ -753,7 +754,7 @@ class TSVADModel(nn.Module):
 
         # cat multi forward
         B, _, T = cat_embeds.size()
-        # Downsampling
+        # Downsampling, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample.
         cat_embeds = self.backend_down(cat_embeds)  # B, F, T'
         # Transformer for multiple speakers
         cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
