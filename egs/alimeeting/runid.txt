@@ -13,6 +13,16 @@ note: A800 pgpu26 is not working.
 pgu17: A100 80GB
 i
 
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage142-143-rs_len15_d_stat256_A100.log run_ts_vad2.sh --stage 142 --stop-stage 143
+Submitted batch job 215703
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage140-141-rs_len12_d_stat256_A100.log run_ts_vad2.sh --stage 140 --stop-stage 141
+Submitted batch job 215702
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage138-139-rs_len10_d_stat256_A100_debug.log run_ts_vad2.sh --stage 138 --stop-stage 139
+
 sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage138-139-rs_len10_d_stat256_A100.log run_ts_vad2.sh --stage 138 --stop-stage 139
 Submitted batch job 215121
 
