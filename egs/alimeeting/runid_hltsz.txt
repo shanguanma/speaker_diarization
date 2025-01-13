@@ -2,6 +2,12 @@
 srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
 
 
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage138-139_rs_len15_transformer.log run_ts_vad2_hltsz.sh --stage 138 --stop-stage 139
+Submitted batch job 13751
+
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage136-137_rs_len12_transformer.log run_ts_vad2_hltsz.sh --stage 136 --stop-stage 137
+Submitted batch job 13749
 
 sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech --nodelist=hltsz03 -o logs/run_ts_vad2_hltsz_stage134-135_rs_len10_transformer.log run_ts_vad2_hltsz.sh --stage 134 --stop-stage 135
 Submitted batch job 13694
