@@ -558,6 +558,7 @@ class TSVADDataset(torch.utils.data.Dataset):
             ref_speech = ref_speech[:, 0, :]
         net_input = {
             "ref_speech": ref_speech,
+            "ref_speech_len": ref_speech_len, # md new add for streaming
             "target_speech": target_speech,
             "labels": labels,
             "labels_len": labels_len,

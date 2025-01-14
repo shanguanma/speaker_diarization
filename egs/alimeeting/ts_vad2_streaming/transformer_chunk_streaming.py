@@ -6,6 +6,11 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 from torch.nn import LayerNorm
+import torch.utils.checkpoint as ckpt
+
+from mask import make_pad_mask 
+from mask import add_optional_chunk_mask
+from mask import mask_to_bias
 
 T_CACHE = Tuple[torch.Tensor, torch.Tensor]
 POS_ENC_LAYER_TYPE={"abs_pos": PositionalEncoding}
@@ -13,7 +18,10 @@ LAYER_NORM_TYPE={"layer_norm": LayerNorm}
 
 
 class TransformerEncoder(torch.nn.Module):
-
+    """
+    Compared with https://pytorch.org/docs/stable/generated/torch.nn.TransformerEncoder.html#torch.nn.TransformerEncoder
+    Here, TransformerEncoder is only add position encode layer(i.e. abs cos and sin position)
+    """
     def __init__(
         self,
         input_size: int,
@@ -127,9 +135,7 @@ class TransformerEncoder(torch.nn.Module):
             https://discuss.pytorch.org/t/any-different-between-model-input-and-model-forward-input/3690/2
         """
         T = xs.size(1)
-        masks = ~make_pad_mask(xs_lens, T).unsqueeze(1)  # (B, 1, T)
-        if self.global_cmvn is not None:
-            xs = self.global_cmvn(xs)
+        masks = ~make_pad_mask(xs_lens, T).unsqueeze(1)  # (B, 1, T) # 
         # 
         xs, pos_emb, masks = self.embed(xs, masks)
         mask_pad = masks  # (B, 1, T/subsample_rate)
@@ -185,7 +191,6 @@ class TransformerEncoder(torch.nn.Module):
         offset: int,
         required_cache_size: int,
         att_cache: torch.Tensor = torch.zeros(0, 0, 0, 0),
-        #cnn_cache: torch.Tensor = torch.zeros(0, 0, 0, 0),
         att_mask: torch.Tensor = torch.ones((0, 0, 0), dtype=torch.bool),
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """ Forward just one chunk
@@ -200,13 +205,10 @@ class TransformerEncoder(torch.nn.Module):
                 >=0: actual cache size
                 <0: means all history cache is required
             att_cache (torch.Tensor): cache tensor for KEY & VALUE in
-                transformer/conformer attention, with shape
+                transformer attention, with shape
                 (elayers, head, cache_t1, d_k * 2), where
                 `head * d_k == hidden-dim` and
                 `cache_t1 == chunk_size * num_decoding_left_chunks`.
-            #cnn_cache (torch.Tensor): cache tensor for cnn_module in conformer,
-            #    (elayers, b=1, hidden-dim, cache_t2), where
-            #    `cache_t2 == cnn.lorder - 1`
 
         Returns:
             torch.Tensor: output of current input xs,
@@ -339,6 +341,8 @@ class TransformerEncoder(torch.nn.Module):
                            dtype=torch.bool)
         return ys, masks
 
+
+
 # copy from https://github.com/wenet-e2e/wenet/blob/main/wenet/transformer/embedding.py#L27
 class PositionalEncoding(torch.nn.Module):
     """Positional encoding.
@@ -433,13 +437,15 @@ class PositionalEncoding(torch.nn.Module):
             pos_emb = self.dropout(pos_emb)
         return pos_emb
 
+
+
 class TransformerEncoderLayer(nn.Module):
     """Encoder layer module.
 
     Args:
         size (int): Input dimension.
         self_attn (torch.nn.Module): Self-attention module instance.
-            `MultiHeadedAttention` or `RelPositionMultiHeadedAttention`
+            `MultiHeadedAttention`
             instance can be used as the argument.
         feed_forward (torch.nn.Module): Feed-forward module instance.
             `PositionwiseFeedForward`, instance can be used as the argument.
@@ -475,11 +481,8 @@ class TransformerEncoderLayer(nn.Module):
         self,
         x: torch.Tensor,
         mask: torch.Tensor,
-        pos_emb: torch.Tensor,
-        mask_pad: torch.Tensor = torch.ones((0, 0, 0), dtype=torch.bool),
         att_cache: T_CACHE = (torch.zeros(
             (0, 0, 0, 0)), torch.zeros((0, 0, 0, 0))),
-        #cnn_cache: torch.Tensor = torch.zeros((0, 0, 0, 0)),
     ) -> Tuple[torch.Tensor, torch.Tensor, T_CACHE, torch.Tensor]:
         """Compute encoded features.
 
@@ -487,10 +490,6 @@ class TransformerEncoderLayer(nn.Module):
             x (torch.Tensor): (#batch, time, size)
             mask (torch.Tensor): Mask tensor for the input (#batch, time，time),
                 (0, 0, 0) means fake mask.
-            pos_emb (torch.Tensor): just for interface compatibility
-                to ConformerEncoderLayer
-            mask_pad (torch.Tensor): does not used in transformer layer,
-                just for unified api with conformer.
             att_cache (torch.Tensor): Cache tensor of the KEY & VALUE
                 (#batch=1, head, cache_t1, d_k * 2), head * d_k == size.
         Returns:
@@ -507,7 +506,6 @@ class TransformerEncoderLayer(nn.Module):
                                               x,
                                               x,
                                               mask,
-                                              pos_emb,
                                               cache=att_cache)
         x = residual + self.dropout(x_att)
         if not self.normalize_before:
@@ -788,7 +786,6 @@ class MultiHeadedAttention(nn.Module):
         key: torch.Tensor,
         value: torch.Tensor,
         mask: torch.Tensor = torch.ones((0, 0, 0), dtype=torch.bool),
-        #pos_emb: torch.Tensor = torch.empty(0),
         cache: T_CACHE = (torch.zeros(0, 0, 0, 0), torch.zeros(0, 0, 0, 0)),
     ) -> Tuple[torch.Tensor, T_CACHE]:
         """Compute scaled dot product attention.
@@ -805,13 +802,13 @@ class MultiHeadedAttention(nn.Module):
                 the mask is in (#batch, T, T)  shape.
                 3.When applying self attention of decoder,
                 the mask is in (#batch, L, L)  shape.
-                4.If the different position in decoder see different block
-                of the encoder, such as Mocha, the passed in mask could be
-                in (#batch, L, T) shape. But there is no such case in current
-                Wenet.
+                
             cache (torch.Tensor): Cache tensor (1, head, cache_t, d_k * 2),
                 where `cache_t == chunk_size * num_decoding_left_chunks`
                 and `head * d_k == size`
+                NOTE(MADUO)
+                if num_decoding_left_chunks <0,i.e.-1, it will all left chunks  for streaming decoding
+                elif num_decoding_left_chunks >0, i.e. 5, it will 5 left chunks for streaming decoding
 
 
         Returns:
