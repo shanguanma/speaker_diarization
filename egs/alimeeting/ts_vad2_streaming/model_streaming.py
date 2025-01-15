@@ -245,7 +245,7 @@ class TSVADModel(nn.Module):
             cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
             # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
 
-            cat_embed = self.pos_encoder(cat_embed)  # (B,T',2D)
+            cat_embed,_ = self.pos_encoder(cat_embed)  # (B,T',2D)
             for single_layer in self.single_backend:
                 cat_embed, chunk_masks, _, _ = single_layer(
                     cat_embed, chunk_masks
@@ -265,7 +265,7 @@ class TSVADModel(nn.Module):
 
         # Transformer for multiple speakers
         # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
-        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
+        cat_embeds,_ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
         for multi_layer in self.multi_backend:
             cat_embed, chunk_masks, _, _ = multi_layer(
                 cat_embed, chunk_masks
@@ -309,7 +309,7 @@ class TSVADModel(nn.Module):
             cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
             # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
 
-            cat_embed = self.pos_encoder(cat_embed)  # (B,T',2D)
+            cat_embed,_ = self.pos_encoder(cat_embed)  # (B,T',2D)
             for single_layer in self.single_backend:
                 cat_embed, chunk_masks, _, _ = checkpoint.checkpoint(
                     single_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
@@ -329,7 +329,7 @@ class TSVADModel(nn.Module):
 
         # Transformer for multiple speakers
         # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
-        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
+        cat_embeds,_ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
         for multi_layer in self.multi_backend:
             cat_embed, chunk_masks, _, _ = checkpoint.checkpoint(
                 multi_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
@@ -454,9 +454,10 @@ class TSVADModel(nn.Module):
         elayers, cache_t1 = att_cache.size(0), att_cache.size(2)
         chunk_size = xs.size(1)
         attention_key_size = cache_t1 + chunk_size
-        pos_emb = self.embed.position_encoding(
-            offset=offset - cache_t1, size=attention_key_size
-        )
+        #pos_emb = self.embed.position_encoding(
+        #    offset=offset - cache_t1, size=attention_key_size
+        #)
+
         if required_cache_size < 0:
             next_cache_start = 0
         elif required_cache_size == 0:
@@ -469,7 +470,7 @@ class TSVADModel(nn.Module):
         for i, layer in enumerate(self.encoders):
             # NOTE(xcsong): Before layer.forward
             #   shape(att_cache[i:i + 1]) is (1, head, cache_t1, d_k * 2),
-            #   shape(cnn_cache[i])       is (b=1, hidden-dim, cache_t2)
+            
             if elayers == 0:
                 kv_cache = (att_cache, att_cache)
             else:
@@ -489,9 +490,7 @@ class TSVADModel(nn.Module):
             #   shape(new_cnn_cache) is (b=1, hidden-dim, cache_t2)
             r_att_cache.append(new_att_cache[:, :, next_cache_start:, :])
             r_cnn_cache.append(new_cnn_cache.unsqueeze(0))
-        if self.normalize_before:
-            xs = self.after_norm(xs)
-
+        
         # NOTE(xcsong): shape(r_att_cache) is (elayers, head, ?, d_k * 2),
         #   ? may be larger than cache_t1, it depends on required_cache_size
         r_att_cache = torch.cat(r_att_cache, dim=0)
@@ -502,7 +501,72 @@ class TSVADModel(nn.Module):
 
         pass
 
+    def forward_chunk_layer(self,mix_embeds: torch.Tensor, target_speech: torch.Tensor,offset: int, cache_t1: torch.Tensor, att_cache: torch.Tensor,att_mask: torch.Tensor):
+        # target speech
+        ts_embeds = self.rs_dropout(target_speech)  # B, 4, D
 
+        # combine target embedding and mix embedding
+        # Extend ts_embeds for time alignemnt
+        ts_embeds = ts_embeds.unsqueeze(2)  # B, 4, 1, D
+        # repeat T to cat mix frame-level information
+        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T', D
+        B, _, T, _ = ts_embeds.shape
+
+        # Transformer for single speaker
+        # assume self.max_num_speaker==4,
+        cat_embeds = []
+        all_single_att_cache=[]
+        for i in range(self.max_num_speaker):
+            ts_embed = ts_embeds[:, i, :, :]  # B,T',D
+            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
+            
+            cat_embed,_ = self.pos_encoder(cat_embed,offset=offset - cache_t1)  # (B,T',2D)
+            
+            single_att_cache=[]
+            for single_layer in self.single_backend:
+                # NOTE(MADUO): Before layer.forward
+                #   shape(att_cache[i:i + 1]) is (1, head, cache_t1, d_k * 2),
+                if elayers == 0:
+                    kv_cache = (att_cache, att_cache)
+                else:
+                    i_kv_cache = att_cache[i : i + 1]
+                    size = att_cache.size(-1) // 2
+                    kv_cache = (i_kv_cache[:, :, :, :size], i_kv_cache[:, :, :, size:])
+
+                cat_embed,_, new_kv_cache = single_layer(
+                    cat_embed, att_mask,att_cache=kv_cache
+                )  # (B,T',F) ,F=2D
+                new_att_cache = torch.cat(new_kv_cache, dim=-1)
+                logger.debug(f"new_att_cache: {new_att_cache.shape}")
+                # NOTE(MADUO): After layer.forward
+                #   shape(new_att_cache) is (1, head, attention_key_size, d_k * 2),
+                single_att_cache.append(new_att_cache[:, :, next_cache_start:, :])
+            single_att_cache = torch.cat(single_att_cache, dim=0)#(num_layers,head,attention_key_size, d_k*2)
+            all_single_att_cache.append(single_att_cache) 
+
+            cat_embeds.append(cat_embed)
+        single_att_cache = torch.cat(all_single_att_cache,dim=-1)# (num_layers,head,attention_key_size, d_k*2, 4)
+        cat_embeds = torch.stack(cat_embeds)  # 4, B, T', F
+        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T'
+        # Combine the outputs
+        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, 4 * F, T'
+
+        # cat multi forward
+        B, _, T = cat_embeds.size()
+        # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
+        cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
+
+        # Transformer for multiple speakers
+        # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
+        cat_embeds,_ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)),offset=offset - cache_t1)
+        #(todo)
+        for multi_layer in self.multi_backend:
+            cat_embed, chunk_masks, _, _ = multi_layer(
+                cat_embed, chunk_masks
+            )  # (B,T',F)
+        outs = self.fc(cat_embeds)  # B T' 4
+        outs = outs.transpose(1, 2)  # B,4,T'
+        return 
 class PositionalEncoding(torch.nn.Module):
     """Positional encoding.
 
