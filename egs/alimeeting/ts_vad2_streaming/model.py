@@ -7,7 +7,7 @@ import logging
 from dataclasses import dataclass, field
 import sys
 import contextlib
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union,Any, Callable
 from collections import defaultdict
 from argparse import Namespace
 import math
@@ -17,11 +17,12 @@ import torchaudio
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+import torch.utils.checkpoint as ckpt
 from torch.utils.checkpoint import checkpoint
-from typing import Any, Callable
+from torch.nn import LayerNorm
 
 from cam_pplus_wespeaker import CAMPPlus
-from transformer_chunk_streaming import TransformerEncoderLayer
+from transformer_chunk_streaming import TransformerEncoderLayer, MultiHeadedAttention, PositionwiseFeedForward
 from mask import make_pad_mask
 from mask import mask_to_bias
 from mask import add_optional_chunk_mask
@@ -84,7 +85,6 @@ class TSVADModel(nn.Module):
         super(TSVADModel, self).__init__()
         self.gradient_checkpointing = False
         # self.freeze_speech_encoder_updates = cfg.freeze_speech_encoder_updates
-        self.use_spk_embed = cfg.use_spk_embed
         self.rs_dropout = nn.Dropout(p=cfg.dropout)  # only for target speaker embedding
 
         self.speech_encoder_type = cfg.speech_encoder_type
@@ -109,6 +109,7 @@ class TSVADModel(nn.Module):
                         cfg.dropout,
                     ),
                     LayerNorm,
+                    cfg.dropout,
                 )
                 for _ in range(cfg.num_transformer_layer)
             ]
@@ -127,6 +128,7 @@ class TSVADModel(nn.Module):
                         cfg.dropout,
                     ),
                     LayerNorm,
+                    cfg.dropout,
                 )
                 for _ in range(cfg.num_transformer_layer)
             ]
@@ -147,6 +149,8 @@ class TSVADModel(nn.Module):
         self,
         xs: torch.Tensor,
         xs_lens: torch.Tensor,
+        target_speech: torch.Tensor,
+        labels: torch.Tensor,
         decoding_chunk_size: int = 0,
         num_decoding_left_chunks: int = -1,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -180,8 +184,9 @@ class TSVADModel(nn.Module):
         masks = ~make_pad_mask(xs_lens, T).unsqueeze(1)  # (B, 1, T)
 
         xs, masks = self.embed(
-            xs, masks
+            xs, masks, labels
         )  # xs: (B,T,D), mask: (B, 1, T/subsample_rate), D is speaker embedding dimension
+        print(f"masks shape: {masks.shape} in after self.embed")
         chunk_masks = add_optional_chunk_mask(
             xs,
             masks,
@@ -194,12 +199,14 @@ class TSVADModel(nn.Module):
             # chunk_size is 100 / 4 = 25.
             max_chunk_size=int(100.0 / self.embed.subsampling_rate),
         )
+        print(f"xs shape: {xs.shape}")
+        print(f"chunk_masks shape: {chunk_masks.shape}")
         if self.use_sdpa:
             chunk_masks = mask_to_bias(chunk_masks, xs.dtype)
         if self.gradient_checkpointing and self.training:
-            xs = self.forward_layers_checkpointed(xs, chunk_masks)
+            xs = self.forward_layers_checkpointed(xs, chunk_masks, target_speech)
         else:
-            xs = self.forward_layers(xs, chunk_masks)
+            xs = self.forward_layers(xs, chunk_masks,target_speech)
         # Here we assume the mask is not changed in encoder layers, so just
         # return the masks before encoder layers, and the masks will be used
         # for cross attention with decoder later
@@ -211,14 +218,14 @@ class TSVADModel(nn.Module):
         xs: torch.Tensor,
         chunk_masks: torch.Tensor,
         target_speech: torch.Tensor,
-        labels: torch.Tensor,
+        #labels: torch.Tensor,
     ) -> torch.Tensor:
         """
         Args
            xs(torch.tensor) : after embedding feature, shape(B,T',D), T'~= T/subsample_rate, D is speaker embedding dimension
            chunk_masks(torch.tensor): (B,T',T')
            target_speech(torch.tensor): it is speaker utterance embedding, shape (B,4,D), 4 means max number of speakers
-           labels (torch.tensor): speaker activate label of mix audio (xs), shape(B,4,T'),
+           #labels (torch.tensor): speaker activate label of mix audio (xs), shape(B,4,T'),
 
         Return
            outs(torch.tensor): shape(B,4,T')
@@ -274,7 +281,7 @@ class TSVADModel(nn.Module):
         xs: torch.Tensor,
         chunk_masks: torch.Tensor,
         target_speech: torch.Tensor,
-        labels: torch.Tensor,
+        #labels: torch.Tensor,
     ) -> torch.Tensor:
         """
         Args
@@ -292,7 +299,7 @@ class TSVADModel(nn.Module):
         # Extend ts_embeds for time alignemnt
         ts_embeds = ts_embeds.unsqueeze(2)  # B, 4, 1, D
         # repeat T to cat mix frame-level information
-        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T', D
+        ts_embeds = ts_embeds.repeat(1, 1, xs.shape[1], 1)  # B, 4, T', D
         B, _, T, _ = ts_embeds.shape
 
         # Transformer for single speaker
@@ -300,12 +307,12 @@ class TSVADModel(nn.Module):
         cat_embeds = []
         for i in range(self.max_num_speaker):
             ts_embed = ts_embeds[:, i, :, :]  # B,T',D
-            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
+            cat_embed = torch.cat((ts_embed, xs), 2)  # B,T',2D
             # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
 
             cat_embed, _ = self.pos_encoder(cat_embed)  # (B,T',2D)
             for single_layer in self.single_backend:
-                cat_embed, chunk_masks, _ = checkpoint.checkpoint(
+                cat_embed, chunk_masks, _ = ckpt.checkpoint(
                     single_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
                 )  # (B,T',F)
             # cat_embed = self.single_backend(cat_embed)  # T, B, F
@@ -325,7 +332,7 @@ class TSVADModel(nn.Module):
         # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
         cat_embeds, _ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
         for multi_layer in self.multi_backend:
-            cat_embed, chunk_masks, _ = checkpoint.checkpoint(
+            cat_embed, chunk_masks, _ = ckpt.checkpoint(
                 multi_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
             )  # (B,T',F)
         outs = self.fc(cat_embeds)  # B T' 4
@@ -647,6 +654,8 @@ class TSVADModel(nn.Module):
             outs, masks = self.forward(
                 xs=ref_speech,
                 xs_lens=ref_speech_len,
+                target_speech=target_speech,
+                labels = labels,
                 decoding_chunk_size=decoding_chunk_size,
                 num_decoding_left_chunks=num_decoding_left_chunks,
             )
@@ -941,7 +950,7 @@ class Subsampling4(nn.Module):
     it is not postion encoding operation.
     """
 
-    def __init__(self, speech_encoder_path, idim: int = 80, odim: int = 192):
+    def __init__(self, speech_encoder_path, idim: int = 80, odim: int = 192, device=torch.device("cpu")):
         super(Subsampling4, self).__init__()
         self.speech_encoder = CAMPPlus(feat_dim=idim, embedding_size=odim)
         self.speech_encoder.train()
@@ -954,12 +963,12 @@ class Subsampling4(nn.Module):
         self.speech_down_or_up = nn.Sequential(
             nn.Conv1d(
                 pretrain_speech_encoder_dim,
-                speaker_embed_dim,
+                odim,
                 5,
                 stride=2,
                 padding=2,
             ),
-            BatchNorm1D(num_features=speaker_embed_dim),
+            BatchNorm1D(num_features=odim),
             nn.ReLU(),
         )
         # (TODO) check the number of right context

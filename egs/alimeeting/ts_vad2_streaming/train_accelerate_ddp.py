@@ -434,14 +434,15 @@ def compute_loss(
 ):
     with torch.set_grad_enabled(is_training):
         ref_speech = batch["net_input"]["ref_speech"]
+        ref_speech_len = batch["net_input"]["ref_speech_len"]
         target_speech = batch["net_input"]["target_speech"]
         labels = batch["net_input"]["labels"]
         labels_len = batch["net_input"]["labels_len"]
         outs = model(
-            ref_speech=ref_speech,
+            xs=ref_speech,
+            xs_lens=ref_speech_len,
             target_speech=target_speech,
             labels=labels,
-            num_updates=batch_idx_train,
         )
         loss = calculate_loss(outs=outs, labels=labels, labels_len=labels_len)
 

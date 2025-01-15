@@ -1,7 +1,7 @@
 """Multi-Head Attention layer definition."""
 
 import math
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import torch
 from torch import nn
@@ -108,88 +108,6 @@ class PositionalEncoding(torch.nn.Module):
             pos_emb = self.dropout(pos_emb)
         return pos_emb
 
-
-
-class TransformerEncoderLayer(nn.Module):
-    """Encoder layer module.
-
-    Args:
-        size (int): Input dimension.
-        self_attn (torch.nn.Module): Self-attention module instance.
-            `MultiHeadedAttention`
-            instance can be used as the argument.
-        feed_forward (torch.nn.Module): Feed-forward module instance.
-            `PositionwiseFeedForward`, instance can be used as the argument.
-        dropout_rate (float): Dropout rate.
-        normalize_before (bool):
-            True: use layer_norm before each sub-block.
-            False: to use layer_norm after each sub-block.
-    """
-
-    def __init__(
-        self,
-        size: int,
-        self_attn: MultiHeadedAttention,
-        feed_forward: PositionwiseFeedForward,
-        layer_norm: LayerNorm,
-        dropout_rate: float,
-        normalize_before: bool = True,
-        norm_eps: float = 1e-5,
-    ):
-        """Construct an EncoderLayer object."""
-        super().__init__()
-        self.self_attn = self_attn
-        self.feed_forward = feed_forward
-
-
-        self.norm1 = layer_norm(size, eps=norm_eps)
-        self.norm2 = layer_norm(size, eps=norm_eps)
-        self.dropout = nn.Dropout(dropout_rate)
-        self.size = size
-        self.normalize_before = normalize_before
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        mask: torch.Tensor,
-        att_cache: T_CACHE = (torch.zeros(
-            (0, 0, 0, 0)), torch.zeros((0, 0, 0, 0))),
-    ) -> Tuple[torch.Tensor, torch.Tensor, T_CACHE, torch.Tensor]:
-        """Compute encoded features.
-
-        Args:
-            x (torch.Tensor): (#batch, time, size)
-            mask (torch.Tensor): Mask tensor for the input (#batch, time，time),
-                (0, 0, 0) means fake mask.
-            att_cache (torch.Tensor): Cache tensor of the KEY & VALUE
-                (#batch=1, head, cache_t1, d_k * 2), head * d_k == size.
-        Returns:
-            torch.Tensor: Output tensor (#batch, time, size).
-            torch.Tensor: Mask tensor (#batch, time, time).
-            torch.Tensor: att_cache tensor,
-                (#batch=1, head, cache_t1 + time, d_k * 2).
-
-        """
-        residual = x
-        if self.normalize_before:
-            x = self.norm1(x)
-        x_att, new_att_cache = self.self_attn(x,
-                                              x,
-                                              x,
-                                              mask,
-                                              cache=att_cache)
-        x = residual + self.dropout(x_att)
-        if not self.normalize_before:
-            x = self.norm1(x)
-
-        residual = x
-        if self.normalize_before:
-            x = self.norm2(x)
-        x = residual + self.dropout(self.feed_forward(x))
-        if not self.normalize_before:
-            x = self.norm2(x)
-
-        return x, mask, new_att_cache
 
 class PositionwiseFeedForward(torch.nn.Module):
     """Positionwise feed forward layer.
@@ -511,4 +429,86 @@ class MultiHeadedAttention(nn.Module):
                 query.size(0), -1,
                 self.h * self.d_k))  # (batch, time1, d_model)
             return self.linear_out(output), new_cache
+
+
+class TransformerEncoderLayer(nn.Module):
+    """Encoder layer module.
+
+    Args:
+        size (int): Input dimension.
+        self_attn (torch.nn.Module): Self-attention module instance.
+            `MultiHeadedAttention`
+            instance can be used as the argument.
+        feed_forward (torch.nn.Module): Feed-forward module instance.
+            `PositionwiseFeedForward`, instance can be used as the argument.
+        dropout_rate (float): Dropout rate.
+        normalize_before (bool):
+            True: use layer_norm before each sub-block.
+            False: to use layer_norm after each sub-block.
+    """
+
+    def __init__(
+        self,
+        size: int,
+        self_attn: MultiHeadedAttention,
+        feed_forward: PositionwiseFeedForward,
+        layer_norm: LayerNorm,
+        dropout_rate: float,
+        normalize_before: bool = True,
+        norm_eps: float = 1e-5,
+    ):
+        """Construct an EncoderLayer object."""
+        super().__init__()
+        self.self_attn = self_attn
+        self.feed_forward = feed_forward
+
+
+        self.norm1 = layer_norm(size, eps=norm_eps)
+        self.norm2 = layer_norm(size, eps=norm_eps)
+        self.dropout = nn.Dropout(dropout_rate)
+        self.size = size
+        self.normalize_before = normalize_before
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        mask: torch.Tensor,
+        att_cache: T_CACHE = (torch.zeros(
+            (0, 0, 0, 0)), torch.zeros((0, 0, 0, 0))),
+    ) -> Tuple[torch.Tensor, torch.Tensor, T_CACHE, torch.Tensor]:
+        """Compute encoded features.
+
+        Args:
+            x (torch.Tensor): (#batch, time, size)
+            mask (torch.Tensor): Mask tensor for the input (#batch, time，time),
+                (0, 0, 0) means fake mask.
+            att_cache (torch.Tensor): Cache tensor of the KEY & VALUE
+                (#batch=1, head, cache_t1, d_k * 2), head * d_k == size.
+        Returns:
+            torch.Tensor: Output tensor (#batch, time, size).
+            torch.Tensor: Mask tensor (#batch, time, time).
+            torch.Tensor: att_cache tensor,
+                (#batch=1, head, cache_t1 + time, d_k * 2).
+
+        """
+        residual = x
+        if self.normalize_before:
+            x = self.norm1(x)
+        x_att, new_att_cache = self.self_attn(x,
+                                              x,
+                                              x,
+                                              mask,
+                                              cache=att_cache)
+        x = residual + self.dropout(x_att)
+        if not self.normalize_before:
+            x = self.norm1(x)
+
+        residual = x
+        if self.normalize_before:
+            x = self.norm2(x)
+        x = residual + self.dropout(self.feed_forward(x))
+        if not self.normalize_before:
+            x = self.norm2(x)
+
+        return x, mask, new_att_cache
 

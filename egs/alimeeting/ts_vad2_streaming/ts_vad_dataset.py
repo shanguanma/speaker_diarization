@@ -556,6 +556,8 @@ class TSVADDataset(torch.utils.data.Dataset):
         if not self.support_mc:
             assert ref_speech.size(1) == 1
             ref_speech = ref_speech[:, 0, :]
+
+        ref_speech_len = torch.as_tensor(ref_speech_len)  # list to tensor
         net_input = {
             "ref_speech": ref_speech,
             "ref_speech_len": ref_speech_len, # md new add for streaming
