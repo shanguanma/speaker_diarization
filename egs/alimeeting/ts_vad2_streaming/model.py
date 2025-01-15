@@ -7,7 +7,7 @@ import logging
 from dataclasses import dataclass, field
 import sys
 import contextlib
-from typing import Optional
+from typing import Optional, Tuple
 from collections import defaultdict
 from argparse import Namespace
 import math
@@ -21,18 +21,10 @@ from torch.utils.checkpoint import checkpoint
 from typing import Any, Callable
 
 from cam_pplus_wespeaker import CAMPPlus
-from wavlm import WavLM, WavLMConfig
-from resnet_wespeaker import ResNet34
-from samresnet_wespeaker import SimAM_ResNet34_ASP
-from ecapa_tdnn_wespeaker import ECAPA_TDNN_GLOB_c1024
-from ecapa_tdnn import ECAPA_TDNN
-from whisper_encoder import ModelDimensions
-from whisper_encoder import WhisperEncoder
-
-try:
-    from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
-except ImportError:
-    MambaBlockV2,MambaBlock, Mamba2BlockV2=None,None,None
+from transformer_chunk_streaming import TransformerEncoderLayer
+from mask import make_pad_mask
+from mask import mask_to_bias
+from mask import add_optional_chunk_mask
 
 logger = logging.getLogger(__name__)
 
@@ -66,109 +58,20 @@ class TSVADConfig:
     dropout: float = 0.1
     """dropout prob"""
 
-    use_spk_embed: bool = True
-    """whether to use speaker embedding"""
+    static_chunk_size: int = 0
 
-    feature_grad_mult: float = 0.1
-    """ wavlm default config is 0.1,
-        it will effect ConvFeatureExtractionModel of wavlm model,
-        if it is setted to 0.0, ConvFeatureExtractionModel will
-        be freezed in tsvad model training stage.
-        if it is setted to 0.1,parameters of ConvFeatureExtractionModel of
-        wavlm will updated in tsvad model training stage.
-    """
-    whisper_n_mels: int = 80
-    """
-    whisper-large-v2 : n_mels=80
-    whisper-large-v3 : n_mels=128, The other dimensions of the model are the same as whisper-large-v2
-    """
-    select_encoder_layer_nums: int = 6
-    """it will select transformer encoder layer of wavlm model.
-    i.e. --select-encoder-layer-nums 6,
-    means that we only use cnn front and first 6 transformer layer of wavlm in tsvad model.
-    """
-    wavlm_fuse_feat_post_norm: bool = False
-    """
-    if it is true, it will apply layer norm on weight sum of all transformer layer in pretrained wavlm model
+    use_dynamic_chunk: bool = True
 
-    """
-    speech_encoder_config: str= "/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json"
-    """
-    this config is only used to instantiate wav-bert 2.0 model, this model is used at Seamless model.
-    """
+    use_dynamic_left_chunk: bool = False
 
-    single_backend_type: str="transformer"
-    """single backend type choices from `transformer or mamba or mamba_v2`"""
-    multi_backend_type: str='transformer'
-    """multi backend type choices from `transformer or mamba or mamba_v2`"""
-    d_state: int = 64
-    """d_state of mamba2 """
-    expand: int = 4
-    """expand of mamba2"""
+    gradient_checkpointing: bool = False
+
+    use_sdpa: bool = False
+
+    max_num_speaker: int = 4
+
 
 model_cfg = TSVADConfig()
-
-
-class SpeechFeatUpsample2(nn.Module):
-    def __init__(self, speaker_embed_dim: int, upsample: int, model_dim: int = 2560):
-        super(SpeechFeatUpsample2, self).__init__()
-        self.speaker_embed_dim = speaker_embed_dim
-        # here model_dim means it is feature dimension  before pool layer of resnet34_wespeaker or samresnet model dimension
-        self.up = nn.ConvTranspose1d(
-            model_dim,
-            speaker_embed_dim,
-            5,
-            stride=upsample,
-            padding=2,
-            output_padding=1,
-        )
-        self.batchnorm = BatchNorm1D(num_features=speaker_embed_dim)
-        self.act = nn.ReLU()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.up(x)  # (B,F,T) -> (B,D,2T)
-        x = self.batchnorm(x)
-        x = self.act(x)
-        return x  # (B,D,2T)
-
-
-class PositionalEncoding(nn.Module):
-
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 500):
-        super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(
-            torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model)
-        )
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer("pe", pe)
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Args:
-            x: Tensor, shape [seq_len, batch_size, embedding_dim]
-        """
-        x = x + self.pe[: x.size(0)]
-        return self.dropout(x)
-
-
-class BatchNorm1D(nn.Module):
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self.bn = nn.BatchNorm1d(*args, **kwargs)
-
-    def forward(self, input):
-        if torch.sum(torch.isnan(input)) == 0:
-            output = self.bn(input)
-        else:
-            output = input
-        return output
-
-
 from datasets import TSVADDataConfig
 
 data_cfg = TSVADDataConfig()
@@ -180,550 +83,146 @@ class TSVADModel(nn.Module):
     ) -> None:
         super(TSVADModel, self).__init__()
         self.gradient_checkpointing = False
-        self.freeze_speech_encoder_updates = cfg.freeze_speech_encoder_updates
+        # self.freeze_speech_encoder_updates = cfg.freeze_speech_encoder_updates
         self.use_spk_embed = cfg.use_spk_embed
-        self.rs_dropout = nn.Dropout(p=cfg.dropout)
-        self.label_rate = task_cfg.label_rate
-        assert (
-            self.label_rate == 25
-        ), f"self.label_rate is {elf.label_rate} not support!"
+        self.rs_dropout = nn.Dropout(p=cfg.dropout)  # only for target speaker embedding
 
         self.speech_encoder_type = cfg.speech_encoder_type
         self.speech_encoder_path = cfg.speech_encoder_path
-        self.wavlm_fuse_feat_post_norm = cfg.wavlm_fuse_feat_post_norm
-        print(f"self.wavlm_fuse_feat_post_norm: {self.wavlm_fuse_feat_post_norm}")
-        self.max_num_speaker = task_cfg.max_num_speaker
-        sample_times = 16000 / task_cfg.sample_rate
-        self.select_encoder_layer_nums=cfg.select_encoder_layer_nums # only for wav-bert2
-        ## create speech encoder
-        (
-            self.speech_encoder,
-            self.speech_down_or_up,
-            self.pretrain_speech_encoder_dim,
-            self.weights,
-            self.wavlm_encoder_num_layer,
-            self.wavlmproj,
-            self.wavlmlnorm,
-        ) = self.create_speech_encoder(sample_times, cfg, device)
-
-        # projection
-        if cfg.speaker_embed_dim * 2 != cfg.transformer_embed_dim:
-            self.proj_layer = nn.Linear(
-                cfg.speaker_embed_dim * 2, cfg.transformer_embed_dim
-            )
-        else:
-            self.proj_layer = None
-
-        self.single_backend_type=cfg.single_backend_type
-        self.single_backend,self.pos_encoder,self.backend_down = self.create_single_backend(cfg,task_cfg)
-
-        self.multi_backend_type=cfg.multi_backend_type
-        self.multi_backend,self.fc,self.multi_backend_proj = self.create_multi_backend(cfg)
-
-        #self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-
-    def create_single_backend(self,cfg,task_cfg):
-        self.single_backend_proj_for_mamba2: nn.Module=None
-        self.single_backend: Optional[nn.Module] = None
-        self.pos_encoder: Optional[nn.Module] = None
-        self.backend_down: Optional[nn.Module] = None
-        if cfg.single_backend_type=="transformer":
-            self.pos_encoder = PositionalEncoding(
-                cfg.transformer_embed_dim,
-                dropout=cfg.dropout,
-                max_len=(task_cfg.rs_len * self.label_rate),
-            )
-            self.single_backend = nn.TransformerEncoder(
-                nn.TransformerEncoderLayer(
-                    d_model=cfg.transformer_embed_dim,
-                    dim_feedforward=cfg.transformer_ffn_embed_dim,
-                    nhead=cfg.num_attention_head,
-                    dropout=cfg.dropout,
-                ),
-                num_layers=cfg.num_transformer_layer,
-            )
-            # no subsample
-            self.backend_down = nn.Sequential(
-                nn.Conv1d(
-                    cfg.transformer_embed_dim * self.max_num_speaker,
-                    cfg.transformer_embed_dim,
-                    5,
-                    stride=1,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.transformer_embed_dim),
-                nn.ReLU(),
-            )
-        elif cfg.single_backend_type=="mamba":
-            self.pos_encoder = PositionalEncoding(
-                cfg.transformer_embed_dim,
-                dropout=cfg.dropout,
-                max_len=(task_cfg.rs_len * self.label_rate),
-            )
-            ## because I use concat resual, so self.single_backend output feature dimension equal to cfg.transformer_embed_dim *2
-            self.single_backend = MambaBlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
-            self.backend_down = nn.Sequential(
-                nn.Conv1d(
-                    2*cfg.transformer_embed_dim * self.max_num_speaker,
-                    cfg.transformer_embed_dim,
-                    5,
-                    stride=1,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.transformer_embed_dim),
-                nn.ReLU(),
-        )
-        elif cfg.single_backend_type=="mamba_v2":
-            self.pos_encoder = PositionalEncoding(
-                cfg.transformer_embed_dim,
-                dropout=cfg.dropout,
-                max_len=(task_cfg.rs_len * self.label_rate),
-            )
-            ## because I use "add" resual, so self.single_backend output feature dimension equal to cfg.transformer_embed_dim
-            self.single_backend = MambaBlock(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=2,bidirectional=True,bidirectional_merging="add")
-            self.backend_down = nn.Sequential(
-                nn.Conv1d(
-                    cfg.transformer_embed_dim * self.max_num_speaker,
-                    cfg.transformer_embed_dim,
-                    5,
-                    stride=1,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.transformer_embed_dim),
-                nn.ReLU(),
-        )
-        elif cfg.single_backend_type=="mamba2":
-            self.pos_encoder = PositionalEncoding(
-                cfg.transformer_embed_dim,
-                dropout=cfg.dropout,
-                max_len=(task_cfg.rs_len * self.label_rate),
-            )
-            # causal_conv1d  channel must be multiples of 8  , So I select 384=192*2 as model dimension.
-            self.single_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=cfg.expand,bidirectional=True)
-
-            self.backend_down = nn.Sequential(
-                nn.Conv1d(
-                    2*cfg.transformer_embed_dim * self.max_num_speaker,
-                    cfg.transformer_embed_dim,
-                    5,
-                    stride=1,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.transformer_embed_dim),
-                nn.ReLU(),
+        # warp cam++ and 1d conv downsample
+        self.embed = Subsampling4(
+            speech_encoder_path=cfg.speech_encoder_path,
+            idim=80,  # fbank feature dimention
+            odim=cfg.speaker_embed_dim,
         )
 
-        return self.single_backend,self.pos_encoder,self.backend_down
-
-    def create_multi_backend(self,cfg):
-        self.multi_backend: Optional[nn.Module] = None
-        self.fc: Optional[nn.Module] = None
-        self.multi_backend_proj: nn.Module=None
-        if cfg.multi_backend_type=="transformer":
-            self.multi_backend = nn.TransformerEncoder(
-                nn.TransformerEncoderLayer(
-                    d_model=cfg.transformer_embed_dim,
-                    dim_feedforward=cfg.transformer_ffn_embed_dim,
-                    nhead=cfg.num_attention_head,
-                    dropout=cfg.dropout,
-                ),
-                num_layers=cfg.num_transformer_layer,
-            )
-            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-
-        elif cfg.multi_backend_type=="mamba":
-            self.multi_backend= MambaBlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
-            self.fc = nn.Linear(2*cfg.transformer_embed_dim, self.max_num_speaker)
-
-        elif cfg.multi_backend_type=="mamba_v2":
-            self.multi_backend= MambaBlock(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=2,bidirectional=True,bidirectional_merging="add")
-            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-
-        elif cfg.multi_backend_type=="mamba2":
-            self.multi_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=cfg.expand,bidirectional=True)
-            self.multi_backend_proj = nn.Linear(
-                2*cfg.transformer_embed_dim, cfg.transformer_embed_dim)
-            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-        return self.multi_backend,self.fc,self.multi_backend_proj
-
-    def create_speech_encoder(self, sample_times, cfg, device):
-        self.speech_encoder: Optional[nn.Module] = None
-        self.speech_down_or_up: Optional[nn.Module] = None
-        pretrain_speech_encoder_dim: int = None
-        self.weights: Optional[nn.Module] = None  # only for WavLM_weight_sum
-        wavlm_encoder_num_layer: int = None  # only for WavLM_weight_sum
-        self.wavlmlnorm: Optional[nn.Module] = None  # only for WavLM_weight_sum
-        self.wavlmproj: Optional[nn.Module] = None  # only for WavLM_weight_sum
-        if self.speech_encoder_type == "CAM++":
-            self.speech_encoder = CAMPPlus(feat_dim=80, embedding_size=192)
-            self.speech_encoder.train()
-            self.load_speaker_encoder(
-                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
-            )
-            stride = int(2 // sample_times) if self.label_rate == 25 else 1
-            pretrain_speech_encoder_dim = 512
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=stride,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-        elif self.speech_encoder_type == "w2v-bert2":
-            # Its input is 80-dim fbank(i.e.B,T,D),however it reshape to (B,T//2,D*2)
-            # It is kaldi fbank(10ms(160 samples) frame shift, 25ms(400samples) windows lens),
-            # So origin fbank frame rate is 100,and after reshape operation, fbank frame rate is 50
-            # so input shape of  Wav2Vec2BertModel is (B,T//2,D*2), frame rate is 50
-            #checkpoint = torch.load(cfg.speech_encoder_path,map_location=device)
-            from transformers import Wav2Vec2BertConfig, Wav2Vec2BertModel
-            conf =  Wav2Vec2BertConfig.from_pretrained(cfg.speech_encoder_config,hidden_act="swish")
-            conf.num_hidden_layers=cfg.select_encoder_layer_nums
-            #self.speech_encoder = Wav2Vec2BertModel(conf) ##  Initializing a model (with random weights)
-            #self.speech_encoder.train()
-            #from safetensors.torch import load_model
-            #load_model(self.speech_encoder,cfg.speech_encoder_path,strict=False)
-            # Instead of model.load_state_dict(load_file("model.safetensors"))
-            self.speech_encoder = Wav2Vec2BertModel.from_pretrained(cfg.speech_encoder_path,config=conf)
-            #self.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-            pretrain_speech_encoder_dim= conf.output_hidden_size
-
-            #self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
-            # w2v-bert2.0 output frame rate 50,so I need to downsample to 25.
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=int(2 // sample_times),
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-        elif self.speech_encoder_type == "hubert":
-            # hubert chinese model is from https://huggingface.co/TencentGameMate/chinese-hubert-large/tree/main
-            # maduo note: I follow pretrain mask setting because I did not reset the relevant mask parameters
-            from transformers import HubertConfig, HubertModel
-            conf =  HubertConfig.from_pretrained(cfg.speech_encoder_config)
-            conf.num_hidden_layers = cfg.select_encoder_layer_nums
-            self.speech_encoder = HubertModel.from_pretrained(cfg.speech_encoder_path,config=conf)
-            if cfg.feature_grad_mult==0.0: # freeze cnn front in tsvad train stage
-                self.speech_encoder.feature_extractor._freeze_parameters()
-
-            pretrain_speech_encoder_dim= conf.hidden_size
-            # wav-bert2.0 output frame rate 50,so I need to downsample to 25.
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=int(2 // sample_times),
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-        elif self.speech_encoder_type == "wav2vec2":
-            ## this is for mms-1b or mms-300m model
-            from transformers import Wav2Vec2Config, Wav2Vec2Model
-            conf =  Wav2Vec2Config.from_pretrained(cfg.speech_encoder_config)
-            conf.num_hidden_layers = cfg.select_encoder_layer_nums
-            self.speech_encoder = Wav2Vec2Model.from_pretrained(cfg.speech_encoder_path,config=conf)
-            if cfg.feature_grad_mult==0.0: # freeze cnn front in tsvad train stage
-                self.speech_encoder.feature_extractor._freeze_parameters()
-
-            pretrain_speech_encoder_dim= conf.hidden_size
-            # wav-bert2.0 output frame rate 50,so I need to downsample to 25.
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=int(2 // sample_times),
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-
-        elif self.speech_encoder_type == "WavLM":
-            checkpoint = torch.load(cfg.speech_encoder_path, map_location=device)
-            wavlm_cfg = WavLMConfig(checkpoint["cfg"])
-            wavlm_cfg.encoder_layers = cfg.select_encoder_layer_nums  # default =6
-            wavlm_cfg.feature_grad_mult = cfg.feature_grad_mult
-            pretrain_speech_encoder_dim = wavlm_cfg.encoder_embed_dim
-            self.speech_encoder = WavLM(wavlm_cfg) #  Initializing a model (with random weights)
-            self.speech_encoder.train()
-            self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
-            # wavlm output frame rate 50,so I need to downsample to 25.
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=int(2 // sample_times),
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-        elif self.speech_encoder_type == "WavLM_weight_sum":
-            checkpoint = torch.load(cfg.speech_encoder_path, map_location=device)
-            wavlm_cfg = WavLMConfig(checkpoint["cfg"])
-            wavlm_cfg.feature_grad_mult = cfg.feature_grad_mult
-            pretrain_speech_encoder_dim = wavlm_cfg.encoder_embed_dim
-            self.speech_encoder = WavLM(wavlm_cfg)
-            self.speech_encoder.train()
-            self.speech_encoder.load_state_dict(checkpoint["model"], strict=False)
-            # print(f"wavlm_cfg.encoder_layers: {wavlm_cfg.encoder_layers}")
-            wavlm_encoder_num_layer = wavlm_cfg.encoder_layers
-            #self.weights = nn.Parameter(torch.zeros(wavlm_encoder_num_layer))
-
-            # refer from: `Leveraging Self-Supervised Learning for Speaker Diarization`
-            #       code: https://github.com/BUTSpeechFIT/DiariZen/blob/main/diarizen/models/eend/model_wavlm_conformer.py#L182
-            if self.wavlm_fuse_feat_post_norm:
-                self.weights = nn.Linear(wavlm_encoder_num_layer, 1, bias=False)
-                self.wavlmproj = nn.Linear(
-                    pretrain_speech_encoder_dim, cfg.speaker_embed_dim
-                )
-                self.wavlmlnorm = nn.LayerNorm(cfg.speaker_embed_dim)
-            else:
-                self.weights = nn.Parameter(torch.zeros(wavlm_encoder_num_layer))
-            # wavlm output frame rate 50,so I need to downsample to 25.
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    (
-                        cfg.speaker_embed_dim
-                        if self.wavlm_fuse_feat_post_norm
-                        else pretrain_speech_encoder_dim
+        self.single_backend = torch.nn.ModuleList(
+            [
+                TransformerEncoderLayer(
+                    cfg.transformer_embed_dim,
+                    MultiHeadedAttention(
+                        cfg.num_attention_head, cfg.transformer_embed_dim, cfg.dropout
                     ),
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=int(2 // sample_times),
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-        elif self.speech_encoder_type == "whisper":
-            state_dict = torch.load(cfg.speech_encoder_path, map_location=device)
-            ## convert hugging face whisper weight name into my whisper encoder model
-            new_state_dict = {}
-            for k, v in state_dict.items():
-                new_key = k.replace("model.encoder.", "", 1)
-                new_state_dict[new_key] = v
-
-            whisper_cfg = ModelDimensions()
-            whisper_cfg.n_mels = cfg.whisper_n_mels
-            pretrain_speech_encoder_dim = whisper_cfg.n_audio_state * (
-                whisper_cfg.layer_ed - whisper_cfg.layer_st + 1
-            )
-            self.speech_encoder = WhisperEncoder(whisper_cfg)
-            self.speech_encoder.train()
-            self.speech_encoder.load_state_dict(new_state_dict, strict=False)
-            # whisper output frame rate 50,so I need to downsample to 25.
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=int(2 // sample_times),
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-
-        # resnet_wespeaker
-        elif self.speech_encoder_type == "resnet34_wespeaker":
-            self.speech_encoder = ResNet34(
-                feat_dim=80,
-                embed_dim=256,
-                pooling_func="TSTP",
-                two_emb_layer=False,
-                speech_encoder=True,
-            )
-            self.speech_encoder.train()
-            self.load_speaker_encoder(
-                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
-            )
-            # input of cam++ model is fbank, means that 1s has 100 frames
-            # we set target label rate is 25, means that 1s has 25 frames
-            # resnet34_wespeaker model downsample scale is 8, so frame rate  is 12.5, so I should set stride equal to 2.
-            upsample = 2
-            ## the input shape of self.speech_up except is (B,F,T)
-            # self.speech_up = SpeechFeatUpsample(speaker_embed_dim=cfg.speaker_embed_dim, upsample=upsample)
-            self.speech_down_or_up = SpeechFeatUpsample2(
-                speaker_embed_dim=cfg.speaker_embed_dim,
-                upsample=upsample,
-                model_dim=2560,
-            )
-        # samresnet_wespeaker
-        elif self.speech_encoder_type == "simam_resnet34_wespeaker":
-            self.speech_encoder = SimAM_ResNet34_ASP(
-                in_planes=64,
-                embed_dim=256,
-                acoustic_dim=80,
-                dropout=0,
-                speech_encoder=True,
-            )
-            self.speech_encoder.train()
-            self.load_speaker_encoder(
-                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
-            )
-            # input of cam++ model is fbank, means that 1s has 100 frames
-            # we set target label rate is 25, means that 1s has 25 frames
-            # samresnet_wespeaker model downsample scale is 8, so frame rate is 12.5, so I should set stride equal to 2.
-            upsample = 2
-            ## the input shape of self.speech_up except is (B,F,T)
-            self.speech_down_or_up = SpeechFeatUpsample2(
-                speaker_embed_dim=cfg.speaker_embed_dim,
-                upsample=upsample,
-                model_dim=5120,
-            )
-        # ecapa_wespeaker
-        elif self.speech_encoder_type == "ecapa_channel_1024_wespeaker":
-            # ECAPA_TDNN_GLOB_c1024(feat_dim=80,embed_dim=192,pooling_func='ASTP',speech_encoder=True).train()
-
-            self.speech_encoder = ECAPA_TDNN_GLOB_c1024(
-                feat_dim=80, embed_dim=192, pooling_func="ASTP", speech_encoder=True
-            )
-            self.speech_encoder.train()
-            self.load_speaker_encoder(
-                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
-            )
-            stride = int(4 // sample_times)
-            pretrain_speech_encoder_dim = 1536  # # here 1536 means it is feature dimension  before pool layer of ecapa_wespeaker model dimension
-            ## the input shape of self.speech_down except is (B,F,T)
-            self.speech_down_or_up = nn.Sequential(
-                nn.Conv1d(
-                    pretrain_speech_encoder_dim,
-                    cfg.speaker_embed_dim,
-                    5,
-                    stride=stride,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.speaker_embed_dim),
-                nn.ReLU(),
-            )
-        # ecapa opensource, i.e. https://github.com/TaoRuijie/ECAPA-TDNN/blob/main/model.py
-        # maybe add it.
-        # elif self.speech_encoder_type == "ecapa_channel_1024":
-        # it is wavform as input of network, fbank is inside of network. it
-        #     self.speech_encoder = ECAPA_TDNN(1024,speech_encoder=True)
-        return (
-            self.speech_encoder,
-            self.speech_down_or_up,
-            pretrain_speech_encoder_dim,
-            self.weights,
-            wavlm_encoder_num_layer,
-            self.wavlmproj,
-            self.wavlmlnorm,
+                    PositionwiseFeedForward(
+                        cfg.transformer_embed_dim,
+                        cfg.transformer_ffn_embed_dim,
+                        cfg.dropout,
+                    ),
+                    LayerNorm,
+                )
+                for _ in range(cfg.num_transformer_layer)
+            ]
+        )
+        self.pos_encoder = PositionalEncoding(cfg.transformer_embed_dim, cfg.dropout)
+        self.multi_backend = torch.nn.ModuleList(
+            [
+                TransformerEncoderLayer(
+                    cfg.transformer_embed_dim,
+                    MultiHeadedAttention(
+                        cfg.num_attention_head, cfg.transformer_embed_dim, cfg.dropout
+                    ),
+                    PositionwiseFeedForward(
+                        cfg.transformer_embed_dim,
+                        cfg.transformer_ffn_embed_dim,
+                        cfg.dropout,
+                    ),
+                    LayerNorm,
+                )
+                for _ in range(cfg.num_transformer_layer)
+            ]
         )
 
-    def forward_common(
+        self.static_chunk_size = cfg.static_chunk_size
+        self.use_dynamic_chunk = cfg.use_dynamic_chunk
+        self.use_dynamic_left_chunk = cfg.use_dynamic_left_chunk
+        self.gradient_checkpointing = cfg.gradient_checkpointing
+        self.use_sdpa = cfg.use_sdpa
+
+        self.max_num_speaker = cfg.max_num_speaker
+        self.fc = nn.Linear(
+            cfg.transformer_embed_dim, self.max_num_speaker
+        )  # transformer_embed_dim = 2 * speaker_embed_dim
+
+    def forward(
         self,
-        ref_speech: torch.Tensor,
+        xs: torch.Tensor,
+        xs_lens: torch.Tensor,
+        decoding_chunk_size: int = 0,
+        num_decoding_left_chunks: int = -1,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        it is used to streaming in training stage.
+          Args:
+            xs: padded input tensor (B, T, 80),  80 means fbank feature dimension of mix audio.
+            xs_lens: input length (B), It is only used to provide a variable length pad mask and has no other use in streaming mode training
+
+
+            decoding_chunk_size: decoding chunk size for dynamic chunk
+                0: default for training, use random dynamic chunk.
+                <0: for decoding, use full chunk.
+                >0: for decoding, use fixed chunk size as set.
+            num_decoding_left_chunks: number of left chunks, this is for decoding,
+            the chunk size is decoding_chunk_size.
+                >=0: use num_decoding_left_chunks
+                <0: use all left chunks
+        Returns:
+            encoder output tensor xs, and subsampled masks
+            xs: padded output tensor (B, T' ~= T/subsample_rate, D) D is speaker embedding dimension
+            (TODO) MADUO check it.
+            masks: torch.Tensor batch padding mask after subsample
+                (B, 1, T' ~= T/subsample_rate)
+        NOTE:
+            We pass the `__call__` method of the modules instead of `forward` to the
+            checkpointing API because `__call__` attaches all the hooks of the module.
+            https://discuss.pytorch.org/t/any-different-between-model-input-and-model-forward-input/3690/2
+        """
+        T = xs.size(1)
+        masks = ~make_pad_mask(xs_lens, T).unsqueeze(1)  # (B, 1, T)
+
+        xs, masks = self.embed(
+            xs, masks
+        )  # xs: (B,T,D), mask: (B, 1, T/subsample_rate), D is speaker embedding dimension
+        chunk_masks = add_optional_chunk_mask(
+            xs,
+            masks,
+            self.use_dynamic_chunk,
+            self.use_dynamic_left_chunk,
+            decoding_chunk_size,
+            self.static_chunk_size,
+            num_decoding_left_chunks,
+            # Since we allow up to 1s(100 frames) delay, the maximum
+            # chunk_size is 100 / 4 = 25.
+            max_chunk_size=int(100.0 / self.embed.subsampling_rate),
+        )
+        if self.use_sdpa:
+            chunk_masks = mask_to_bias(chunk_masks, xs.dtype)
+        if self.gradient_checkpointing and self.training:
+            xs = self.forward_layers_checkpointed(xs, chunk_masks)
+        else:
+            xs = self.forward_layers(xs, chunk_masks)
+        # Here we assume the mask is not changed in encoder layers, so just
+        # return the masks before encoder layers, and the masks will be used
+        # for cross attention with decoder later
+        # (TODO) check 'masks'
+        return xs, masks
+
+    def forward_layers(
+        self,
+        xs: torch.Tensor,
+        chunk_masks: torch.Tensor,
         target_speech: torch.Tensor,
         labels: torch.Tensor,
-        # labels_len: torch.Tensor,
-        fix_encoder: bool = True,
-        num_updates: int = 0,
-    ):
-        B = ref_speech.size(0)
-        T = ref_speech.size(1)
-        # print(f"ref_speech shape: {ref_speech.shape}")
-        max_len = labels.size(-1)
-        fix_encoder = num_updates < self.freeze_speech_encoder_updates
-        if self.speech_encoder_type == "WavLM":
-            # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                x = self.speech_encoder.extract_features(ref_speech)[0]
-            x = x.view(
-                B, -1, self.pretrain_speech_encoder_dim
-            )  # B, 50 * T, self.pretrain_speech_encoder_dim
-            x = x.transpose(1, 2)  # (B,D,T)
-            x = self.speech_down_or_up(x)
-        elif self.speech_encoder_type == "WavLM_weight_sum":
-            # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                # print(x[0][0].shape)#(B,T,D), it is output of last layer of transformer
-                # print(len(x[0][1])) # when output_layer=12,ret_layer_results=True, it is 13,
-                # Because the first element of ret_layer_results is the result of pos_conv,
-                # and the second element is the output of the first layer of transformer,
-                # Each element here is actually a tuple. The first element of the tuple is hidden state, and the second element is attention_state.
-                x = self.speech_encoder.extract_features(
-                    ref_speech,
-                    output_layer=self.wavlm_encoder_num_layer,
-                    ret_layer_results=True,
-                )
-            hss = [hs for hs, att in x[0][1]]
-            # print(f"hss len: {len(hss)}")
-            stacked_hs = torch.stack(hss[1:], dim=-1)  # (T,B,D,12)
+    ) -> torch.Tensor:
+        """
+        Args
+           xs(torch.tensor) : after embedding feature, shape(B,T',D), T'~= T/subsample_rate, D is speaker embedding dimension
+           chunk_masks(torch.tensor): (B,T',T')
+           target_speech(torch.tensor): it is speaker utterance embedding, shape (B,4,D), 4 means max number of speakers
+           labels (torch.tensor): speaker activate label of mix audio (xs), shape(B,4,T'),
 
-            if self.wavlm_fuse_feat_post_norm:
-                x = self.weights(stacked_hs) # (T,B,D,1)
-                x = torch.squeeze(x, -1) #(T,B,D)
-                x = x.permute(1,0,2) #(B,T,D)
-                x = self.wavlmproj(x) # (B,T,D)
-                x = self.wavlmlnorm(x) # (B,T,D)
-                x = x.permute(0,2,1) # (B,D,T)
-                x = self.speech_down_or_up(x)
-            else:
-                _, T, B, D = stacked_hs.shape
-                # print(f"stacked_hs.shape: {stacked_hs.shape}")
-                stacked_hs = stacked_hs.view(stacked_hs.shape[-1], -1)  # (12,T*B*D)
-                # print(f"stacked_hs shap: {stacked_hs.shape}")
-                norm_weights = F.softmax(self.weights, dim=-1)
-                # print(f"norm_weights.unsqueeze(-1) shape: {norm_weights.unsqueeze(-1).shape}")
-                weighted_hs = (norm_weights.unsqueeze(-1) * stacked_hs).sum(dim=0)
-                weighted_hs = weighted_hs.view(B, T, D)
-                x = weighted_hs.permute(0, 2, 1)  # (B,D,T)
-                x = self.speech_down_or_up(x)
-        elif self.speech_encoder_type == "whisper":
-            # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
-            # whisper output frame rate 50,so I need to downsample to 25.
-            # whisper encoder output  shape (B,T,D)
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                x = self.speech_encoder(ref_speech)
-            x = x.transpose(1, 2)  # (B,T,D)-> (B,D,T)
-            x = self.speech_down_or_up(x)  # (B,D,T/2)
-
-        elif self.speech_encoder_type == "w2v-bert2":
-            # its input fbank feature(80-dim)
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                batch_size, num_frames, num_channels = ref_speech.shape
-                ref_speech = torch.reshape(ref_speech,(batch_size,num_frames//2,num_channels*2)) # (batch_size, T, 160)
-                x = self.speech_encoder(ref_speech,output_hidden_states=True) #
-                x = x.hidden_states[-1] #it is equal to x = x['hidden_states'][self.select_encoder_layer_nums]
-            x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
-            x = self.speech_down_or_up(x)
-        elif self.speech_encoder_type == 'hubert'or self.speech_encoder_type == 'wav2vec2':
-            # its input is wavform. we use pretrain mask setting again
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                batch_size, raw_sequence_length = ref_speech.shape
-                x = self.speech_encoder(ref_speech,output_hidden_states=True)
-                x = x.hidden_states[-1] #(B,T,D)
-            x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
-            x = self.speech_down_or_up(x)
-        else:
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                # its input fbank feature(80-dim)
-                x = self.speech_encoder(ref_speech, get_time_out=True)
-            # print(f"x shape: {x.shape}") # B,F',T'
-            x = self.speech_down_or_up(x)
-        assert (
-            x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
-        ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
-        if x.size(-1) - max_len == -1:
-            x = nn.functinal.pad(x, (0, 1))
-        x = x[:, :, :max_len]  # (B,D,T)
-        mix_embeds = x.transpose(1, 2)  # (B,T,D)
-
+        Return
+           outs(torch.tensor): shape(B,4,T')
+        """
         # target speech
         ts_embeds = self.rs_dropout(target_speech)  # B, 4, D
 
@@ -731,74 +230,427 @@ class TSVADModel(nn.Module):
         # Extend ts_embeds for time alignemnt
         ts_embeds = ts_embeds.unsqueeze(2)  # B, 4, 1, D
         # repeat T to cat mix frame-level information
-        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T, D
+        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T', D
         B, _, T, _ = ts_embeds.shape
 
         # Transformer for single speaker
         # assume self.max_num_speaker==4,
         cat_embeds = []
         for i in range(self.max_num_speaker):
-            ts_embed = ts_embeds[:, i, :, :]  # B,T,D
-            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T,2D
-            if self.proj_layer is not None:
-                cat_embed = self.proj_layer(cat_embed)
-            cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
-            cat_embed = self.pos_encoder(cat_embed)
-            cat_embed = self.single_backend(cat_embed)  # T, B, F
-            cat_embed = cat_embed.transpose(0, 1)  # B, T, F
+            ts_embed = ts_embeds[:, i, :, :]  # B,T',D
+            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
+            # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
+
+            cat_embed, _ = self.pos_encoder(cat_embed)  # (B,T',2D)
+            for single_layer in self.single_backend:
+                cat_embed, chunk_masks, _ = single_layer(
+                    cat_embed, chunk_masks
+                )  # (B,T',F) ,F=2D
+            # cat_embed = self.single_backend(cat_embed)  # T, B, F
+            # cat_embed = cat_embed.transpose(0, 1)  # B, T, F
             cat_embeds.append(cat_embed)
-        cat_embeds = torch.stack(cat_embeds)  # 4, B, T, F
-        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T
+        cat_embeds = torch.stack(cat_embeds)  # 4, B, T', F
+        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T'
         # Combine the outputs
-        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, 4 * F, T
+        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, 4 * F, T'
 
         # cat multi forward
         B, _, T = cat_embeds.size()
-        # Downsampling, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample.
-        cat_embeds = self.backend_down(cat_embeds)  # B, F, T'
+        # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
+        cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
+
         # Transformer for multiple speakers
-        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
-        cat_embeds = self.multi_backend(cat_embeds)  # T', B, F
-        cat_embeds = cat_embeds.transpose(0, 1)  # B,T',F
-        if self.multi_backend_type=="mamba2":
-            cat_embeds = self.multi_backend_proj(cat_embeds)
+        # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
+        cat_embeds, _ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
+        for multi_layer in self.multi_backend:
+            cat_embed, chunk_masks, _ = multi_layer(cat_embed, chunk_masks)  # (B,T',F)
         outs = self.fc(cat_embeds)  # B T' 4
         outs = outs.transpose(1, 2)  # B,4,T'
         return outs
 
-    def forward(
+    @torch.jit.unused
+    def forward_layers_checkpointed(
         self,
-        ref_speech: torch.Tensor,
+        xs: torch.Tensor,
+        chunk_masks: torch.Tensor,
         target_speech: torch.Tensor,
         labels: torch.Tensor,
-        num_updates: int,
-    ):
-        outs = self.forward_common(
-            ref_speech=ref_speech,
-            target_speech=target_speech,
-            labels=labels,
-            num_updates=num_updates,
-        )
+    ) -> torch.Tensor:
+        """
+        Args
+           xs(torch.tensor) : after embedding feature, shape(B,T',D), T'~= T/subsample_rate, D is speaker embedding dimension
+           chunk_masks(torch.tensor): (B,T',T')
+           target_speech(torch.tensor): it is speaker utterance embedding, shape (B,4,D), 4 means max number of speakers
+           labels (torch.tensor): speaker activate label of mix audio (xs), shape(B,4,T'),
+        Return
+           outs(torch.tensor): shape(B,4,T')
+        """
+        # target speech
+        ts_embeds = self.rs_dropout(target_speech)  # B, 4, D
+
+        # combine target embedding and mix embedding
+        # Extend ts_embeds for time alignemnt
+        ts_embeds = ts_embeds.unsqueeze(2)  # B, 4, 1, D
+        # repeat T to cat mix frame-level information
+        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T', D
+        B, _, T, _ = ts_embeds.shape
+
+        # Transformer for single speaker
+        # assume self.max_num_speaker==4,
+        cat_embeds = []
+        for i in range(self.max_num_speaker):
+            ts_embed = ts_embeds[:, i, :, :]  # B,T',D
+            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
+            # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
+
+            cat_embed, _ = self.pos_encoder(cat_embed)  # (B,T',2D)
+            for single_layer in self.single_backend:
+                cat_embed, chunk_masks, _ = checkpoint.checkpoint(
+                    single_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
+                )  # (B,T',F)
+            # cat_embed = self.single_backend(cat_embed)  # T, B, F
+            # cat_embed = cat_embed.transpose(0, 1)  # B, T, F
+            cat_embeds.append(cat_embed)
+        cat_embeds = torch.stack(cat_embeds)  # 4, B, T', F
+        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T'
+        # Combine the outputs
+        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, 4 * F, T'
+
+        # cat multi forward
+        B, _, T = cat_embeds.size()
+        # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
+        cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
+
+        # Transformer for multiple speakers
+        # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
+        cat_embeds, _ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
+        for multi_layer in self.multi_backend:
+            cat_embed, chunk_masks, _ = checkpoint.checkpoint(
+                multi_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
+            )  # (B,T',F)
+        outs = self.fc(cat_embeds)  # B T' 4
+        outs = outs.transpose(1, 2)  # B,4,T'
         return outs
+
+    def forward_chunk_by_chunk(
+        self,
+        xs: torch.Tensor,
+        target_speech: torch.Tensor,
+        decoding_chunk_size: int = 0,
+        num_decoding_left_chunks: int = -1,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Forward input chunk by chunk with chunk_size like a streaming fashion, it is used at inference stage
+
+        Here we should pay special attention to computation cache in the
+        streaming style forward chunk by chunk. Two things should be taken
+        into account for computation in the current network:
+            1. transformer encoder layers output cache
+            3. convolution in subsampling
+
+        However, we don't implement subsampling cache for:
+            1. We can control subsampling module to output the right result by
+               overlapping input instead of cache left context, even though it
+               wastes some computation, but subsampling only takes a very
+               small fraction of computation in the whole model.
+            2. Typically, there are several covolution layers with subsampling
+               in subsampling module, it is tricky and complicated to do cache
+               with different convolution layers with different subsampling
+               rate.
+            3. Currently, nn.Sequential is used to stack all the convolution
+               layers in subsampling, we need to rewrite it to make it work
+               with cache, which is not prefered.
+
+        Args:
+            xs (torch.Tensor):  (1, temp, 80),
+            target_speech (torch.Tensor): (1,max_num_speaker,speaker_embed_dim)
+            decoding_chunk_size (int): decoding chunk size for dynamic chunk
+                0: default for training, use random dynamic chunk.
+                <0: for decoding, use full chunk.
+                >0: for decoding, use fixed chunk size as set.
+            num_decoding_left_chunks: number of left chunks, this is for decoding,
+            the chunk size is decoding_chunk_size.
+                >=0: use num_decoding_left_chunks, i.e. 5
+                <0: use all left chunks
+        Returns:
+        (MADUO) todo add return tensor details
+        """
+        assert decoding_chunk_size > 0
+        # The model is trained by static or dynamic chunk
+        assert self.static_chunk_size > 0 or self.use_dynamic_chunk
+        subsampling = self.embed.subsampling_rate
+        context = self.embed.right_context + 1  # Add current frame
+        stride = subsampling * decoding_chunk_size
+        decoding_window = (decoding_chunk_size - 1) * subsampling + context
+        num_frames = xs.size(1)
+        att_cache: torch.Tensor = torch.zeros((0, 0, 0, 0, 0), device=xs.device)
+
+        outputs = []
+        offset = 0
+        required_cache_size = decoding_chunk_size * num_decoding_left_chunks
+
+        # Feed forward overlap input step by step
+        for cur in range(0, num_frames - context + 1, stride):
+            end = min(cur + decoding_window, num_frames)
+            chunk_xs = xs[:, cur:end, :]
+
+            (y, all_s_att_cache, m_att_cache) = self.forward_chunk(
+                chunk_xs,
+                target_speech,
+                offset,
+                required_cache_size,
+                all_s_att_cache,
+                m_att_cache,
+            )
+
+            outputs.append(y)
+            offset += y.size(1)
+        ys = torch.cat(outputs, 1)
+        masks = torch.ones((1, 1, ys.size(1)), device=ys.device, dtype=torch.bool)
+        return ys, masks
+
+    def forward_chunk(
+        self,
+        chunk_xs: torch.Tensor,
+        target_speech: torch.Tensor,
+        offset: int,
+        required_cache_size: int,
+        all_s_att_cache: torch.Tensor = torch.zeros(0, 0, 0, 0, 0),
+        m_att_cache: torch.Tensor = torch.zeros(0, 0, 0, 0),
+        att_mask: torch.Tensor = torch.ones((0, 0, 0), dtype=torch.bool),
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """ Forward just one chunk
+
+        Args:
+            chunk_xs (torch.Tensor): chunk input, with shape (b=1, time, mel-dim),
+                where `time == (chunk_size - 1) * subsample_rate + \
+                        subsample.right_context + 1`
+            target_speech(torch.Tensor), it is speaker embedding feature ,shape(B,4,D)
+
+            offset (int): current offset in encoder output time stamp
+            required_cache_size (int): cache size required for next chunk
+                computation
+                =0: actual cache size
+                <0: means all history cache is required
+            all_s_att_cache (torch.Tensor): cache tensor for KEY & VALUE in
+                single_backend transformer attention, with shape
+                (elayers, head, cache_t1, d_k * 2,self.max_num_speaker), where
+                `head * d_k == hidden-dim` and
+                `cache_t1 == chunk_size * num_decoding_left_chunks`.
+            
+            m_att_cache (torch.Tensor): cache tensor for KEY & VALUE in
+                multi_backend transformer attention, with shape
+                (elayers, head, cache_t1, d_k * 2), where
+                `head * d_k == hidden-dim` and
+                `cache_t1 == chunk_size * num_decoding_left_chunks`.
+        
+        Returns:
+            torch.Tensor: output of current input xs,
+                with shape (b=1, chunk_size, hidden-dim).
+            torch.Tensor: new attention cache required for next chunk, with
+                dynamic shape (elayers, head, ?, d_k * 2,self.max_num_speaker) 
+                for singl_backend transformer network
+                depending on required_cache_size.
+            torch.Tensor: new attention cache required for next chunk, with
+                dynamic shape (elayers, head, ?, d_k * 2)
+                for multi_backend transformer network
+                depending on required_cache_size.
+
+            
+
+        """
+        assert chunk_xs.size(0) == 1
+        # tmp_masks is just for embed network interface compatibility
+        tmp_masks = torch.ones(
+            1, chunk_xs.size(1), device=chunk_xs.device, dtype=torch.bool
+        )
+        tmp_masks = tmp_masks.unsqueeze(1)
+
+        # NOTE(xcsong): Before embed, shape(chunk_xs) is (b=1, time, mel-dim)
+        chunk_xs, _ = self.embed(chunk_xs, tmp_masks, offset)
+        # NOTE(xcsong): After  embed, shape(chunk_xs) is (b=1, chunk_size, hidden-dim)
+        elayers, cache_t1 = all_s_att_cache.size(0), all_s_att_cache.size(2)
+        chunk_size = chunk_xs.size(1)
+        attention_key_size = cache_t1 + chunk_size
+        # pos_emb = self.embed.position_encoding(
+        #    offset=offset - cache_t1, size=attention_key_size
+        # )
+
+        if required_cache_size < 0:
+            next_cache_start = 0
+        elif required_cache_size == 0:
+            next_cache_start = attention_key_size
+        # else:
+        #    next_cache_start = max(attention_key_size - required_cache_size, 0)
+
+        chunk_xs, l_all_s_att_cache, l_m_att_cache = self.forward_chunk_layer(
+            chunk_xs,
+            target_speech,
+            offset,
+            cache_t1,
+            all_s_att_cache,
+            m_att_cache,
+            att_mask,
+            next_cache_start,
+        )
+
+        return (chunk_xs, l_all_s_att_cache, l_m_att_cache)
+
+    def forward_chunk_layer(
+        self,
+        chunk_xs: torch.Tensor,
+        target_speech: torch.Tensor,
+        offset: int,
+        cache_t1: int,
+        all_s_att_cache: torch.Tensor,
+        m_att_cache: torch.Tensor,
+        att_mask: torch.Tensor,
+        next_cache_start: int,
+    ):
+        """
+        Forward one chunk for single_backend and multi_backend network.
+
+        Args:
+           chunk_xs(torch.Tensor), it is output of embed network(warp CAM++ speech encoder and 1D conv downsample layer), shape(B,T',D), T'~=T/subsample_rate
+           target_speech(torch.Tensor), it is speaker embedding feature ,shape(B,4,D)
+           offset
+        """
+        # target speech
+        ts_embeds = self.rs_dropout(target_speech)  # B, 4, D
+
+        # combine target embedding and mix embedding
+        # Extend ts_embeds for time alignemnt
+        ts_embeds = ts_embeds.unsqueeze(2)  # B, 4, 1, D
+        # repeat T to cat mix frame-level information
+        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T', D
+        B, _, T, _ = ts_embeds.shape
+
+        # Transformer for single speaker
+        # assume self.max_num_speaker==4,
+        cat_embeds = []
+        l_all_single_att_cache = []
+        for j in range(self.max_num_speaker):
+            ts_embed = ts_embeds[:, j, :, :]  # B,T',D
+            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T',2D
+
+            cat_embed, _ = self.pos_encoder(
+                cat_embed, offset=offset - cache_t1
+            )  # (B,T',2D)
+
+            s_att_cache = []
+            for i, s_layer in enumerate(self.single_backend):
+                # NOTE(MADUO): Before layer.forward
+                #   shape(all_s_att_cache[...,j]) is (num_layers, head, cache_t1, d_k * 2),
+                #   shape(all_s_att_cache[...,j][i : i + 1,:,:,:]) is (1,head, cache_t1, d_k*2)
+                if elayers == 0:
+                    s_kv_cache = (all_s_att_cache[..., j], all_s_att_cache[..., j])
+                else:
+                    i_kv_cache = all_s_att_cache[..., j][
+                        i : i + 1, :, :, :
+                    ]  # (1,head,cache_t1, dk*2)
+                    size = all_s_att_cache.size(-1) // 2
+                    s_kv_cache = (
+                        i_kv_cache[:, :, :, :size],
+                        i_kv_cache[:, :, :, size:],
+                    )  # i_kv_cache[:, :, :, :size] shape: (1,head,cache_t1, dk)
+
+                cat_embed, _, new_s_kv_cache = s_layer(
+                    cat_embed, att_mask, att_cache=s_kv_cache
+                )  # (B,T',F) ,F=2D
+                # stack d_k of k and v
+                new_s_att_cache = torch.cat(new_s_kv_cache, dim=-1)  # k and v cat
+                logger.debug(f"new_s_att_cache: {new_s_att_cache.shape}")
+                # NOTE(MADUO): After layer.forward
+                #   shape(new_s_att_cache) is (1, head, attention_key_size, d_k * 2),
+                s_att_cache.append(new_s_att_cache[:, :, next_cache_start:, :])
+                # stack num_layers
+            s_att_cache = torch.cat(
+                s_att_cache, dim=0
+            )  # (num_layers,head,attention_key_size, d_k*2)
+            l_all_s_att_cache.append(s_att_cache)
+
+            cat_embeds.append(cat_embed)
+        # stack transformer for every speaker
+        l_all_s_att_cache = torch.cat(
+            l_all_s_att_cache, dim=-1
+        )  # (num_layers,head,attention_key_size, d_k*2, 4)
+
+        cat_embeds = torch.stack(cat_embeds)  # 4, B, T', F
+        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T'
+        # Combine the outputs
+        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, 4 * F, T'
+
+        # cat multi forward
+        B, _, T = cat_embeds.size()
+        # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
+        cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
+
+        # Transformer for multiple speakers
+        # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
+        # (MADUO) TODO check offset.
+        cat_embeds, _ = self.pos_encoder(
+            torch.permute(cat_embeds, (0, 2, 1)), offset=offset - cache_t1
+        )
+        # (todo)
+        l_m_att_cache = []
+        for h, m_layer in enumerate(self.multi_backend):
+            # NOTE(MADU) Before layer.forward
+            # shape(m_att_cache[h:h+1,:,:,:]) is (1,head,cache_t1,d_k*2)
+            if elayers == 0:
+                m_kv_value = (m_att_cache, m_att_cache)
+            else:
+                h_kv_cache = m_att_cache[h : h + 1, :, :, :]
+                size = m_att_cache(-1) // 2  # size is d_k
+                m_kv_cache = (h_kv_cache[:, :, :, :size], h_kv_cache[:, :, :, size:])
+
+            cat_embeds, _, new_m_kv_cache = m_layer(
+                cat_embeds, att_mask, att_cache=m_kv_cache
+            )
+            new_m_kv_cache = torch.cat(new_m_kv_cache, dim=-1)
+            logger.debug(f"new_m_kv_cache: {new_m_kv_cache.shape}")
+            # NOTE(MADUO): After layer.forward
+            # shape(new_m_kv_cache) is (1,head,attention_key_size, d_k * 2)
+            l_m_att_cache.append(new_m_kv_cache[:, :, next_cache_start:, :])
+        # stack num_layers
+        # NOTE(MADUO): shape(l_m_att_cache) is (num_layers, head, ?, d_k * 2),
+        #   ? may be larger than cache_t1, it depends on required_cache_size
+        l_m_att_cache = torch.cat(l_m_att_cache, dim=0)
+        cat_embeds = self.fc(cat_embeds)  # (B,T',F) ->  (B, T', 4)
+        cat_embeds = cat_embeds.transpose(1, 2)  # (B,T', 4) ->(B,4,T')
+        return cat_embeds, l_all_s_att_cache, l_m_att_cache
 
     def infer(
         self,
         ref_speech: torch.Tensor,
+        ref_speech_len: torch.Tensor,
         target_speech: torch.Tensor,
         labels: torch.Tensor,
         labels_len: torch.Tensor,
-        num_updates: int = 0,
         file_path=None,
         speaker_ids=None,
         start=None,
+        decoding_chunk_size: int = -1,
+        num_decoding_left_chunks: int = -1,
+        simulate_streaming: bool = False,
         # inference:bool=True,
     ):
-        outs = self.forward_common(
-            ref_speech=ref_speech,
-            target_speech=target_speech,
-            labels=labels,
-            num_updates=num_updates,
-        )
+        if simulate_streaming and decoding_chunk_size > 0:
+            # The 'masks' is fake mask
+            outs, masks = self.forward_chunk_by_chunk(
+                xs=ref_speech,
+                target_speech=target_speech,
+                decoding_chunk_size=decoding_chunk_size,
+                num_decoding_left_chunks=num_decoding_left_chunks,
+            )
+        else:
+            # The 'masks' here just indicates the invalid part of the sentence with unequal pad lengths.
+            outs, masks = self.forward(
+                xs=ref_speech,
+                xs_lens=ref_speech_len,
+                decoding_chunk_size=decoding_chunk_size,
+                num_decoding_left_chunks=num_decoding_left_chunks,
+            )
+
         # print(f"outs shape: {outs.shape}")
         loss = self.calculate_loss(outs, labels, labels_len)
         result = {"losses": {"diar": loss}}
@@ -830,7 +682,6 @@ class TSVADModel(nn.Module):
 
         return result, res_dict
 
-    # @staticmethod
     def calc_diarization_error(self, pred, label, length):
         # Note (jiatong): Credit to https://github.com/hitachi-speech/EEND
 
@@ -875,7 +726,6 @@ class TSVADModel(nn.Module):
             speaker_error,
         )
 
-    # @staticmethod
     def calc_diarization_result(self, outs_prob, labels, labels_len):
         # DER
         (
@@ -917,32 +767,6 @@ class TSVADModel(nn.Module):
                 outs[i, :, : labels_len[i]], labels[i, :, : labels_len[i]]
             )
         return total_loss / labels_len.size(0)
-
-    def load_speaker_encoder(self, model_path, device, module_name="speech_encoder"):
-        loadedState = torch.load(model_path, map_location=device)
-        selfState = self.state_dict()
-        for name, param in loadedState.items():
-            origname = name
-            if (
-                module_name == "speech_encoder"
-                and hasattr(self.speech_encoder, "bn1")
-                and isinstance(self.speech_encoder.bn1, BatchNorm1D)
-                and ".".join(name.split(".")[:-1]) + ".running_mean" in loadedState
-            ):
-                name = ".".join(name.split(".")[:-1]) + ".bn." + name.split(".")[-1]
-
-            name = f"{module_name}." + name
-
-            if name not in selfState:
-                logger.warn("%s is not in the model." % origname)
-                continue
-            if selfState[name].size() != loadedState[origname].size():
-                sys.stderr.write(
-                    "Wrong parameter length: %s, model: %s, loaded: %s"
-                    % (origname, selfState[name].size(), loadedState[origname].size())
-                )
-                continue
-            selfState[name].copy_(param)
 
     def gradient_checkpointing_enable(self, gradient_checkpointing_kwargs=None):
         """
@@ -1003,17 +827,196 @@ class TSVADModel(nn.Module):
             )
 
 
-if __name__ == "__main__":
-    """Build a new model instance."""
+class PositionalEncoding(torch.nn.Module):
+    """Positional encoding.
 
-    model = TSVADModel()
-    print(model)
-    x = torch.zeros(10, 398, 80)  # B,T,F
-    out = model.speech_encoder(x)
-    print(f"out shape: {out.shape}")
-    num_params = sum(param.numel() for param in model.parameters())
-    for name, v in model.named_parameters():
-        print(f"name: {name}, v: {v.shape}")
-    print("{} M".format(num_params / 1e6))  # 6.61M
-    data_cfg = TSVADDataConfig()
-    print(vars(data_cfg))
+    :param int d_model: embedding dim
+    :param float dropout_rate: dropout rate
+    :param int max_len: maximum input length
+
+    PE(pos, 2i)   = sin(pos/(10000^(2i/dmodel)))
+    PE(pos, 2i+1) = cos(pos/(10000^(2i/dmodel)))
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        dropout_rate: float,
+        max_len: int = 5000,
+        reverse: bool = False,
+    ):
+        """Construct an PositionalEncoding object."""
+        super().__init__()
+        self.d_model = d_model
+        self.xscale = math.sqrt(self.d_model)
+        self.dropout = torch.nn.Dropout(p=dropout_rate)
+        self.max_len = max_len
+
+        pe = torch.zeros(self.max_len, self.d_model)
+        position = torch.arange(0, self.max_len, dtype=torch.float32).unsqueeze(1)
+        div_term = torch.exp(
+            torch.arange(0, self.d_model, 2, dtype=torch.float32)
+            * -(math.log(10000.0) / self.d_model)
+        )
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer("pe", pe)
+
+    def forward(
+        self, x: torch.Tensor, offset: Union[int, torch.Tensor] = 0
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Add positional encoding.
+
+        Args:
+            x (torch.Tensor): Input. Its shape is (batch, time, ...)
+            offset (int, torch.tensor): position offset
+
+        Returns:
+            torch.Tensor: Encoded tensor. Its shape is (batch, time, ...)
+            torch.Tensor: for compatibility to RelPositionalEncoding
+        """
+
+        pos_emb = self.position_encoding(offset, x.size(1), False)
+        x = x * self.xscale + pos_emb
+        return self.dropout(x), self.dropout(pos_emb)
+
+    def position_encoding(
+        self, offset: Union[int, torch.Tensor], size: int, apply_dropout: bool = True
+    ) -> torch.Tensor:
+        """For getting encoding in a streaming fashion
+
+        Attention!!!!!
+        we apply dropout only once at the whole utterance level in a none
+        streaming way, but will call this function several times with
+        increasing input size in a streaming scenario, so the dropout will
+        be applied several times.
+
+        Args:
+            offset (int or torch.tensor): start offset
+            size (int): required size of position encoding
+
+        Returns:
+            torch.Tensor: Corresponding encoding
+        """
+        # How to subscript a Union type:
+        #   https://github.com/pytorch/pytorch/issues/69434
+        if isinstance(offset, int):
+            assert offset + size <= self.max_len
+            pos_emb = self.pe[:, offset : offset + size]
+        elif isinstance(offset, torch.Tensor) and offset.dim() == 0:  # scalar
+            assert offset + size <= self.max_len
+            pos_emb = self.pe[:, offset : offset + size]
+        else:  # for batched streaming decoding on GPU
+            assert torch.max(offset) + size <= self.max_len
+            index = offset.unsqueeze(1) + torch.arange(0, size).to(
+                offset.device
+            )  # B X T
+            flag = index > 0
+            # remove negative offset
+            index = index * flag
+            pos_emb = F.embedding(index, self.pe[0])  # B X T X d_model
+
+        if apply_dropout:
+            pos_emb = self.dropout(pos_emb)
+        return pos_emb
+
+
+class BatchNorm1D(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.bn = nn.BatchNorm1d(*args, **kwargs)
+
+    def forward(self, input):
+        if torch.sum(torch.isnan(input)) == 0:
+            output = self.bn(input)
+        else:
+            output = input
+        return output
+
+
+class Subsampling4(nn.Module):
+    """
+    warp CAM++ and 1D conv subsampling (to 1/4 length).
+    it is not postion encoding operation.
+    """
+
+    def __init__(self, speech_encoder_path, idim: int = 80, odim: int = 192):
+        super(Subsampling4, self).__init__()
+        self.speech_encoder = CAMPPlus(feat_dim=idim, embedding_size=odim)
+        self.speech_encoder.train()
+        self.load_speaker_encoder(
+            speech_encoder_path, device=device, module_name="speech_encoder"
+        )
+        pretrain_speech_encoder_dim = (
+            512  # it is feature dimension before pool layer of cam++ network
+        )
+        self.speech_down_or_up = nn.Sequential(
+            nn.Conv1d(
+                pretrain_speech_encoder_dim,
+                speaker_embed_dim,
+                5,
+                stride=2,
+                padding=2,
+            ),
+            BatchNorm1D(num_features=speaker_embed_dim),
+            nn.ReLU(),
+        )
+        # (TODO) check the number of right context
+        self.subsampling_rate = 4
+        self.right_context = 6
+
+    def forward(
+        self, x: torch.Tensor, x_mask: torch.Tensor, labels: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Args:
+            x (torch.Tensor): Input tensor (#batch, time, idim).
+            x_mask (torch.Tensor): Input mask (#batch, 1, time). it is generated by fn ~make_pad_mask()
+            labels (torch.Tensor): Input tensor(#batch,time//4)
+        Returns:
+            torch.Tensor: Subsampled tensor (#batch, time', odim),
+                where time' = time // 4.
+            torch.Tensor: Subsampled mask (#batch, 1, time'),
+                where time' = time // 4.
+        """
+        max_len = labels.size(-1)
+        # its input fbank feature(80-dim)
+        x = self.speech_encoder(x, get_time_out=True)
+        # print(f"x shape: {x.shape}") # B,F',T'
+        x = self.speech_down_or_up(x)
+        assert (
+            x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
+        ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
+        if x.size(-1) - max_len == -1:
+            x = nn.functinal.pad(x, (0, 1))
+        x = x[:, :, :max_len]  # (B,D,T)
+        x = x.transpose(1, 2)  # (B,T,D)
+        x_mask = x_mask[:, :, 2::2][:, :, 2::2]
+        return x, x_mask
+
+    def load_speaker_encoder(self, model_path, device, module_name="speech_encoder"):
+        loadedState = torch.load(model_path, map_location=device)
+        selfState = self.state_dict()
+        for name, param in loadedState.items():
+            origname = name
+            if (
+                module_name == "speech_encoder"
+                and hasattr(self.speech_encoder, "bn1")
+                and isinstance(self.speech_encoder.bn1, BatchNorm1D)
+                and ".".join(name.split(".")[:-1]) + ".running_mean" in loadedState
+            ):
+                name = ".".join(name.split(".")[:-1]) + ".bn." + name.split(".")[-1]
+
+            name = f"{module_name}." + name
+
+            if name not in selfState:
+                logger.warn("%s is not in the model." % origname)
+                continue
+            if selfState[name].size() != loadedState[origname].size():
+                sys.stderr.write(
+                    "Wrong parameter length: %s, model: %s, loaded: %s"
+                    % (origname, selfState[name].size(), loadedState[origname].size())
+                )
+                continue
+            selfState[name].copy_(param)

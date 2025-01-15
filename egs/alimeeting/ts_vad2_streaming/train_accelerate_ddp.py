@@ -312,6 +312,8 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2`")
     parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2` ")
+    
+    #parser.add_argument("--")
     return parser
 
 def add_model_arguments(parser: argparse.ArgumentParser):
@@ -903,20 +905,20 @@ def main(args):
     model_cfg.speech_encoder_type = params.speech_encoder_type
     model_cfg.speech_encoder_path = params.speech_encoder_path
     model_cfg.speaker_embed_dim = params.speaker_embed_dim
-    model_cfg.freeze_speech_encoder_updates = params.freeze_updates
-    model_cfg.feature_grad_mult = params.feature_grad_mult
-    model_cfg.select_encoder_layer_nums = (
-        params.select_encoder_layer_nums
-    )  # only for speech_encoder_type=="WavLm"
-    model_cfg.wavlm_fuse_feat_post_norm = (
-        params.wavlm_fuse_feat_post_norm
-    )  # only for self.speech_encoder_type == "WavLM_weight_sum"
-    model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
-    model_cfg.single_backend_type=params.single_backend_type
-    model_cfg.multi_backend_type=params.multi_backend_type
-    model_cfg.num_transformer_layer=params.num_transformer_layer
-    model_cfg.d_state = params.d_state
-    model_cfg.expand = params.expand
+    #model_cfg.freeze_speech_encoder_updates = params.freeze_updates
+    #model_cfg.feature_grad_mult = params.feature_grad_mult
+    #model_cfg.select_encoder_layer_nums = (
+    #    params.select_encoder_layer_nums
+    #)  # only for speech_encoder_type=="WavLm"
+    #model_cfg.wavlm_fuse_feat_post_norm = (
+    #    params.wavlm_fuse_feat_post_norm
+    #)  # only for self.speech_encoder_type == "WavLM_weight_sum"
+    #model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
+    #model_cfg.single_backend_type=params.single_backend_type
+    #model_cfg.multi_backend_type=params.multi_backend_type
+    #model_cfg.num_transformer_layer=params.num_transformer_layer
+    #model_cfg.d_state = params.d_state
+    #model_cfg.expand = params.expand
 
 
 
@@ -992,7 +994,7 @@ def main(args):
             model.gradient_checkpointing_enable()
     else:
         if True:
-            model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            model.embed.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
             model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     #if True:
     #    if params.speech_encoder_type=="CAM++":
