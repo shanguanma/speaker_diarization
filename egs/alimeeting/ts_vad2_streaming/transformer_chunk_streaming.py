@@ -723,10 +723,12 @@ class MultiHeadedAttention(nn.Module):
         new_cache = cache
         seq_axis = -2 if head_first else -3
         head_axis = -3 if head_first else -2
+        #seq_axis = -3 if head_first else -4
+        #head_axis = -4 if head_first else -3
         if not self.training:
             # NOTE(xcsong):
             #   when export onnx model, for 1st chunk, we feed
-            #       cache(1, head, 0, d_k * 2) (16/-1, -1/-1, 16/0 mode)
+            #       cache(1, head, 0, d_k * 2, 1) (16/-1, -1/-1, 16/0 mode)
             #       or cache(1, head, real_cache_t, d_k * 2) (16/4 mode).
             #       In all modes, `if cache.size(0) > 0` will alwayse be `True`
             #       and we will always do splitting and
@@ -787,6 +789,7 @@ class MultiHeadedAttention(nn.Module):
         value: torch.Tensor,
         mask: torch.Tensor = torch.ones((0, 0, 0), dtype=torch.bool),
         cache: T_CACHE = (torch.zeros(0, 0, 0, 0), torch.zeros(0, 0, 0, 0)),
+        #cache: T_CACHE = (torch.zeros(0, 0, 0, 0, 0), torch.zeros(0, 0, 0, 0, 0)),
     ) -> Tuple[torch.Tensor, T_CACHE]:
         """Compute scaled dot product attention.
 
@@ -809,7 +812,7 @@ class MultiHeadedAttention(nn.Module):
                 NOTE(MADUO)
                 if num_decoding_left_chunks <0,i.e.-1, it will all left chunks  for streaming decoding
                 elif num_decoding_left_chunks >0, i.e. 5, it will 5 left chunks for streaming decoding
-
+                #num_speakers i.e. 4 in alimeeting of tsvad model, it is only for single_backend transformer, for every speaker model one transformer.
 
         Returns:
             torch.Tensor: Output tensor (#batch, time1, d_model).
