@@ -111,6 +111,9 @@ stop_stage=1000
 ##
 ##Eval for threshold 0.80: DER 9.27%, MS 8.03%, FA 0.51%, SC 0.73%
 #fi
+
+
+
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ];then
    # it adds noise to train tsvad model , no grad-clip and no freeze update.
    # # speech encoder is cam++ , oracle target speaker embedding is from cam++ pretrain model
@@ -197,7 +200,7 @@ done
 #
 #Eval for threshold 0.40: DER 4.76%, MS 2.09%, FA 2.32%, SC 0.35%
 #
-#Eval for threshold 0.45: DER 4.62%, MS 2.38%, FA 1.90%, SC 0.34%
+#Eval for threshold 0.45: DER 4.62%, MS 2.38%, FA 1.90%, SC 0.34% as report
 #
 #Eval for threshold 0.50: DER 4.58%, MS 2.75%, FA 1.51%, SC 0.32%
 #
@@ -221,7 +224,7 @@ done
 #
 #Eval for threshold 0.40: DER 5.71%, MS 2.41%, FA 2.58%, SC 0.72%
 #
-#Eval for threshold 0.45: DER 5.47%, MS 2.78%, FA 1.98%, SC 0.71%
+#Eval for threshold 0.45: DER 5.47%, MS 2.78%, FA 1.98%, SC 0.71% as report
 #
 #Eval for threshold 0.50: DER 5.44%, MS 3.21%, FA 1.54%, SC 0.68%
 #
@@ -233,6 +236,26 @@ done
 #
 #Eval for threshold 0.80: DER 8.76%, MS 8.21%, FA 0.24%, SC 0.31%
 
+
+# only overlap
+# pip install git+https://github.com/desh2608/spyder.git@main
+# spyder ref_rttm hyp_rttm
+# Eval and collar=0.25
+# spyder -r overlap -c 0.25 /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_unfreeze_with_musan/Eval/Eval/res_rttm_0.45
+# ╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+# │ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+# ╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+# │ Overall     │        2782.96 │   8.62% │      3.24% │   1.07% │ 12.94% │
+# ╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
+
+# Test and collar=0.25
+#  spyder -r overlap -c 0.25 /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_unfreeze_with_musan/Test/Test/res_rttm_0.45
+# DER metrics:
+#╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+#│ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+#╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+#│ Overall     │        6848.25 │  10.24% │      4.10% │   1.79% │ 16.13% │
+#╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
 fi
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ];then
  exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_unfreeze_with_musan_rirs
@@ -4896,6 +4919,52 @@ done
 #Eval for threshold 0.70: DER 6.67%, MS 5.89%, FA 0.40%, SC 0.37%
 #
 #Eval for threshold 0.80: DER 8.80%, MS 8.35%, FA 0.20%, SC 0.25%
+
+# collar=0.0
+# Eval
+# perl  SCTK-2.4.12/src/md-eval/md-eval.pl -c 0.0 -s /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Eval/res_rttm_0.5 -r /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm
+# 11.88/5.95/4.98/0.95
+
+# Test
+#  perl  SCTK-2.4.12/src/md-eval/md-eval.pl -c 0.0 -s /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Test/res_rttm_0.5 -r /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm
+# 12.21/6.35/4.63/1.23
+
+# only overlap der
+# pip install git+https://github.com/desh2608/spyder.git@main
+# collar=0.0
+# Eval
+# spyder -r overlap -c 0.0  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm  /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Eval/res_rttm_0.5
+#  Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+#╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+#│ Overall     │        6678.07 │  13.72% │      2.47% │   1.77% │ 17.96% │
+
+# Test
+# spyder -r overlap -c 0.0  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm  /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Test/res_rttm_0.5
+# ╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+#│ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+#╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+#│ Overall     │       16427.39 │  14.05% │      3.63% │   2.10% │ 19.77% │
+
+
+# collar=0.25
+# Eval
+#  spyder -r overlap -c 0.25  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm  /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Eval/res_rttm_0.5
+# ╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+# │ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+# ╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+# │ Overall     │        2782.96 │   7.65% │      2.06% │   0.78% │ 10.49% │
+# ╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
+
+# Test
+#  spyder -r overlap -c 0.25  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm  /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Test/res_rttm_0.5
+# ╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+# │ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+# ╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+# │ Overall     │        6848.25 │   9.53% │      2.71% │   1.20% │ 13.44% │
+# ╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
+
+
+# only nonoverlap der
 fi
 
 if [ ${stage} -le 106 ] && [ ${stop_stage} -ge 106 ];then
@@ -7758,4 +7827,288 @@ if [ ${stage} -le 143 ] && [ ${stop_stage} -ge 143 ];then
  done
 done
 fi
+#grep -r Eval logs/run_ts_vad2_stage142-143-rs_len15_d_stat256_A100.log
+# collar=0.0
+# Eval of alimeeting
+#Eval for threshold 0.20: DER 18.37%, MS 2.51%, FA 14.67%, SC 1.19%
+#Eval for threshold 0.30: DER 15.36%, MS 3.60%, FA 10.38%, SC 1.39%
+#Eval for threshold 0.35: DER 14.47%, MS 4.20%, FA 8.84%, SC 1.42%
+#Eval for threshold 0.40: DER 13.80%, MS 4.81%, FA 7.58%, SC 1.41%
+#Eval for threshold 0.45: DER 13.44%, MS 5.50%, FA 6.53%, SC 1.41%
+#Eval for threshold 0.50: DER 13.15%, MS 6.21%, FA 5.59%, SC 1.36%
+#Eval for threshold 0.55: DER 13.08%, MS 7.04%, FA 4.73%, SC 1.31%
+#Eval for threshold 0.60: DER 13.28%, MS 8.00%, FA 4.03%, SC 1.25%
+#Eval for threshold 0.70: DER 14.06%, MS 10.24%, FA 2.80%, SC 1.02%
+#Eval for threshold 0.80: DER 15.85%, MS 13.30%, FA 1.83%, SC 0.72%
 
+# Test of alimeeting
+#Eval for threshold 0.20: DER 17.33%, MS 2.53%, FA 13.77%, SC 1.03%
+#Eval for threshold 0.30: DER 14.34%, MS 3.76%, FA 9.40%, SC 1.18%
+#Eval for threshold 0.35: DER 13.60%, MS 4.47%, FA 7.94%, SC 1.19%
+#Eval for threshold 0.40: DER 13.08%, MS 5.18%, FA 6.71%, SC 1.20%
+#Eval for threshold 0.45: DER 12.84%, MS 5.94%, FA 5.70%, SC 1.20%
+#Eval for threshold 0.50: DER 12.76%, MS 6.77%, FA 4.79%, SC 1.20%
+#Eval for threshold 0.55: DER 12.83%, MS 7.63%, FA 4.03%, SC 1.16%
+#Eval for threshold 0.60: DER 13.13%, MS 8.66%, FA 3.38%, SC 1.10%
+#Eval for threshold 0.70: DER 14.27%, MS 11.05%, FA 2.29%, SC 0.93%
+#Eval for threshold 0.80: DER 16.35%, MS 14.26%, FA 1.42%, SC 0.67%
+
+# collar=0.25
+# Eval of alimeeting
+#Eval for threshold 0.20: DER 8.01%, MS 0.90%, FA 6.71%, SC 0.40%
+#Eval for threshold 0.30: DER 6.22%, MS 1.35%, FA 4.37%, SC 0.49%
+#Eval for threshold 0.35: DER 5.70%, MS 1.63%, FA 3.56%, SC 0.51%
+#Eval for threshold 0.40: DER 5.36%, MS 1.89%, FA 2.95%, SC 0.52%
+#Eval for threshold 0.45: DER 5.18%, MS 2.21%, FA 2.46%, SC 0.51%
+#Eval for threshold 0.50: DER 5.05%, MS 2.53%, FA 2.03%, SC 0.50%
+#Eval for threshold 0.55: DER 5.08%, MS 2.96%, FA 1.66%, SC 0.47%
+#Eval for threshold 0.60: DER 5.25%, MS 3.44%, FA 1.37%, SC 0.44%
+#Eval for threshold 0.70: DER 5.84%, MS 4.65%, FA 0.85%, SC 0.34%
+#Eval for threshold 0.80: DER 7.20%, MS 6.43%, FA 0.55%, SC 0.22%
+
+# Test of alimeeting
+#Eval for threshold 0.20: DER 7.45%, MS 1.10%, FA 6.01%, SC 0.34%
+#Eval for threshold 0.30: DER 5.56%, MS 1.68%, FA 3.49%, SC 0.39%
+#Eval for threshold 0.35: DER 5.20%, MS 2.05%, FA 2.76%, SC 0.39%
+#Eval for threshold 0.40: DER 4.93%, MS 2.40%, FA 2.14%, SC 0.40%
+#Eval for threshold 0.45: DER 4.88%, MS 2.80%, FA 1.68%, SC 0.40%
+#Eval for threshold 0.50: DER 4.92%, MS 3.22%, FA 1.30%, SC 0.40%
+#Eval for threshold 0.55: DER 5.09%, MS 3.69%, FA 1.02%, SC 0.38%
+#Eval for threshold 0.60: DER 5.35%, MS 4.23%, FA 0.77%, SC 0.35%
+#Eval for threshold 0.70: DER 6.23%, MS 5.50%, FA 0.44%, SC 0.29%
+#Eval for threshold 0.80: DER 7.77%, MS 7.37%, FA 0.22%, SC 0.18%
+
+
+#compared with stage142-143,stage144-145 cam++ embedding is changed from  cam++_zh-cn_200k_feature_dir to cam++_en_zh_advanced_feature_dir
+if [ ${stage} -le 144 ] && [ ${stop_stage} -ge 144 ];then
+    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
+    # # speech encoder is cam++ 200k speaker model
+    #  oracle target speaker embedding is from cam++ pretrain model
+    # checkpoint is from https://modelscope.cn/models/iic/speech_campplus_sv_zh-cn_16k-common/files
+    # how to look for port ?
+    # netstat -tuln
+    export NCCL_DEBUG=INFO
+    export PYTHONFAULTHANDLER=1
+    musan_path=/mntcephfs/lee_dataset/asr/musan
+    rir_path=/mntcephfs/lee_dataset/asr/RIRS_NOISES
+    # for loading pretrain model weigt
+    speech_encoder_type="CAM++"
+    speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+    dataset_name="alimeeting" # dataset name
+
+    # for loading speaker embedding file
+    spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+    speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
+
+    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
+    exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_en_zh_advanced_feature_dir_epoch20_front_fix_seed_lr1e4_single_backend_mamba2_multi_backend_transformer_ts_len15_d_state_256
+    data_dir="/mntcephfs/lab_data/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
+    rs_len=15
+    segment_shift=2
+    single_backend_type="mamba2"
+    multi_backend_type="transformer"
+    d_state=256
+    num_transformer_layer=2
+    CUDA_VISIABLE_DEVICES=0,1 \
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15215 \
+   ts_vad2/train_accelerate_ddp2_debug2.py \
+    --world-size 2 \
+    --num-epochs 20\
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --freeze-updates 4000\
+    --grad-clip true\
+    --lr 1e-4\
+    --musan-path $musan_path \
+    --rir-path $rir_path \
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path\
+    --select-encoder-layer-nums 6\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --exp-dir $exp_dir\
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state
+fi
+
+if [ ${stage} -le 145 ] && [ ${stop_stage} -ge 145 ];then
+ exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_en_zh_advanced_feature_dir_epoch20_front_fix_seed_lr1e4_single_backend_mamba2_multi_backend_transformer_ts_len15_d_state_256
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=15
+ segment_shift=1
+ single_backend_type="mamba2"
+ multi_backend_type="transformer"
+ d_state=256
+ num_transformer_layer=2
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="Eval Test"
+ #infer_sets="Test"
+ rttm_dir=/mntcephfs/lab_data/maduo/model_hub/ts_vad
+ sctk_tool_path="./SCTK-2.4.12"
+ collar="0.0 0.25"
+ #collar=0.0
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+ speech_encoder_type="CAM++"
+ speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+ dataset_name="alimeeting" # dataset name
+ # for loading speaker embedding file
+ spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+ speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
+ data_dir="/mntcephfs/lab_data/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
+ for c in $collar;do
+  for name in $infer_sets;do
+    results_path=$exp_dir/${dataset_name}_collar${c}
+  python3 ts_vad2/infer2.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name alimeeting_${name}.rttm\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $c\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state
+ done
+done
+fi
+
+# #compared with stage144-145, stage146-147 rs_len is reduced from 15 to 10
+if [ ${stage} -le 146 ] && [ ${stop_stage} -ge 146 ];then
+    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
+    # # speech encoder is cam++ 200k speaker model
+    #  oracle target speaker embedding is from cam++ pretrain model
+    # checkpoint is from https://modelscope.cn/models/iic/speech_campplus_sv_zh-cn_16k-common/files
+    # how to look for port ?
+    # netstat -tuln
+    export NCCL_DEBUG=INFO
+    export PYTHONFAULTHANDLER=1
+    musan_path=/mntcephfs/lee_dataset/asr/musan
+    rir_path=/mntcephfs/lee_dataset/asr/RIRS_NOISES
+    # for loading pretrain model weigt
+    speech_encoder_type="CAM++"
+    speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+    dataset_name="alimeeting" # dataset name
+
+    # for loading speaker embedding file
+    spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+    speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
+
+    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
+    exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_en_zh_advanced_feature_dir_epoch20_front_fix_seed_lr1e4_single_backend_mamba2_multi_backend_transformer_ts_len10_d_state_256
+    data_dir="/mntcephfs/lab_data/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
+    rs_len=10
+    segment_shift=2
+    single_backend_type="mamba2"
+    multi_backend_type="transformer"
+    d_state=256
+    num_transformer_layer=2
+    CUDA_VISIABLE_DEVICES=0,1 \
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15115 \
+   ts_vad2/train_accelerate_ddp2_debug2.py \
+    --world-size 2 \
+    --num-epochs 20\
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --freeze-updates 4000\
+    --grad-clip true\
+    --lr 1e-4\
+    --musan-path $musan_path \
+    --rir-path $rir_path \
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path\
+    --select-encoder-layer-nums 6\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --exp-dir $exp_dir\
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state
+fi
+
+if [ ${stage} -le 147 ] && [ ${stop_stage} -ge 147 ];then
+ exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_en_zh_advanced_feature_dir_epoch20_front_fix_seed_lr1e4_single_backend_mamba2_multi_backend_transformer_ts_len10_d_state_256
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=10
+ segment_shift=1
+ single_backend_type="mamba2"
+ multi_backend_type="transformer"
+ d_state=256
+ num_transformer_layer=2
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="Eval Test"
+ #infer_sets="Test"
+ rttm_dir=/mntcephfs/lab_data/maduo/model_hub/ts_vad
+ sctk_tool_path="./SCTK-2.4.12"
+ collar="0.0 0.25"
+ #collar=0.0
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+ speech_encoder_type="CAM++"
+ speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+ dataset_name="alimeeting" # dataset name
+ # for loading speaker embedding file
+ spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+ speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
+ data_dir="/mntcephfs/lab_data/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
+ for c in $collar;do
+  for name in $infer_sets;do
+    results_path=$exp_dir/${dataset_name}_collar${c}
+  python3 ts_vad2/infer2.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name alimeeting_${name}.rttm\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $c\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state
+ done
+done
+fi
