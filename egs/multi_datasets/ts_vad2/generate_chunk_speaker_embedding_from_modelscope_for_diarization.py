@@ -28,7 +28,7 @@ from modelscope.hub.snapshot_download import snapshot_download
 #from modelscope.pipelines.util import is_official_hub_path
 def get_args():
     parser = argparse.ArgumentParser(description='Extract speaker embeddings.')
-    parser.add_argument('--model_id', default='', type=str, help='Model id in modelscope')
+    parser.add_argument('--model_id', default='iic/speech_campplus_sv_zh_en_16k-common_advanced', type=str, help='Model id in modelscope')
     parser.add_argument('--wavs', nargs='+', type=str, help='Wavs')
     #parser.add_argument('--local_model_dir', default='pretrained', type=str, help='Local model dir')
     parser.add_argument('--save_dir',type=str, default="model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding/Train/cam++_en_zh_feature_dir", help='speaker embedding dir')
@@ -260,6 +260,7 @@ def extract_embeddings(args,batch):
     model.eval()
 
     batch = torch.stack(batch) # expect B,T,F
+    logging.info(f"batch shape: {batch.shape}")
     # compute embedding
     embeddings = model.forward(batch.to(device))#(B,D)
     embeddings = embeddings.detach() ## it will remove requires_grad=True of output of model
@@ -271,7 +272,9 @@ def extract_embeddings(args,batch):
 def extract_embed(args, file, feature_extractor):
     batch = []
     embeddings = []
+    logging.info(f"input audio: {file}!!")
     wav_length = wave.open(file, "rb").getnframes()  # entire length for target speech
+    logging.info(f"wav_length: {wav_length}")
     if wav_length > int(args.length_embedding * 16000):
         for start in range(
             0,
@@ -279,7 +282,9 @@ def extract_embed(args, file, feature_extractor):
             int(args.step_embedding * 16000),
         ):
             stop = start + int(args.length_embedding * 16000)
+            #logging.info(f"file: {file},start: {start}, stop: {stop}")
             target_speech, _ = soundfile.read(file, start=start, stop=stop)
+            #logging.info(f"target_speech shape: {target_speech.shape}")
             target_speech = torch.FloatTensor(np.array(target_speech))
             # because 3d-speaker and wespeaker are offer speaker models which are not include Fbank module,
             # We should perform fbank feature extraction before sending it to the network
@@ -368,4 +373,15 @@ def setup_logging(verbose=1):
 
 if __name__ == '__main__':
     setup_logging(verbose=1)
-    main()
+    #main()
+
+    # for debug
+    args = get_args()
+    args.model_id="iic/speech_campplus_sv_zh_en_16k-common_advanced"
+    args.length_embedding=6
+    args.step_embedding=1
+    args.batch_size=96
+    feature_extractor = FBank(80, sample_rate=16000, mean_nor=True)
+
+    inp="/data/maduo/datasets/aishell-4/data_processed/train/target_audio/20200712_M_R002S07C01/4.wav"
+    b = extract_embed(args, inp, feature_extractor)

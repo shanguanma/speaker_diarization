@@ -30,7 +30,6 @@ from resnet_wespeaker import  (
     ResNet221,
     ResNet293,
 )
-from samresnet_wespeaker import SimAM_ResNet34_ASP, SimAM_ResNet100_ASP
 
 def get_args():
     parser = argparse.ArgumentParser(description="Extract speaker embeddings.")
@@ -104,8 +103,8 @@ def extract_embeddings(args, batch):
         logging.info(f"{msg}")
         device = torch.device("cpu")
 
-    pretrained_state = torch.load(args.pretrained_model, map_location=device, weights_only=False)
-    #pretrained_state = torch.load(args.pretrained_model, map_location=torch.device("cpu"), weights_only=False)
+    pretrained_state = torch.load(args.pretrained_model, map_location=device)
+
     # Instantiate model(TODO) maduo add model choice
     #model=ECAPA_TDNN_GLOB_c1024(feat_dim=80,embed_dim=192,pooling_func="ASTP")
     model: Optional[nn.Module] = None
@@ -116,10 +115,7 @@ def extract_embeddings(args, batch):
     elif args.model_name=="ResNet34":
         model = ResNet34(feat_dim=80, embed_dim=256, pooling_func="TSTP",two_emb_layer=False,speech_encoder=False)
 
-    elif args.model_name=="SimAM_ResNet34_ASP":
-        model = SimAM_ResNet34_ASP(in_planes=64, embed_dim=256, acoustic_dim=80, dropout=0,speech_encoder=False)
-    elif args.model_name=="SimAM_ResNet100_ASP":
-        model = SimAM_ResNet100_ASP(in_planes=64, embed_dim=256, acoustic_dim=80, dropout=0,speech_encoder=False)
+
 
     # load weight of model
     model.load_state_dict(pretrained_state,strict=False)
@@ -127,6 +123,7 @@ def extract_embeddings(args, batch):
     model.eval()
 
     batch = torch.stack(batch)  # expect B,T,F
+    logging.info(f"batch shape: {batch.shape}") 
     # compute embedding
     embeddings = model.forward(batch.to(device))  # (B,D)
     if isinstance(embeddings, tuple): # for Resnet* model

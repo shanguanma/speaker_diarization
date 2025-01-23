@@ -162,7 +162,7 @@ def extract_embed(args, file, feature_extractor):
     else:
         embeddings.extend(
             extract_embeddings(
-                args, [torch.FloatTensor(np.array(soundfile.read(file)[0]))]
+                args, [feature_extractor(torch.FloatTensor(np.array(soundfile.read(file)[0])))]
             )
         )
     if len(batch) != 0:

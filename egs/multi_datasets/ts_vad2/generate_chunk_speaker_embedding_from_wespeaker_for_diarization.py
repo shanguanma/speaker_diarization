@@ -127,6 +127,7 @@ def extract_embeddings(args, batch):
     model.eval()
 
     batch = torch.stack(batch)  # expect B,T,F
+    logging.info(f"batch shape: {batch.shape}")
     # compute embedding
     embeddings = model.forward(batch.to(device))  # (B,D)
     if isinstance(embeddings, tuple): # for Resnet* model
