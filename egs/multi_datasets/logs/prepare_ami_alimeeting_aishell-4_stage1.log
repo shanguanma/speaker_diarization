@@ -1,0 +1,673 @@
+ES2011a
+{'FEE041': 1, 'FEE044': 2, 'FEE043': 3, 'FEE042': 4}
+dic: defaultdict(None, {'ES2011a_1': 'FEE041', 'ES2011a_2': 'FEE044', 'ES2011a_3': 'FEE043', 'ES2011a_4': 'FEE042'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2011b
+{'FEE044': 1, 'FEE041': 2, 'FEE042': 3, 'FEE043': 4}
+dic: defaultdict(None, {'ES2011b_1': 'FEE044', 'ES2011b_2': 'FEE041', 'ES2011b_3': 'FEE042', 'ES2011b_4': 'FEE043'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2011c
+{'FEE041': 1, 'FEE043': 2, 'FEE044': 3, 'FEE042': 4}
+dic: defaultdict(None, {'ES2011c_1': 'FEE041', 'ES2011c_2': 'FEE043', 'ES2011c_3': 'FEE044', 'ES2011c_4': 'FEE042'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2011d
+{'FEE041': 1, 'FEE042': 2, 'FEE043': 3, 'FEE044': 4}
+dic: defaultdict(None, {'ES2011d_1': 'FEE041', 'ES2011d_2': 'FEE042', 'ES2011d_3': 'FEE043', 'ES2011d_4': 'FEE044'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IB4001
+{'FIE038': 1, 'FIO093': 2, 'MIO092': 3, 'MIO091': 4}
+dic: defaultdict(None, {'IB4001_1': 'FIE038', 'IB4001_2': 'FIO093', 'IB4001_3': 'MIO092', 'IB4001_4': 'MIO091'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IB4002
+{'MIO091': 1, 'MIO092': 2, 'FIE038': 3, 'FIO093': 4}
+dic: defaultdict(None, {'IB4002_1': 'MIO091', 'IB4002_2': 'MIO092', 'IB4002_3': 'FIE038', 'IB4002_4': 'FIO093'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IB4003
+{'MIO039': 1, 'FIE037': 2, 'MIO036': 3, 'MIO094': 4}
+dic: defaultdict(None, {'IB4003_1': 'MIO039', 'IB4003_2': 'FIE037', 'IB4003_3': 'MIO036', 'IB4003_4': 'MIO094'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IB4004
+{'MIO036': 1, 'FIE037': 2, 'MIO039': 3, 'MIO094': 4}
+dic: defaultdict(None, {'IB4004_1': 'MIO036', 'IB4004_2': 'FIE037', 'IB4004_3': 'MIO039', 'IB4004_4': 'MIO094'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IB4010
+{'MIO036': 1, 'MIO046': 2, 'MIO095': 3, 'FIE038': 4}
+dic: defaultdict(None, {'IB4010_1': 'MIO036', 'IB4010_2': 'MIO046', 'IB4010_3': 'MIO095', 'IB4010_4': 'FIE038'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IB4011
+{'MIO036': 1, 'FIE038': 2, 'MIO046': 3, 'MIO095': 4}
+dic: defaultdict(None, {'IB4011_1': 'MIO036', 'IB4011_2': 'FIE038', 'IB4011_3': 'MIO046', 'IB4011_4': 'MIO095'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1008a
+{'FIE073': 1, 'MIO086': 2, 'FIE038': 3, 'MIE085': 4}
+dic: defaultdict(None, {'IS1008a_1': 'FIE073', 'IS1008a_2': 'MIO086', 'IS1008a_3': 'FIE038', 'IS1008a_4': 'MIE085'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1008b
+{'MIO086': 1, 'FIE038': 2, 'FIE073': 3, 'MIE085': 4}
+dic: defaultdict(None, {'IS1008b_1': 'MIO086', 'IS1008b_2': 'FIE038', 'IS1008b_3': 'FIE073', 'IS1008b_4': 'MIE085'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1008c
+{'MIO086': 1, 'FIE073': 2, 'FIE038': 3, 'MIE085': 4}
+dic: defaultdict(None, {'IS1008c_1': 'MIO086', 'IS1008c_2': 'FIE073', 'IS1008c_3': 'FIE038', 'IS1008c_4': 'MIE085'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1008d
+{'FIE073': 1, 'MIO086': 2, 'FIE038': 3, 'MIE085': 4}
+dic: defaultdict(None, {'IS1008d_1': 'FIE073', 'IS1008d_2': 'MIO086', 'IS1008d_3': 'FIE038', 'IS1008d_4': 'MIE085'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3004a
+{'MTD015UID': 1, 'MTD013PM': 2, 'MTD014ID': 3, 'MTD016ME': 4}
+dic: defaultdict(None, {'TS3004a_1': 'MTD015UID', 'TS3004a_2': 'MTD013PM', 'TS3004a_3': 'MTD014ID', 'TS3004a_4': 'MTD016ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3004b
+{'MTD013PM': 1, 'MTD016ME': 2, 'MTD015UID': 3, 'MTD014ID': 4}
+dic: defaultdict(None, {'TS3004b_1': 'MTD013PM', 'TS3004b_2': 'MTD016ME', 'TS3004b_3': 'MTD015UID', 'TS3004b_4': 'MTD014ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3004c
+{'MTD016ME': 1, 'MTD015UID': 2, 'MTD013PM': 3, 'MTD014ID': 4}
+dic: defaultdict(None, {'TS3004c_1': 'MTD016ME', 'TS3004c_2': 'MTD015UID', 'TS3004c_3': 'MTD013PM', 'TS3004c_4': 'MTD014ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3004d
+{'MTD013PM': 1, 'MTD015UID': 2, 'MTD014ID': 3, 'MTD016ME': 4}
+dic: defaultdict(None, {'TS3004d_1': 'MTD013PM', 'TS3004d_2': 'MTD015UID', 'TS3004d_3': 'MTD014ID', 'TS3004d_4': 'MTD016ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2002a
+{'MEE071': 1, 'MEE073': 2, 'FEO072': 3, 'FEO070': 4}
+dic: defaultdict(None, {'EN2002a_1': 'MEE071', 'EN2002a_2': 'MEE073', 'EN2002a_3': 'FEO072', 'EN2002a_4': 'FEO070'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2002b
+{'FEO072': 1, 'MEE073': 2, 'MEE071': 3, 'FEO070': 4}
+dic: defaultdict(None, {'EN2002b_1': 'FEO072', 'EN2002b_2': 'MEE073', 'EN2002b_3': 'MEE071', 'EN2002b_4': 'FEO070'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2002c
+{'MEE071': 1, 'MEE073': 2, 'FEO072': 3}
+dic: defaultdict(None, {'EN2002c_1': 'MEE071', 'EN2002c_2': 'MEE073', 'EN2002c_3': 'FEO072'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+EN2002d
+{'FEO070': 1, 'FEO072': 2, 'MEE073': 3, 'MEE071': 4}
+dic: defaultdict(None, {'EN2002d_1': 'FEO070', 'EN2002d_2': 'FEO072', 'EN2002d_3': 'MEE073', 'EN2002d_4': 'MEE071'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2004a
+{'MEO015': 1, 'FEE013': 2, 'FEE016': 3, 'MEE014': 4}
+dic: defaultdict(None, {'ES2004a_1': 'MEO015', 'ES2004a_2': 'FEE013', 'ES2004a_3': 'FEE016', 'ES2004a_4': 'MEE014'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2004b
+{'FEE013': 1, 'FEE016': 2, 'MEO015': 3, 'MEE014': 4}
+dic: defaultdict(None, {'ES2004b_1': 'FEE013', 'ES2004b_2': 'FEE016', 'ES2004b_3': 'MEO015', 'ES2004b_4': 'MEE014'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2004c
+{'FEE013': 1, 'FEE016': 2, 'MEO015': 3, 'MEE014': 4}
+dic: defaultdict(None, {'ES2004c_1': 'FEE013', 'ES2004c_2': 'FEE016', 'ES2004c_3': 'MEO015', 'ES2004c_4': 'MEE014'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2004d
+{'FEE013': 1, 'MEO015': 2, 'FEE016': 3, 'MEE014': 4}
+dic: defaultdict(None, {'ES2004d_1': 'FEE013', 'ES2004d_2': 'MEO015', 'ES2004d_3': 'FEE016', 'ES2004d_4': 'MEE014'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1009a
+{'FIE088': 1, 'FIO089': 2, 'FIO084': 3, 'FIO087': 4}
+dic: defaultdict(None, {'IS1009a_1': 'FIE088', 'IS1009a_2': 'FIO089', 'IS1009a_3': 'FIO084', 'IS1009a_4': 'FIO087'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1009b
+{'FIE088': 1, 'FIO084': 2, 'FIO089': 3, 'FIO087': 4}
+dic: defaultdict(None, {'IS1009b_1': 'FIE088', 'IS1009b_2': 'FIO084', 'IS1009b_3': 'FIO089', 'IS1009b_4': 'FIO087'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1009c
+{'FIE088': 1, 'FIO084': 2, 'FIO089': 3, 'FIO087': 4}
+dic: defaultdict(None, {'IS1009c_1': 'FIE088', 'IS1009c_2': 'FIO084', 'IS1009c_3': 'FIO089', 'IS1009c_4': 'FIO087'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1009d
+{'FIE088': 1, 'FIO087': 2, 'FIO084': 3, 'FIO089': 4}
+dic: defaultdict(None, {'IS1009d_1': 'FIE088', 'IS1009d_2': 'FIO087', 'IS1009d_3': 'FIO084', 'IS1009d_4': 'FIO089'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3003a
+{'MTD009PM': 1, 'MTD011UID': 2, 'MTD012ME': 3, 'MTD0010ID': 4}
+dic: defaultdict(None, {'TS3003a_1': 'MTD009PM', 'TS3003a_2': 'MTD011UID', 'TS3003a_3': 'MTD012ME', 'TS3003a_4': 'MTD0010ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3003b
+{'MTD009PM': 1, 'MTD012ME': 2, 'MTD011UID': 3, 'MTD0010ID': 4}
+dic: defaultdict(None, {'TS3003b_1': 'MTD009PM', 'TS3003b_2': 'MTD012ME', 'TS3003b_3': 'MTD011UID', 'TS3003b_4': 'MTD0010ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3003c
+{'MTD009PM': 1, 'MTD012ME': 2, 'MTD011UID': 3, 'MTD0010ID': 4}
+dic: defaultdict(None, {'TS3003c_1': 'MTD009PM', 'TS3003c_2': 'MTD012ME', 'TS3003c_3': 'MTD011UID', 'TS3003c_4': 'MTD0010ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3003d
+{'MTD009PM': 1, 'MTD012ME': 2, 'MTD0010ID': 3, 'MTD011UID': 4}
+dic: defaultdict(None, {'TS3003d_1': 'MTD009PM', 'TS3003d_2': 'MTD012ME', 'TS3003d_3': 'MTD0010ID', 'TS3003d_4': 'MTD011UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2001a
+{'MEO069': 1, 'MEE068': 2, 'MEE067': 3, 'FEO066': 4, 'FEO065': 5}
+dic: defaultdict(None, {'EN2001a_1': 'MEO069', 'EN2001a_2': 'MEE068', 'EN2001a_3': 'MEE067', 'EN2001a_4': 'FEO066', 'EN2001a_5': 'FEO065'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+EN2001b
+{'FEO066': 1, 'FEO065': 2, 'MEO069': 3, 'MEE068': 4}
+dic: defaultdict(None, {'EN2001b_1': 'FEO066', 'EN2001b_2': 'FEO065', 'EN2001b_3': 'MEO069', 'EN2001b_4': 'MEE068'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2001d
+{'FEO066': 1, 'MEO069': 2, 'MEE067': 3, 'MEE068': 4, 'FEO065': 5}
+dic: defaultdict(None, {'EN2001d_1': 'FEO066', 'EN2001d_2': 'MEO069', 'EN2001d_3': 'MEE067', 'EN2001d_4': 'MEE068', 'EN2001d_5': 'FEO065'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+EN2001e
+{'MEE067': 1, 'MEO069': 2, 'FEO066': 3, 'MEE068': 4, 'FEO065': 5}
+dic: defaultdict(None, {'EN2001e_1': 'MEE067', 'EN2001e_2': 'MEO069', 'EN2001e_3': 'FEO066', 'EN2001e_4': 'MEE068', 'EN2001e_5': 'FEO065'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+EN2003a
+{'MEO074': 1, 'MEE075': 2, 'MEE076': 3}
+dic: defaultdict(None, {'EN2003a_1': 'MEO074', 'EN2003a_2': 'MEE075', 'EN2003a_3': 'MEE076'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+EN2004a
+{'FEO079': 1, 'FEE078': 2, 'FEE081': 3, 'FEE080': 4}
+dic: defaultdict(None, {'EN2004a_1': 'FEO079', 'EN2004a_2': 'FEE078', 'EN2004a_3': 'FEE081', 'EN2004a_4': 'FEE080'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2005a
+{'FEE083': 1, 'MEO082': 2, 'FEE085': 3, 'FEO084': 4}
+dic: defaultdict(None, {'EN2005a_1': 'FEE083', 'EN2005a_2': 'MEO082', 'EN2005a_3': 'FEE085', 'EN2005a_4': 'FEO084'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2006a
+{'FEE087': 1, 'MEE089': 2, 'MEO086': 3, 'FEE088': 4}
+dic: defaultdict(None, {'EN2006a_1': 'FEE087', 'EN2006a_2': 'MEE089', 'EN2006a_3': 'MEO086', 'EN2006a_4': 'FEE088'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2006b
+{'MEE089': 1, 'FEE087': 2, 'MEO086': 3, 'FEE088': 4}
+dic: defaultdict(None, {'EN2006b_1': 'MEE089', 'EN2006b_2': 'FEE087', 'EN2006b_3': 'MEO086', 'EN2006b_4': 'FEE088'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+EN2009b
+{'MEE094': 1, 'FEE083': 2, 'MEE095': 3}
+dic: defaultdict(None, {'EN2009b_1': 'MEE094', 'EN2009b_2': 'FEE083', 'EN2009b_3': 'MEE095'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+EN2009c
+{'MEE094': 1, 'FEE083': 2, 'MEE095': 3}
+dic: defaultdict(None, {'EN2009c_1': 'MEE094', 'EN2009c_2': 'FEE083', 'EN2009c_3': 'MEE095'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+EN2009d
+{'FEE096': 1, 'FEE083': 2, 'MEE095': 3, 'MEE094': 4}
+dic: defaultdict(None, {'EN2009d_1': 'FEE096', 'EN2009d_2': 'FEE083', 'EN2009d_3': 'MEE095', 'EN2009d_4': 'MEE094'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2002a
+{'FEE005': 1, 'MEE008': 2, 'MEE006': 3, 'MEE007': 4}
+dic: defaultdict(None, {'ES2002a_1': 'FEE005', 'ES2002a_2': 'MEE008', 'ES2002a_3': 'MEE006', 'ES2002a_4': 'MEE007'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2002b
+{'FEE005': 1, 'MEE008': 2, 'MEE006': 3, 'MEE007': 4}
+dic: defaultdict(None, {'ES2002b_1': 'FEE005', 'ES2002b_2': 'MEE008', 'ES2002b_3': 'MEE006', 'ES2002b_4': 'MEE007'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2002c
+{'MEE006': 1, 'MEE008': 2, 'FEE005': 3, 'MEE007': 4}
+dic: defaultdict(None, {'ES2002c_1': 'MEE006', 'ES2002c_2': 'MEE008', 'ES2002c_3': 'FEE005', 'ES2002c_4': 'MEE007'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2002d
+{'FEE005': 1, 'MEE006': 2, 'MEE007': 3, 'MEE008': 4}
+dic: defaultdict(None, {'ES2002d_1': 'FEE005', 'ES2002d_2': 'MEE006', 'ES2002d_3': 'MEE007', 'ES2002d_4': 'MEE008'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2003a
+{'MEE009': 1, 'MEE012': 2, 'MEE010': 3, 'MEE011': 4}
+dic: defaultdict(None, {'ES2003a_1': 'MEE009', 'ES2003a_2': 'MEE012', 'ES2003a_3': 'MEE010', 'ES2003a_4': 'MEE011'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2003b
+{'MEE012': 1, 'MEE009': 2, 'MEE011': 3, 'MEE010': 4}
+dic: defaultdict(None, {'ES2003b_1': 'MEE012', 'ES2003b_2': 'MEE009', 'ES2003b_3': 'MEE011', 'ES2003b_4': 'MEE010'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2003c
+{'MEE009': 1, 'MEE010': 2, 'MEE011': 3, 'MEE012': 4}
+dic: defaultdict(None, {'ES2003c_1': 'MEE009', 'ES2003c_2': 'MEE010', 'ES2003c_3': 'MEE011', 'ES2003c_4': 'MEE012'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2003d
+{'MEE009': 1, 'MEE011': 2, 'MEE010': 3, 'MEE012': 4}
+dic: defaultdict(None, {'ES2003d_1': 'MEE009', 'ES2003d_2': 'MEE011', 'ES2003d_3': 'MEE010', 'ES2003d_4': 'MEE012'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2005a
+{'MEE017': 1, 'MEE018': 2, 'FEE019': 3, 'MEO020': 4}
+dic: defaultdict(None, {'ES2005a_1': 'MEE017', 'ES2005a_2': 'MEE018', 'ES2005a_3': 'FEE019', 'ES2005a_4': 'MEO020'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2005b
+{'MEE017': 1, 'FEE019': 2, 'MEO020': 3, 'MEE018': 4}
+dic: defaultdict(None, {'ES2005b_1': 'MEE017', 'ES2005b_2': 'FEE019', 'ES2005b_3': 'MEO020', 'ES2005b_4': 'MEE018'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2005c
+{'MEE017': 1, 'FEE019': 2, 'MEE018': 3, 'MEO020': 4}
+dic: defaultdict(None, {'ES2005c_1': 'MEE017', 'ES2005c_2': 'FEE019', 'ES2005c_3': 'MEE018', 'ES2005c_4': 'MEO020'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2005d
+{'FEE019': 1, 'MEE018': 2, 'MEE017': 3, 'MEO020': 4}
+dic: defaultdict(None, {'ES2005d_1': 'FEE019', 'ES2005d_2': 'MEE018', 'ES2005d_3': 'MEE017', 'ES2005d_4': 'MEO020'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2006a
+{'FEO023': 1, 'FEE021': 2, 'MEO022': 3, 'FEE024': 4}
+dic: defaultdict(None, {'ES2006a_1': 'FEO023', 'ES2006a_2': 'FEE021', 'ES2006a_3': 'MEO022', 'ES2006a_4': 'FEE024'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2006b
+{'FEE021': 1, 'FEO023': 2, 'MEO022': 3, 'FEE024': 4}
+dic: defaultdict(None, {'ES2006b_1': 'FEE021', 'ES2006b_2': 'FEO023', 'ES2006b_3': 'MEO022', 'ES2006b_4': 'FEE024'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2006c
+{'FEE021': 1, 'MEO022': 2, 'FEE024': 3, 'FEO023': 4}
+dic: defaultdict(None, {'ES2006c_1': 'FEE021', 'ES2006c_2': 'MEO022', 'ES2006c_3': 'FEE024', 'ES2006c_4': 'FEO023'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2006d
+{'MEO022': 1, 'FEE021': 2, 'FEO023': 3, 'FEE024': 4}
+dic: defaultdict(None, {'ES2006d_1': 'MEO022', 'ES2006d_2': 'FEE021', 'ES2006d_3': 'FEO023', 'ES2006d_4': 'FEE024'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2007a
+{'MEE025': 1, 'FEO026': 2, 'FEE028': 3, 'MEE027': 4}
+dic: defaultdict(None, {'ES2007a_1': 'MEE025', 'ES2007a_2': 'FEO026', 'ES2007a_3': 'FEE028', 'ES2007a_4': 'MEE027'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2007b
+{'MEE025': 1, 'MEE027': 2, 'FEO026': 3, 'FEE028': 4}
+dic: defaultdict(None, {'ES2007b_1': 'MEE025', 'ES2007b_2': 'MEE027', 'ES2007b_3': 'FEO026', 'ES2007b_4': 'FEE028'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2007c
+{'FEE028': 1, 'MEE025': 2, 'MEE027': 3, 'FEO026': 4}
+dic: defaultdict(None, {'ES2007c_1': 'FEE028', 'ES2007c_2': 'MEE025', 'ES2007c_3': 'MEE027', 'ES2007c_4': 'FEO026'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2007d
+{'FEE028': 1, 'MEE025': 2, 'FEO026': 3, 'MEE027': 4}
+dic: defaultdict(None, {'ES2007d_1': 'FEE028', 'ES2007d_2': 'MEE025', 'ES2007d_3': 'FEO026', 'ES2007d_4': 'MEE027'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2008a
+{'FEE032': 1, 'FEE029': 2, 'FEE030': 3, 'MEE031': 4}
+dic: defaultdict(None, {'ES2008a_1': 'FEE032', 'ES2008a_2': 'FEE029', 'ES2008a_3': 'FEE030', 'ES2008a_4': 'MEE031'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2008b
+{'FEE029': 1, 'MEE031': 2, 'FEE030': 3, 'FEE032': 4}
+dic: defaultdict(None, {'ES2008b_1': 'FEE029', 'ES2008b_2': 'MEE031', 'ES2008b_3': 'FEE030', 'ES2008b_4': 'FEE032'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2008c
+{'FEE029': 1, 'FEE030': 2, 'FEE032': 3, 'MEE031': 4}
+dic: defaultdict(None, {'ES2008c_1': 'FEE029', 'ES2008c_2': 'FEE030', 'ES2008c_3': 'FEE032', 'ES2008c_4': 'MEE031'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2008d
+{'FEE029': 1, 'MEE031': 2, 'FEE030': 3, 'FEE032': 4}
+dic: defaultdict(None, {'ES2008d_1': 'FEE029', 'ES2008d_2': 'MEE031', 'ES2008d_3': 'FEE030', 'ES2008d_4': 'FEE032'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2009a
+{'FEE036': 1, 'MEE035': 2, 'MEE034': 3, 'MEE033': 4}
+dic: defaultdict(None, {'ES2009a_1': 'FEE036', 'ES2009a_2': 'MEE035', 'ES2009a_3': 'MEE034', 'ES2009a_4': 'MEE033'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2009b
+{'MEE033': 1, 'FEE036': 2, 'MEE034': 3, 'MEE035': 4}
+dic: defaultdict(None, {'ES2009b_1': 'MEE033', 'ES2009b_2': 'FEE036', 'ES2009b_3': 'MEE034', 'ES2009b_4': 'MEE035'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2009c
+{'FEE036': 1, 'MEE033': 2, 'MEE034': 3, 'MEE035': 4}
+dic: defaultdict(None, {'ES2009c_1': 'FEE036', 'ES2009c_2': 'MEE033', 'ES2009c_3': 'MEE034', 'ES2009c_4': 'MEE035'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2009d
+{'FEE036': 1, 'MEE035': 2, 'MEE033': 3, 'MEE034': 4}
+dic: defaultdict(None, {'ES2009d_1': 'FEE036', 'ES2009d_2': 'MEE035', 'ES2009d_3': 'MEE033', 'ES2009d_4': 'MEE034'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2010a
+{'FEE037': 1, 'FEE040': 2, 'FEE038': 3, 'FEE039': 4}
+dic: defaultdict(None, {'ES2010a_1': 'FEE037', 'ES2010a_2': 'FEE040', 'ES2010a_3': 'FEE038', 'ES2010a_4': 'FEE039'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2010b
+{'FEE037': 1, 'FEE039': 2, 'FEE040': 3, 'FEE038': 4}
+dic: defaultdict(None, {'ES2010b_1': 'FEE037', 'ES2010b_2': 'FEE039', 'ES2010b_3': 'FEE040', 'ES2010b_4': 'FEE038'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2010c
+{'FEE037': 1, 'FEE038': 2, 'FEE040': 3, 'FEE039': 4}
+dic: defaultdict(None, {'ES2010c_1': 'FEE037', 'ES2010c_2': 'FEE038', 'ES2010c_3': 'FEE040', 'ES2010c_4': 'FEE039'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2010d
+{'FEE040': 1, 'FEE037': 2, 'FEE038': 3, 'FEE039': 4}
+dic: defaultdict(None, {'ES2010d_1': 'FEE040', 'ES2010d_2': 'FEE037', 'ES2010d_3': 'FEE038', 'ES2010d_4': 'FEE039'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+ES2012a
+{'MEE045': 1, 'MEE048': 2, 'FEE047': 3, 'FEE046': 4}
+dic: defaultdict(None, {'ES2012a_1': 'MEE045', 'ES2012a_2': 'MEE048', 'ES2012a_3': 'FEE047', 'ES2012a_4': 'FEE046'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2012b
+{'MEE045': 1, 'FEE047': 2, 'MEE048': 3, 'FEE046': 4}
+dic: defaultdict(None, {'ES2012b_1': 'MEE045', 'ES2012b_2': 'FEE047', 'ES2012b_3': 'MEE048', 'ES2012b_4': 'FEE046'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2012c
+{'MEE045': 1, 'FEE046': 2, 'FEE047': 3, 'MEE048': 4}
+dic: defaultdict(None, {'ES2012c_1': 'MEE045', 'ES2012c_2': 'FEE046', 'ES2012c_3': 'FEE047', 'ES2012c_4': 'MEE048'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2012d
+{'MEE045': 1, 'FEE046': 2, 'FEE047': 3, 'MEE048': 4}
+dic: defaultdict(None, {'ES2012d_1': 'MEE045', 'ES2012d_2': 'FEE046', 'ES2012d_3': 'FEE047', 'ES2012d_4': 'MEE048'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2013a
+{'FEE052': 1, 'FEE049': 2, 'FEE050': 3, 'FEE051': 4}
+dic: defaultdict(None, {'ES2013a_1': 'FEE052', 'ES2013a_2': 'FEE049', 'ES2013a_3': 'FEE050', 'ES2013a_4': 'FEE051'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2013b
+{'FEE049': 1, 'FEE051': 2, 'FEE050': 3, 'FEE052': 4}
+dic: defaultdict(None, {'ES2013b_1': 'FEE049', 'ES2013b_2': 'FEE051', 'ES2013b_3': 'FEE050', 'ES2013b_4': 'FEE052'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2013c
+{'FEE049': 1, 'FEE050': 2, 'FEE051': 3, 'FEE052': 4}
+dic: defaultdict(None, {'ES2013c_1': 'FEE049', 'ES2013c_2': 'FEE050', 'ES2013c_3': 'FEE051', 'ES2013c_4': 'FEE052'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2013d
+{'FEE049': 1, 'FEE050': 2, 'FEE052': 3, 'FEE051': 4}
+dic: defaultdict(None, {'ES2013d_1': 'FEE049', 'ES2013d_2': 'FEE050', 'ES2013d_3': 'FEE052', 'ES2013d_4': 'FEE051'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2014a
+{'MEE053': 1, 'MEE056': 2, 'MEE054': 3, 'FEE055': 4}
+dic: defaultdict(None, {'ES2014a_1': 'MEE053', 'ES2014a_2': 'MEE056', 'ES2014a_3': 'MEE054', 'ES2014a_4': 'FEE055'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2014b
+{'MEE053': 1, 'MEE054': 2, 'FEE055': 3, 'MEE056': 4}
+dic: defaultdict(None, {'ES2014b_1': 'MEE053', 'ES2014b_2': 'MEE054', 'ES2014b_3': 'FEE055', 'ES2014b_4': 'MEE056'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2014c
+{'MEE053': 1, 'MEE054': 2, 'MEE056': 3, 'FEE055': 4}
+dic: defaultdict(None, {'ES2014c_1': 'MEE053', 'ES2014c_2': 'MEE054', 'ES2014c_3': 'MEE056', 'ES2014c_4': 'FEE055'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2014d
+{'MEE053': 1, 'MEE056': 2, 'FEE055': 3, 'MEE054': 4}
+dic: defaultdict(None, {'ES2014d_1': 'MEE053', 'ES2014d_2': 'MEE056', 'ES2014d_3': 'FEE055', 'ES2014d_4': 'MEE054'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2015a
+{'FEE057': 1, 'FEE060': 2, 'FEE058': 3, 'FEE059': 4}
+dic: defaultdict(None, {'ES2015a_1': 'FEE057', 'ES2015a_2': 'FEE060', 'ES2015a_3': 'FEE058', 'ES2015a_4': 'FEE059'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2015b
+{'FEE058': 1, 'FEE057': 2, 'FEE059': 3, 'FEE060': 4}
+dic: defaultdict(None, {'ES2015b_1': 'FEE058', 'ES2015b_2': 'FEE057', 'ES2015b_3': 'FEE059', 'ES2015b_4': 'FEE060'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2015c
+{'FEE057': 1, 'FEE058': 2, 'FEE059': 3, 'FEE060': 4}
+dic: defaultdict(None, {'ES2015c_1': 'FEE057', 'ES2015c_2': 'FEE058', 'ES2015c_3': 'FEE059', 'ES2015c_4': 'FEE060'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2015d
+{'FEE057': 1, 'FEE058': 2, 'FEE059': 3, 'FEE060': 4}
+dic: defaultdict(None, {'ES2015d_1': 'FEE057', 'ES2015d_2': 'FEE058', 'ES2015d_3': 'FEE059', 'ES2015d_4': 'FEE060'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2016a
+{'MEE061': 1, 'FEE064': 2, 'MEE063': 3, 'MEO062': 4}
+dic: defaultdict(None, {'ES2016a_1': 'MEE061', 'ES2016a_2': 'FEE064', 'ES2016a_3': 'MEE063', 'ES2016a_4': 'MEO062'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2016b
+{'MEE061': 1, 'MEE063': 2, 'FEE064': 3, 'MEO062': 4}
+dic: defaultdict(None, {'ES2016b_1': 'MEE061', 'ES2016b_2': 'MEE063', 'ES2016b_3': 'FEE064', 'ES2016b_4': 'MEO062'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2016c
+{'MEE061': 1, 'FEE064': 2, 'MEE063': 3, 'MEO062': 4}
+dic: defaultdict(None, {'ES2016c_1': 'MEE061', 'ES2016c_2': 'FEE064', 'ES2016c_3': 'MEE063', 'ES2016c_4': 'MEO062'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+ES2016d
+{'MEE061': 1, 'MEE063': 2, 'MEO062': 3, 'FEE064': 4}
+dic: defaultdict(None, {'ES2016d_1': 'MEE061', 'ES2016d_2': 'MEE063', 'ES2016d_3': 'MEO062', 'ES2016d_4': 'FEE064'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1001
+{'MIO016': 1, 'MIO024': 2, 'MIO066': 3}
+dic: defaultdict(None, {'IN1001_1': 'MIO016', 'IN1001_2': 'MIO024', 'IN1001_3': 'MIO066'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+IN1002
+{'MIO078': 1, 'MIO022': 2, 'MIO076': 3, 'MIO050': 4}
+dic: defaultdict(None, {'IN1002_1': 'MIO078', 'IN1002_2': 'MIO022', 'IN1002_3': 'MIO076', 'IN1002_4': 'MIO050'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1005
+{'MIO023': 1, 'FIO041': 2, 'MIE080': 3, 'MIO043': 4}
+dic: defaultdict(None, {'IN1005_1': 'MIO023', 'IN1005_2': 'FIO041', 'IN1005_3': 'MIE080', 'IN1005_4': 'MIO043'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1007
+{'MIO098': 1, 'MIO097': 2, 'MIO077': 3, 'MIO106': 4}
+dic: defaultdict(None, {'IN1007_1': 'MIO098', 'IN1007_2': 'MIO097', 'IN1007_3': 'MIO077', 'IN1007_4': 'MIO106'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1008
+{'MIO100': 1, 'MIO101': 2, 'MIO099': 3, 'MIO018': 4}
+dic: defaultdict(None, {'IN1008_1': 'MIO100', 'IN1008_2': 'MIO101', 'IN1008_3': 'MIO099', 'IN1008_4': 'MIO018'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1009
+{'MIO099': 1, 'MIO101': 2, 'MIO018': 3, 'MIO100': 4}
+dic: defaultdict(None, {'IN1009_1': 'MIO099', 'IN1009_2': 'MIO101', 'IN1009_3': 'MIO018', 'IN1009_4': 'MIO100'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1012
+{'MIO077': 1, 'MIO097': 2, 'MIO018': 3, 'MIO078': 4}
+dic: defaultdict(None, {'IN1012_1': 'MIO077', 'IN1012_2': 'MIO097', 'IN1012_3': 'MIO018', 'IN1012_4': 'MIO078'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1013
+{'MIO097': 1, 'MIE034': 2, 'MIO078': 3, 'MIO105': 4}
+dic: defaultdict(None, {'IN1013_1': 'MIO097', 'IN1013_2': 'MIE034', 'IN1013_3': 'MIO078', 'IN1013_4': 'MIO105'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1014
+{'MIO016': 1, 'MIO020': 2, 'MIO031': 3, 'MIO024': 4}
+dic: defaultdict(None, {'IN1014_1': 'MIO016', 'IN1014_2': 'MIO020', 'IN1014_3': 'MIO031', 'IN1014_4': 'MIO024'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IN1016
+{'MIO031': 1, 'MIO104': 2, 'MIE034': 3, 'MIO050': 4}
+dic: defaultdict(None, {'IN1016_1': 'MIO031', 'IN1016_2': 'MIO104', 'IN1016_3': 'MIE034', 'IN1016_4': 'MIO050'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1000a
+{'MIO050': 1, 'MIO016': 2, 'MIO082': 3, 'FIE081': 4}
+dic: defaultdict(None, {'IS1000a_1': 'MIO050', 'IS1000a_2': 'MIO016', 'IS1000a_3': 'MIO082', 'IS1000a_4': 'FIE081'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1000b
+{'MIO050': 1, 'MIO082': 2, 'FIE081': 3, 'MIO016': 4}
+dic: defaultdict(None, {'IS1000b_1': 'MIO050', 'IS1000b_2': 'MIO082', 'IS1000b_3': 'FIE081', 'IS1000b_4': 'MIO016'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1000c
+{'FIE081': 1, 'MIO016': 2, 'MIO082': 3, 'MIO050': 4}
+dic: defaultdict(None, {'IS1000c_1': 'FIE081', 'IS1000c_2': 'MIO016', 'IS1000c_3': 'MIO082', 'IS1000c_4': 'MIO050'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1000d
+{'FIE081': 1, 'MIO016': 2, 'MIO082': 3, 'MIO050': 4}
+dic: defaultdict(None, {'IS1000d_1': 'FIE081', 'IS1000d_2': 'MIO016', 'IS1000d_3': 'MIO082', 'IS1000d_4': 'MIO050'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1001a
+{'MIO012': 1, 'MIO043': 2, 'MIO020': 3, 'FIO074': 4}
+dic: defaultdict(None, {'IS1001a_1': 'MIO012', 'IS1001a_2': 'MIO043', 'IS1001a_3': 'MIO020', 'IS1001a_4': 'FIO074'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1001b
+{'MIO020': 1, 'MIO043': 2, 'MIO012': 3, 'FIO074': 4}
+dic: defaultdict(None, {'IS1001b_1': 'MIO020', 'IS1001b_2': 'MIO043', 'IS1001b_3': 'MIO012', 'IS1001b_4': 'FIO074'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1001c
+{'MIO043': 1, 'MIO012': 2, 'MIO020': 3, 'FIO074': 4}
+dic: defaultdict(None, {'IS1001c_1': 'MIO043', 'IS1001c_2': 'MIO012', 'IS1001c_3': 'MIO020', 'IS1001c_4': 'FIO074'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1001d
+{'MIO043': 1, 'MIO012': 2, 'FIO074': 3, 'MIO020': 4}
+dic: defaultdict(None, {'IS1001d_1': 'MIO043', 'IS1001d_2': 'MIO012', 'IS1001d_3': 'FIO074', 'IS1001d_4': 'MIO020'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1002b
+{'MIE080': 1, 'MIE029': 2, 'MIE083': 3, 'MIO026': 4}
+dic: defaultdict(None, {'IS1002b_1': 'MIE080', 'IS1002b_2': 'MIE029', 'IS1002b_3': 'MIE083', 'IS1002b_4': 'MIO026'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1002c
+{'MIE080': 1, 'MIE083': 2, 'MIO026': 3, 'MIE029': 4}
+dic: defaultdict(None, {'IS1002c_1': 'MIE080', 'IS1002c_2': 'MIE083', 'IS1002c_3': 'MIO026', 'IS1002c_4': 'MIE029'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1002d
+{'MIE080': 1, 'MIE083': 2, 'MIE029': 3, 'MIO026': 4}
+dic: defaultdict(None, {'IS1002d_1': 'MIE080', 'IS1002d_2': 'MIE083', 'IS1002d_3': 'MIE029', 'IS1002d_4': 'MIO026'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1003a
+{'FIO017': 1, 'MIO023': 2, 'MIO005': 3, 'MIO035': 4}
+dic: defaultdict(None, {'IS1003a_1': 'FIO017', 'IS1003a_2': 'MIO023', 'IS1003a_3': 'MIO005', 'IS1003a_4': 'MIO035'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1003c
+{'FIO017': 1, 'MIO023': 2, 'MIO005': 3, 'MIO035': 4}
+dic: defaultdict(None, {'IS1003c_1': 'FIO017', 'IS1003c_2': 'MIO023', 'IS1003c_3': 'MIO005', 'IS1003c_4': 'MIO035'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1003d
+{'MIO005': 1, 'MIO023': 2, 'MIO035': 3, 'FIO017': 4}
+dic: defaultdict(None, {'IS1003d_1': 'MIO005', 'IS1003d_2': 'MIO023', 'IS1003d_3': 'MIO035', 'IS1003d_4': 'FIO017'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1004a
+{'MIO019': 1, 'MIO022': 2, 'MIE090': 3, 'MIO047': 4}
+dic: defaultdict(None, {'IS1004a_1': 'MIO019', 'IS1004a_2': 'MIO022', 'IS1004a_3': 'MIE090', 'IS1004a_4': 'MIO047'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1004b
+{'MIO019': 1, 'MIE090': 2, 'MIO022': 3, 'MIO047': 4}
+dic: defaultdict(None, {'IS1004b_1': 'MIO019', 'IS1004b_2': 'MIE090', 'IS1004b_3': 'MIO022', 'IS1004b_4': 'MIO047'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1004c
+{'MIO019': 1, 'MIO022': 2, 'MIE090': 3, 'MIO047': 4}
+dic: defaultdict(None, {'IS1004c_1': 'MIO019', 'IS1004c_2': 'MIO022', 'IS1004c_3': 'MIE090', 'IS1004c_4': 'MIO047'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1004d
+{'MIO019': 1, 'MIO022': 2, 'MIE090': 3, 'MIO047': 4}
+dic: defaultdict(None, {'IS1004d_1': 'MIO019', 'IS1004d_2': 'MIO022', 'IS1004d_3': 'MIE090', 'IS1004d_4': 'MIO047'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1005a
+{'MIO077': 1, 'MIO055': 2, 'MIE002': 3, 'MIO076': 4}
+dic: defaultdict(None, {'IS1005a_1': 'MIO077', 'IS1005a_2': 'MIO055', 'IS1005a_3': 'MIE002', 'IS1005a_4': 'MIO076'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1005b
+{'MIO055': 1, 'MIE002': 2, 'MIO077': 3, 'MIO076': 4}
+dic: defaultdict(None, {'IS1005b_1': 'MIO055', 'IS1005b_2': 'MIE002', 'IS1005b_3': 'MIO077', 'IS1005b_4': 'MIO076'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1005c
+{'MIO055': 1, 'MIE002': 2, 'MIO077': 3, 'MIO076': 4}
+dic: defaultdict(None, {'IS1005c_1': 'MIO055', 'IS1005c_2': 'MIE002', 'IS1005c_3': 'MIO077', 'IS1005c_4': 'MIO076'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1006a
+{'MIO040': 1, 'FIO041': 2, 'MIO008': 3, 'MIO078': 4}
+dic: defaultdict(None, {'IS1006a_1': 'MIO040', 'IS1006a_2': 'FIO041', 'IS1006a_3': 'MIO008', 'IS1006a_4': 'MIO078'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1006b
+{'FIO041': 1, 'MIO008': 2, 'MIO040': 3, 'MIO078': 4}
+dic: defaultdict(None, {'IS1006b_1': 'FIO041', 'IS1006b_2': 'MIO008', 'IS1006b_3': 'MIO040', 'IS1006b_4': 'MIO078'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1006c
+{'FIO041': 1, 'MIO008': 2, 'MIO040': 3, 'MIO078': 4}
+dic: defaultdict(None, {'IS1006c_1': 'FIO041', 'IS1006c_2': 'MIO008', 'IS1006c_3': 'MIO040', 'IS1006c_4': 'MIO078'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1006d
+{'FIO041': 1, 'MIO008': 2, 'MIO040': 3, 'MIO078': 4}
+dic: defaultdict(None, {'IS1006d_1': 'FIO041', 'IS1006d_2': 'MIO008', 'IS1006d_3': 'MIO040', 'IS1006d_4': 'MIO078'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1007a
+{'MIO025': 1, 'MIO049': 2, 'MIO075': 3, 'MIO072': 4}
+dic: defaultdict(None, {'IS1007a_1': 'MIO025', 'IS1007a_2': 'MIO049', 'IS1007a_3': 'MIO075', 'IS1007a_4': 'MIO072'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1007b
+{'MIO049': 1, 'MIO025': 2, 'MIO075': 3, 'MIO072': 4}
+dic: defaultdict(None, {'IS1007b_1': 'MIO049', 'IS1007b_2': 'MIO025', 'IS1007b_3': 'MIO075', 'IS1007b_4': 'MIO072'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+IS1007c
+{'MIO049': 1, 'MIO075': 2, 'MIO025': 3, 'MIO072': 4}
+dic: defaultdict(None, {'IS1007c_1': 'MIO049', 'IS1007c_2': 'MIO075', 'IS1007c_3': 'MIO025', 'IS1007c_4': 'MIO072'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3005a
+{'MTD017PM': 1, 'MTD018ID': 2, 'FTD019UID': 3, 'MTD020ME': 4}
+dic: defaultdict(None, {'TS3005a_1': 'MTD017PM', 'TS3005a_2': 'MTD018ID', 'TS3005a_3': 'FTD019UID', 'TS3005a_4': 'MTD020ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3005b
+{'MTD017PM': 1, 'MTD018ID': 2, 'FTD019UID': 3, 'MTD020ME': 4}
+dic: defaultdict(None, {'TS3005b_1': 'MTD017PM', 'TS3005b_2': 'MTD018ID', 'TS3005b_3': 'FTD019UID', 'TS3005b_4': 'MTD020ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3005c
+{'MTD017PM': 1, 'MTD020ME': 2, 'MTD018ID': 3, 'FTD019UID': 4}
+dic: defaultdict(None, {'TS3005c_1': 'MTD017PM', 'TS3005c_2': 'MTD020ME', 'TS3005c_3': 'MTD018ID', 'TS3005c_4': 'FTD019UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3005d
+{'MTD017PM': 1, 'MTD018ID': 2, 'FTD019UID': 3, 'MTD020ME': 4}
+dic: defaultdict(None, {'TS3005d_1': 'MTD017PM', 'TS3005d_2': 'MTD018ID', 'TS3005d_3': 'FTD019UID', 'TS3005d_4': 'MTD020ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3006a
+{'MTD023UID': 1, 'MTD024ME': 2, 'MTD021PM': 3, 'MTD022ID': 4}
+dic: defaultdict(None, {'TS3006a_1': 'MTD023UID', 'TS3006a_2': 'MTD024ME', 'TS3006a_3': 'MTD021PM', 'TS3006a_4': 'MTD022ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3006b
+{'MTD023UID': 1, 'MTD021PM': 2, 'MTD022ID': 3, 'MTD024ME': 4}
+dic: defaultdict(None, {'TS3006b_1': 'MTD023UID', 'TS3006b_2': 'MTD021PM', 'TS3006b_3': 'MTD022ID', 'TS3006b_4': 'MTD024ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3006c
+{'MTD024ME': 1, 'MTD021PM': 2, 'MTD022ID': 3, 'MTD023UID': 4}
+dic: defaultdict(None, {'TS3006c_1': 'MTD024ME', 'TS3006c_2': 'MTD021PM', 'TS3006c_3': 'MTD022ID', 'TS3006c_4': 'MTD023UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3006d
+{'MTD021PM': 1, 'MTD023UID': 2, 'MTD024ME': 3, 'MTD022ID': 4}
+dic: defaultdict(None, {'TS3006d_1': 'MTD021PM', 'TS3006d_2': 'MTD023UID', 'TS3006d_3': 'MTD024ME', 'TS3006d_4': 'MTD022ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3007a
+{'MTD027ID': 1, 'MTD026UID': 2, 'MTD025PM': 3, 'MTD028ME': 4}
+dic: defaultdict(None, {'TS3007a_1': 'MTD027ID', 'TS3007a_2': 'MTD026UID', 'TS3007a_3': 'MTD025PM', 'TS3007a_4': 'MTD028ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3007b
+{'MTD025PM': 1, 'MTD028ME': 2, 'MTD026UID': 3, 'MTD027ID': 4}
+dic: defaultdict(None, {'TS3007b_1': 'MTD025PM', 'TS3007b_2': 'MTD028ME', 'TS3007b_3': 'MTD026UID', 'TS3007b_4': 'MTD027ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3007c
+{'MTD025PM': 1, 'MTD026UID': 2, 'MTD027ID': 3, 'MTD028ME': 4}
+dic: defaultdict(None, {'TS3007c_1': 'MTD025PM', 'TS3007c_2': 'MTD026UID', 'TS3007c_3': 'MTD027ID', 'TS3007c_4': 'MTD028ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3007d
+{'MTD025PM': 1, 'MTD027ID': 2, 'MTD028ME': 3, 'MTD026UID': 4}
+dic: defaultdict(None, {'TS3007d_1': 'MTD025PM', 'TS3007d_2': 'MTD027ID', 'TS3007d_3': 'MTD028ME', 'TS3007d_4': 'MTD026UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3008a
+{'MTD032ME': 1, 'MTD029PM': 2, 'MTD031UID': 3, 'MTD030ID': 4}
+dic: defaultdict(None, {'TS3008a_1': 'MTD032ME', 'TS3008a_2': 'MTD029PM', 'TS3008a_3': 'MTD031UID', 'TS3008a_4': 'MTD030ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3008b
+{'MTD031UID': 1, 'MTD030ID': 2, 'MTD032ME': 3, 'MTD029PM': 4}
+dic: defaultdict(None, {'TS3008b_1': 'MTD031UID', 'TS3008b_2': 'MTD030ID', 'TS3008b_3': 'MTD032ME', 'TS3008b_4': 'MTD029PM'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3008c
+{'MTD029PM': 1, 'MTD031UID': 2, 'MTD030ID': 3, 'MTD032ME': 4}
+dic: defaultdict(None, {'TS3008c_1': 'MTD029PM', 'TS3008c_2': 'MTD031UID', 'TS3008c_3': 'MTD030ID', 'TS3008c_4': 'MTD032ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3008d
+{'MTD029PM': 1, 'MTD030ID': 2, 'MTD031UID': 3, 'MTD032ME': 4}
+dic: defaultdict(None, {'TS3008d_1': 'MTD029PM', 'TS3008d_2': 'MTD030ID', 'TS3008d_3': 'MTD031UID', 'TS3008d_4': 'MTD032ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3009a
+{'MTD036ME': 1, 'MTD035UID': 2, 'MTD033PM': 3, 'MTD034ID': 4}
+dic: defaultdict(None, {'TS3009a_1': 'MTD036ME', 'TS3009a_2': 'MTD035UID', 'TS3009a_3': 'MTD033PM', 'TS3009a_4': 'MTD034ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3009b
+{'MTD036ME': 1, 'MTD033PM': 2, 'MTD034ID': 3, 'MTD035UID': 4}
+dic: defaultdict(None, {'TS3009b_1': 'MTD036ME', 'TS3009b_2': 'MTD033PM', 'TS3009b_3': 'MTD034ID', 'TS3009b_4': 'MTD035UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3009c
+{'MTD033PM': 1, 'MTD036ME': 2, 'MTD034ID': 3, 'MTD035UID': 4}
+dic: defaultdict(None, {'TS3009c_1': 'MTD033PM', 'TS3009c_2': 'MTD036ME', 'TS3009c_3': 'MTD034ID', 'TS3009c_4': 'MTD035UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3009d
+{'MTD033PM': 1, 'MTD035UID': 2, 'MTD034ID': 3, 'MTD036ME': 4}
+dic: defaultdict(None, {'TS3009d_1': 'MTD033PM', 'TS3009d_2': 'MTD035UID', 'TS3009d_3': 'MTD034ID', 'TS3009d_4': 'MTD036ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3010a
+{'MTD037PM': 1, 'MTD040ME': 2, 'MTD038ID': 3, 'MTD039UID': 4}
+dic: defaultdict(None, {'TS3010a_1': 'MTD037PM', 'TS3010a_2': 'MTD040ME', 'TS3010a_3': 'MTD038ID', 'TS3010a_4': 'MTD039UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3010b
+{'MTD037PM': 1, 'MTD038ID': 2, 'MTD040ME': 3, 'MTD039UID': 4}
+dic: defaultdict(None, {'TS3010b_1': 'MTD037PM', 'TS3010b_2': 'MTD038ID', 'TS3010b_3': 'MTD040ME', 'TS3010b_4': 'MTD039UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3010c
+{'MTD037PM': 1, 'MTD039UID': 2, 'MTD038ID': 3, 'MTD040ME': 4}
+dic: defaultdict(None, {'TS3010c_1': 'MTD037PM', 'TS3010c_2': 'MTD039UID', 'TS3010c_3': 'MTD038ID', 'TS3010c_4': 'MTD040ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3010d
+{'MTD037PM': 1, 'MTD038ID': 2, 'MTD039UID': 3, 'MTD040ME': 4}
+dic: defaultdict(None, {'TS3010d_1': 'MTD037PM', 'TS3010d_2': 'MTD038ID', 'TS3010d_3': 'MTD039UID', 'TS3010d_4': 'MTD040ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3011a
+{'MTD043UID': 1, 'MTD041PM': 2, 'MTD042ID': 3, 'MTD044ME': 4}
+dic: defaultdict(None, {'TS3011a_1': 'MTD043UID', 'TS3011a_2': 'MTD041PM', 'TS3011a_3': 'MTD042ID', 'TS3011a_4': 'MTD044ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3011b
+{'MTD041PM': 1, 'MTD043UID': 2, 'MTD044ME': 3, 'MTD042ID': 4}
+dic: defaultdict(None, {'TS3011b_1': 'MTD041PM', 'TS3011b_2': 'MTD043UID', 'TS3011b_3': 'MTD044ME', 'TS3011b_4': 'MTD042ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3011c
+{'MTD041PM': 1, 'MTD044ME': 2, 'MTD042ID': 3, 'MTD043UID': 4}
+dic: defaultdict(None, {'TS3011c_1': 'MTD041PM', 'TS3011c_2': 'MTD044ME', 'TS3011c_3': 'MTD042ID', 'TS3011c_4': 'MTD043UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3011d
+{'MTD043UID': 1, 'MTD042ID': 2, 'MTD041PM': 3, 'MTD044ME': 4}
+dic: defaultdict(None, {'TS3011d_1': 'MTD043UID', 'TS3011d_2': 'MTD042ID', 'TS3011d_3': 'MTD041PM', 'TS3011d_4': 'MTD044ME'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3012a
+{'MTD045PM': 1, 'MTD047UID': 2, 'MTD048ME': 3, 'MTD046ID': 4}
+dic: defaultdict(None, {'TS3012a_1': 'MTD045PM', 'TS3012a_2': 'MTD047UID', 'TS3012a_3': 'MTD048ME', 'TS3012a_4': 'MTD046ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3012b
+{'MTD045PM': 1, 'MTD047UID': 2, 'MTD048ME': 3, 'MTD046ID': 4}
+dic: defaultdict(None, {'TS3012b_1': 'MTD045PM', 'TS3012b_2': 'MTD047UID', 'TS3012b_3': 'MTD048ME', 'TS3012b_4': 'MTD046ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3012c
+{'MTD046ID': 1, 'MTD048ME': 2, 'MTD045PM': 3, 'MTD047UID': 4}
+dic: defaultdict(None, {'TS3012c_1': 'MTD046ID', 'TS3012c_2': 'MTD048ME', 'TS3012c_3': 'MTD045PM', 'TS3012c_4': 'MTD047UID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+TS3012d
+{'MTD045PM': 1, 'MTD047UID': 2, 'MTD048ME': 3, 'MTD046ID': 4}
+dic: defaultdict(None, {'TS3012d_1': 'MTD045PM', 'TS3012d_2': 'MTD047UID', 'TS3012d_3': 'MTD048ME', 'TS3012d_4': 'MTD046ID'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])

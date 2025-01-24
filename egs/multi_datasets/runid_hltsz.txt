@@ -1,0 +1,50 @@
+srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
+
+bash run_ts_vad2_hltsz.sh --stage 4  --stop-stage 4
+
+
+
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_stage10_w2v-bert2_cam++_200k.log run_ts_vad2.sh --stage 10 --stop-stage 10
+Submitted batch job 14175
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_stage1_cam++_200k.log run_ts_vad2.sh --stage 1 --stop-stage 1
+Submitted batch job 14174
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage3_1.log run_extract_speaker_embedding_hltsz.sh --stage 3 --stop-stage 3
+Submitted batch job 14169
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage1_3.log run_extract_speaker_embedding_hltsz.sh --stage 1 --stop-stage 1
+Submitted batch job 14168
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage1_2.log run_extract_speaker_embedding_hltsz.sh --stage 1 --stop-stage 1
+Submitted batch job 14148
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage1_1.log run_extract_speaker_embedding_hltsz.sh --stage 1 --stop-stage 1
+Submitted batch job 14146
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage3.log run_extract_speaker_embedding_hltsz.sh --stage 3 --stop-stage 3
+Submitted batch job 14144
+
+ sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage4.log run_extract_speaker_embedding_hltsz.sh --stage 4 --stop-stage 4
+Submitted batch job 14145
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage4.log run_extract_speaker_embedding_hltsz.sh --stage 4 --stop-stage 4
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage3.log run_extract_speaker_embedding_hltsz.sh --stage 3 --stop-stage 3
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage1.log run_extract_speaker_embedding_hltsz.sh --stage 1 --stop-stage 1
+Submitted batch job 14134
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage2.log run_extract_speaker_embedding_hltsz.sh --stage 2 --stop-stage 2
+Submitted batch job 14133
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage2.log run_extract_speaker_embedding_hltsz.sh --stage 2 --stop-stage 2
+Submitted batch job 14132
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_extract_speaker_embedding_hltsz_stage1.log run_extract_speaker_embedding_hltsz.sh --stage 1 --stop-stage 1
+Submitted batch job 14131
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/prepare_ami_alimeeting_aishell-4_stage1.log  prepare_ami_alimeeting_aishell-4.sh --stage 1  --stop-stage 1
+Submitted batch job 14130
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/prepare_ami_alimeeting_aishell-4_stage0.log  prepare_ami_alimeeting_aishell-4.sh --stage 0  --stop-stage 0
+Submitted batch job 14129

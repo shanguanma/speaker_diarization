@@ -1,0 +1,1055 @@
+20200706_L_R001S04C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S04C01_1': '001-M', '20200706_L_R001S04C01_2': '002-M', '20200706_L_R001S04C01_3': '003-M', '20200706_L_R001S04C01_4': '004-M', '20200706_L_R001S04C01_5': '005-F', '20200706_L_R001S04C01_6': '006-F', '20200706_L_R001S04C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel
+20200709_L_R002S05C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200709_L_R002S05C01_1': '001-M', '20200709_L_R002S05C01_2': '002-M', '20200709_L_R002S05C01_3': '003-M', '20200709_L_R002S05C01_4': '004-F', '20200709_L_R002S05C01_5': '005-F', '20200709_L_R002S05C01_6': '006-F', '20200709_L_R002S05C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel
+20200616_M_R001S06C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S06C01_1': '001-M', '20200616_M_R001S06C01_2': '002-F', '20200616_M_R001S06C01_3': '003-F', '20200616_M_R001S06C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+20200715_M_R002S06C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S06C01_1': '005-M', '20200715_M_R002S06C01_2': '004-M', '20200715_M_R002S06C01_3': '003-M', '20200715_M_R002S06C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+20200624_S_R001S08C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S08C01_1': '006-M', '20200624_S_R001S08C01_2': '004-M', '20200624_S_R001S08C01_3': '003-F', '20200624_S_R001S08C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+20200623_S_R001S01C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S01C01_1': '006-M', '20200623_S_R001S01C01_2': '004-M', '20200623_S_R001S01C01_3': '003-M', '20200623_S_R001S01C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+20200623_S_R001S06C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S06C01_1': '006-M', '20200623_S_R001S06C01_2': '004-M', '20200623_S_R001S06C01_3': '003-M', '20200623_S_R001S06C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+20200624_S_R001S03C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S03C01_1': '006-M', '20200624_S_R001S03C01_2': '004-M', '20200624_S_R001S03C01_3': '003-F', '20200624_S_R001S03C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel
+20200807_S_R001S04C01
+{'006-F': 1, '005-F': 2, '004-F': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200807_S_R001S04C01_1': '006-F', '20200807_S_R001S04C01_2': '005-F', '20200807_S_R001S04C01_3': '004-F', '20200807_S_R001S04C01_4': '002-M', '20200807_S_R001S04C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+20200807_S_R001S06C01
+{'006-F': 1, '001-F': 2, '005-F': 3, '002-M': 4, '004-F': 5}
+dic: defaultdict(None, {'20200807_S_R001S06C01_1': '006-F', '20200807_S_R001S06C01_2': '001-F', '20200807_S_R001S06C01_3': '005-F', '20200807_S_R001S06C01_4': '002-M', '20200807_S_R001S06C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+M_R003S01C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5, '006-F': 6}
+dic: defaultdict(None, {'M_R003S01C01_1': '001-M', 'M_R003S01C01_2': '002-M', 'M_R003S01C01_3': '003-F', 'M_R003S01C01_4': '004-F', 'M_R003S01C01_5': '005-F', 'M_R003S01C01_6': '006-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+L_R003S01C02
+{'006-M': 1, '002-F': 2, '004-M': 3, '003-F': 4, '005-M': 5, '007-M': 6}
+dic: defaultdict(None, {'L_R003S01C02_1': '006-M', 'L_R003S01C02_2': '002-F', 'L_R003S01C02_3': '004-M', 'L_R003S01C02_4': '003-F', 'L_R003S01C02_5': '005-M', 'L_R003S01C02_6': '007-M'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+L_R003S02C02
+{'007-M': 1, '002-F': 2, '003-F': 3, '004-M': 4, '005-M': 5, '006-M': 6}
+dic: defaultdict(None, {'L_R003S02C02_1': '007-M', 'L_R003S02C02_2': '002-F', 'L_R003S02C02_3': '003-F', 'L_R003S02C02_4': '004-M', 'L_R003S02C02_5': '005-M', 'L_R003S02C02_6': '006-M'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+L_R003S03C02
+{'007-M': 1, '002-F': 2, '003-F': 3, '004-M': 4, '005-M': 5, '006-M': 6}
+dic: defaultdict(None, {'L_R003S03C02_1': '007-M', 'L_R003S03C02_2': '002-F', 'L_R003S03C02_3': '003-F', 'L_R003S03C02_4': '004-M', 'L_R003S03C02_5': '005-M', 'L_R003S03C02_6': '006-M'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+L_R003S04C02
+{'007-M': 1, '002-F': 2, '003-F': 3, '004-M': 4, '005-M': 5, '006-M': 6}
+dic: defaultdict(None, {'L_R003S04C02_1': '007-M', 'L_R003S04C02_2': '002-F', 'L_R003S04C02_3': '003-F', 'L_R003S04C02_4': '004-M', 'L_R003S04C02_5': '005-M', 'L_R003S04C02_6': '006-M'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+L_R004S01C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'L_R004S01C01_1': '001-M', 'L_R004S01C01_2': '002-M', 'L_R004S01C01_3': '003-M', 'L_R004S01C01_4': '004-M', 'L_R004S01C01_5': '005-F', 'L_R004S01C01_6': '006-F', 'L_R004S01C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel
+L_R004S02C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'L_R004S02C01_1': '001-M', 'L_R004S02C01_2': '002-M', 'L_R004S02C01_3': '003-M', 'L_R004S02C01_4': '004-M', 'L_R004S02C01_5': '005-F', 'L_R004S02C01_6': '006-F', 'L_R004S02C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel
+L_R004S03C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'L_R004S03C01_1': '001-M', 'L_R004S03C01_2': '002-M', 'L_R004S03C01_3': '003-M', 'L_R004S03C01_4': '004-M', 'L_R004S03C01_5': '005-F', 'L_R004S03C01_6': '006-F', 'L_R004S03C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel
+L_R004S06C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'L_R004S06C01_1': '001-M', 'L_R004S06C01_2': '002-M', 'L_R004S06C01_3': '003-M', 'L_R004S06C01_4': '004-M', 'L_R004S06C01_5': '005-F', 'L_R004S06C01_6': '006-F', 'L_R004S06C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel
+M_R003S02C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5, '006-F': 6}
+dic: defaultdict(None, {'M_R003S02C01_1': '001-M', 'M_R003S02C01_2': '002-M', 'M_R003S02C01_3': '003-F', 'M_R003S02C01_4': '004-F', 'M_R003S02C01_5': '005-F', 'M_R003S02C01_6': '006-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+M_R003S04C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5, '006-F': 6}
+dic: defaultdict(None, {'M_R003S04C01_1': '001-M', 'M_R003S04C01_2': '002-M', 'M_R003S04C01_3': '003-F', 'M_R003S04C01_4': '004-F', 'M_R003S04C01_5': '005-F', 'M_R003S04C01_6': '006-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+M_R003S05C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5, '006-F': 6}
+dic: defaultdict(None, {'M_R003S05C01_1': '001-M', 'M_R003S05C01_2': '002-M', 'M_R003S05C01_3': '003-F', 'M_R003S05C01_4': '004-F', 'M_R003S05C01_5': '005-F', 'M_R003S05C01_6': '006-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel
+S_R003S01C01
+{'001-M': 1, '002-F': 2, '003-M': 3, '004-F': 4, '005-M': 5}
+dic: defaultdict(None, {'S_R003S01C01_1': '001-M', 'S_R003S01C01_2': '002-F', 'S_R003S01C01_3': '003-M', 'S_R003S01C01_4': '004-F', 'S_R003S01C01_5': '005-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R003S02C01
+{'001-M': 1, '002-F': 2, '003-M': 3, '004-F': 4, '005-M': 5}
+dic: defaultdict(None, {'S_R003S02C01_1': '001-M', 'S_R003S02C01_2': '002-F', 'S_R003S02C01_3': '003-M', 'S_R003S02C01_4': '004-F', 'S_R003S02C01_5': '005-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R003S03C01
+{'001-M': 1, '002-F': 2, '003-M': 3, '004-F': 4, '005-M': 5}
+dic: defaultdict(None, {'S_R003S03C01_1': '001-M', 'S_R003S03C01_2': '002-F', 'S_R003S03C01_3': '003-M', 'S_R003S03C01_4': '004-F', 'S_R003S03C01_5': '005-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R003S04C01
+{'001-M': 1, '002-F': 2, '003-M': 3, '004-F': 4, '005-M': 5}
+dic: defaultdict(None, {'S_R003S04C01_1': '001-M', 'S_R003S04C01_2': '002-F', 'S_R003S04C01_3': '003-M', 'S_R003S04C01_4': '004-F', 'S_R003S04C01_5': '005-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R004S01C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'S_R004S01C01_1': '001-M', 'S_R004S01C01_2': '002-F', 'S_R004S01C01_3': '003-F', 'S_R004S01C01_4': '004-F', 'S_R004S01C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R004S02C01
+{'001-M': 1, '003-F': 2, '002-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'S_R004S02C01_1': '001-M', 'S_R004S02C01_2': '003-F', 'S_R004S02C01_3': '002-F', 'S_R004S02C01_4': '004-F', 'S_R004S02C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R004S03C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'S_R004S03C01_1': '001-M', 'S_R004S03C01_2': '002-F', 'S_R004S03C01_3': '003-F', 'S_R004S03C01_4': '004-F', 'S_R004S03C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+S_R004S04C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'S_R004S04C01_1': '001-M', 'S_R004S04C01_2': '002-F', 'S_R004S04C01_3': '003-F', 'S_R004S04C01_4': '004-F', 'S_R004S04C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel
+20200707_L_R001S08C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S08C01_1': '001-M', '20200707_L_R001S08C01_2': '002-M', '20200707_L_R001S08C01_3': '003-M', '20200707_L_R001S08C01_4': '004-M', '20200707_L_R001S08C01_5': '005-F', '20200707_L_R001S08C01_6': '006-F', '20200707_L_R001S08C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S08C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S08C01_1': '001-M', '20200708_L_R002S08C01_2': '002-M', '20200708_L_R002S08C01_3': '003-M', '20200708_L_R002S08C01_4': '004-F', '20200708_L_R002S08C01_5': '005-F', '20200708_L_R002S08C01_6': '006-F', '20200708_L_R002S08C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S01C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S01C01_1': '001-M', '20200706_L_R001S01C01_2': '002-M', '20200706_L_R001S01C01_3': '003-M', '20200706_L_R001S01C01_4': '004-M', '20200706_L_R001S01C01_5': '005-F', '20200706_L_R001S01C01_6': '006-F', '20200706_L_R001S01C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S02C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S02C01_1': '001-M', '20200706_L_R001S02C01_2': '002-M', '20200706_L_R001S02C01_3': '003-M', '20200706_L_R001S02C01_4': '004-M', '20200706_L_R001S02C01_5': '005-F', '20200706_L_R001S02C01_6': '006-F', '20200706_L_R001S02C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S03C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S03C01_1': '001-M', '20200706_L_R001S03C01_2': '002-M', '20200706_L_R001S03C01_3': '003-M', '20200706_L_R001S03C01_4': '004-M', '20200706_L_R001S03C01_5': '005-F', '20200706_L_R001S03C01_6': '006-F', '20200706_L_R001S03C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S05C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S05C01_1': '001-M', '20200706_L_R001S05C01_2': '002-M', '20200706_L_R001S05C01_3': '003-M', '20200706_L_R001S05C01_4': '004-M', '20200706_L_R001S05C01_5': '005-F', '20200706_L_R001S05C01_6': '006-F', '20200706_L_R001S05C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S06C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S06C01_1': '001-M', '20200706_L_R001S06C01_2': '002-M', '20200706_L_R001S06C01_3': '003-M', '20200706_L_R001S06C01_4': '004-M', '20200706_L_R001S06C01_5': '005-F', '20200706_L_R001S06C01_6': '006-F', '20200706_L_R001S06C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S07C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S07C01_1': '001-M', '20200706_L_R001S07C01_2': '002-M', '20200706_L_R001S07C01_3': '003-M', '20200706_L_R001S07C01_4': '004-M', '20200706_L_R001S07C01_5': '005-F', '20200706_L_R001S07C01_6': '006-F', '20200706_L_R001S07C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200706_L_R001S08C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200706_L_R001S08C01_1': '001-M', '20200706_L_R001S08C01_2': '002-M', '20200706_L_R001S08C01_3': '003-M', '20200706_L_R001S08C01_4': '004-M', '20200706_L_R001S08C01_5': '005-F', '20200706_L_R001S08C01_6': '006-F', '20200706_L_R001S08C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S01C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S01C01_1': '001-M', '20200707_L_R001S01C01_2': '002-M', '20200707_L_R001S01C01_3': '003-M', '20200707_L_R001S01C01_4': '004-M', '20200707_L_R001S01C01_5': '005-F', '20200707_L_R001S01C01_6': '006-F', '20200707_L_R001S01C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S02C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S02C01_1': '001-M', '20200707_L_R001S02C01_2': '002-M', '20200707_L_R001S02C01_3': '003-M', '20200707_L_R001S02C01_4': '004-M', '20200707_L_R001S02C01_5': '005-F', '20200707_L_R001S02C01_6': '006-F', '20200707_L_R001S02C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S03C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S03C01_1': '001-M', '20200707_L_R001S03C01_2': '002-M', '20200707_L_R001S03C01_3': '003-M', '20200707_L_R001S03C01_4': '004-M', '20200707_L_R001S03C01_5': '005-F', '20200707_L_R001S03C01_6': '006-F', '20200707_L_R001S03C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S04C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S04C01_1': '001-M', '20200707_L_R001S04C01_2': '002-M', '20200707_L_R001S04C01_3': '003-M', '20200707_L_R001S04C01_4': '004-M', '20200707_L_R001S04C01_5': '005-F', '20200707_L_R001S04C01_6': '006-F', '20200707_L_R001S04C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S05C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S05C01_1': '001-M', '20200707_L_R001S05C01_2': '002-M', '20200707_L_R001S05C01_3': '003-M', '20200707_L_R001S05C01_4': '004-M', '20200707_L_R001S05C01_5': '005-F', '20200707_L_R001S05C01_6': '006-F', '20200707_L_R001S05C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S06C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S06C01_1': '001-M', '20200707_L_R001S06C01_2': '002-M', '20200707_L_R001S06C01_3': '003-M', '20200707_L_R001S06C01_4': '004-M', '20200707_L_R001S06C01_5': '005-F', '20200707_L_R001S06C01_6': '006-F', '20200707_L_R001S06C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200707_L_R001S07C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-M': 7}
+dic: defaultdict(None, {'20200707_L_R001S07C01_1': '001-M', '20200707_L_R001S07C01_2': '002-M', '20200707_L_R001S07C01_3': '003-M', '20200707_L_R001S07C01_4': '004-M', '20200707_L_R001S07C01_5': '005-F', '20200707_L_R001S07C01_6': '006-F', '20200707_L_R001S07C01_7': '007-M'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S01C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S01C01_1': '001-M', '20200708_L_R002S01C01_2': '002-M', '20200708_L_R002S01C01_3': '003-M', '20200708_L_R002S01C01_4': '004-M', '20200708_L_R002S01C01_5': '005-F', '20200708_L_R002S01C01_6': '006-F', '20200708_L_R002S01C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S02C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S02C01_1': '001-M', '20200708_L_R002S02C01_2': '002-M', '20200708_L_R002S02C01_3': '003-M', '20200708_L_R002S02C01_4': '004-M', '20200708_L_R002S02C01_5': '005-F', '20200708_L_R002S02C01_6': '006-F', '20200708_L_R002S02C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S03C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S03C01_1': '001-M', '20200708_L_R002S03C01_2': '002-M', '20200708_L_R002S03C01_3': '003-M', '20200708_L_R002S03C01_4': '004-M', '20200708_L_R002S03C01_5': '005-F', '20200708_L_R002S03C01_6': '006-F', '20200708_L_R002S03C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S04C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-M': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S04C01_1': '001-M', '20200708_L_R002S04C01_2': '002-M', '20200708_L_R002S04C01_3': '003-M', '20200708_L_R002S04C01_4': '004-M', '20200708_L_R002S04C01_5': '005-F', '20200708_L_R002S04C01_6': '006-F', '20200708_L_R002S04C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S05C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S05C01_1': '001-M', '20200708_L_R002S05C01_2': '002-M', '20200708_L_R002S05C01_3': '003-M', '20200708_L_R002S05C01_4': '004-F', '20200708_L_R002S05C01_5': '005-F', '20200708_L_R002S05C01_6': '006-F', '20200708_L_R002S05C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200708_L_R002S07C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200708_L_R002S07C01_1': '001-M', '20200708_L_R002S07C01_2': '002-M', '20200708_L_R002S07C01_3': '003-M', '20200708_L_R002S07C01_4': '004-F', '20200708_L_R002S07C01_5': '005-F', '20200708_L_R002S07C01_6': '006-F', '20200708_L_R002S07C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200709_L_R002S01C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '006-F': 5, '007-F': 6}
+dic: defaultdict(None, {'20200709_L_R002S01C01_1': '001-M', '20200709_L_R002S01C01_2': '002-M', '20200709_L_R002S01C01_3': '003-M', '20200709_L_R002S01C01_4': '004-F', '20200709_L_R002S01C01_5': '006-F', '20200709_L_R002S01C01_6': '007-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel!
+20200709_L_R002S03C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '006-F': 5, '007-F': 6}
+dic: defaultdict(None, {'20200709_L_R002S03C01_1': '001-M', '20200709_L_R002S03C01_2': '002-M', '20200709_L_R002S03C01_3': '003-M', '20200709_L_R002S03C01_4': '004-F', '20200709_L_R002S03C01_5': '006-F', '20200709_L_R002S03C01_6': '007-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel!
+20200709_L_R002S04C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '006-F': 5, '007-F': 6}
+dic: defaultdict(None, {'20200709_L_R002S04C01_1': '001-M', '20200709_L_R002S04C01_2': '002-M', '20200709_L_R002S04C01_3': '003-M', '20200709_L_R002S04C01_4': '004-F', '20200709_L_R002S04C01_5': '006-F', '20200709_L_R002S04C01_6': '007-F'}), its len: 6
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6])
+it is multi channel audio, select first channel!
+20200709_L_R002S06C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200709_L_R002S06C01_1': '001-M', '20200709_L_R002S06C01_2': '002-M', '20200709_L_R002S06C01_3': '003-M', '20200709_L_R002S06C01_4': '004-F', '20200709_L_R002S06C01_5': '005-F', '20200709_L_R002S06C01_6': '006-F', '20200709_L_R002S06C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200709_L_R002S07C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200709_L_R002S07C01_1': '001-M', '20200709_L_R002S07C01_2': '002-M', '20200709_L_R002S07C01_3': '003-M', '20200709_L_R002S07C01_4': '004-F', '20200709_L_R002S07C01_5': '005-F', '20200709_L_R002S07C01_6': '006-F', '20200709_L_R002S07C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200709_L_R002S08C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4, '005-F': 5, '006-F': 6, '007-F': 7}
+dic: defaultdict(None, {'20200709_L_R002S08C01_1': '001-M', '20200709_L_R002S08C01_2': '002-M', '20200709_L_R002S08C01_3': '003-M', '20200709_L_R002S08C01_4': '004-F', '20200709_L_R002S08C01_5': '005-F', '20200709_L_R002S08C01_6': '006-F', '20200709_L_R002S08C01_7': '007-F'}), its len: 7
+intervals.keys(): dict_keys([1, 2, 3, 4, 5, 6, 7])
+it is multi channel audio, select first channel!
+20200616_M_R001S01C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S01C01_1': '001-M', '20200616_M_R001S01C01_2': '002-F', '20200616_M_R001S01C01_3': '003-F', '20200616_M_R001S01C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200616_M_R001S02C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S02C01_1': '001-M', '20200616_M_R001S02C01_2': '002-F', '20200616_M_R001S02C01_3': '003-F', '20200616_M_R001S02C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200616_M_R001S03C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S03C01_1': '001-M', '20200616_M_R001S03C01_2': '002-F', '20200616_M_R001S03C01_3': '003-F', '20200616_M_R001S03C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200616_M_R001S04C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S04C01_1': '001-M', '20200616_M_R001S04C01_2': '002-F', '20200616_M_R001S04C01_3': '003-F', '20200616_M_R001S04C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200616_M_R001S05C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S05C01_1': '001-M', '20200616_M_R001S05C01_2': '002-F', '20200616_M_R001S05C01_3': '003-F', '20200616_M_R001S05C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200616_M_R001S07C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S07C01_1': '001-M', '20200616_M_R001S07C01_2': '002-F', '20200616_M_R001S07C01_3': '003-F', '20200616_M_R001S07C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200618_M_R001S07C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S07C01_1': '001-M', '20200618_M_R001S07C01_2': '003-M', '20200618_M_R001S07C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200618_M_R001S08C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S08C01_1': '001-M', '20200618_M_R001S08C01_2': '003-M', '20200618_M_R001S08C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200620_M_R002S04C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200620_M_R002S04C01_1': '005-M', '20200620_M_R002S04C01_2': '004-M', '20200620_M_R002S04C01_3': '003-F', '20200620_M_R002S04C01_4': '002-F', '20200620_M_R002S04C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200620_M_R002S05C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200620_M_R002S05C01_1': '005-M', '20200620_M_R002S05C01_2': '004-M', '20200620_M_R002S05C01_3': '003-F', '20200620_M_R002S05C01_4': '002-F', '20200620_M_R002S05C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200620_M_R002S06C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200620_M_R002S06C01_1': '005-M', '20200620_M_R002S06C01_2': '004-M', '20200620_M_R002S06C01_3': '003-F', '20200620_M_R002S06C01_4': '002-F', '20200620_M_R002S06C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200620_M_R002S07C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200620_M_R002S07C01_1': '005-M', '20200620_M_R002S07C01_2': '004-M', '20200620_M_R002S07C01_3': '003-F', '20200620_M_R002S07C01_4': '002-F', '20200620_M_R002S07C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200620_M_R002S08C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200620_M_R002S08C01_1': '005-M', '20200620_M_R002S08C01_2': '004-M', '20200620_M_R002S08C01_3': '003-F', '20200620_M_R002S08C01_4': '002-F', '20200620_M_R002S08C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S01C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S01C01_1': '005-M', '20200621_M_R002S01C01_2': '004-M', '20200621_M_R002S01C01_3': '003-M', '20200621_M_R002S01C01_4': '002-M', '20200621_M_R002S01C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S02C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S02C01_1': '005-M', '20200621_M_R002S02C01_2': '004-M', '20200621_M_R002S02C01_3': '003-M', '20200621_M_R002S02C01_4': '002-M', '20200621_M_R002S02C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S03C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S03C01_1': '005-M', '20200621_M_R002S03C01_2': '004-M', '20200621_M_R002S03C01_3': '003-M', '20200621_M_R002S03C01_4': '002-M', '20200621_M_R002S03C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S04C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S04C01_1': '005-M', '20200621_M_R002S04C01_2': '004-M', '20200621_M_R002S04C01_3': '003-M', '20200621_M_R002S04C01_4': '002-M', '20200621_M_R002S04C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S05C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S05C01_1': '005-M', '20200621_M_R002S05C01_2': '004-M', '20200621_M_R002S05C01_3': '003-M', '20200621_M_R002S05C01_4': '002-M', '20200621_M_R002S05C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S06C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S06C01_1': '005-M', '20200621_M_R002S06C01_2': '004-M', '20200621_M_R002S06C01_3': '003-M', '20200621_M_R002S06C01_4': '002-M', '20200621_M_R002S06C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200621_M_R002S07C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S07C01_1': '005-M', '20200621_M_R002S07C01_2': '004-M', '20200621_M_R002S07C01_3': '003-M', '20200621_M_R002S07C01_4': '002-M', '20200621_M_R002S07C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200622_M_R002S01C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S01C01_1': '005-M', '20200622_M_R002S01C01_2': '004-F', '20200622_M_R002S01C01_3': '003-F', '20200622_M_R002S01C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S02C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S02C01_1': '005-M', '20200622_M_R002S02C01_2': '004-F', '20200622_M_R002S02C01_3': '003-F', '20200622_M_R002S02C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S03C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S03C01_1': '005-M', '20200622_M_R002S03C01_2': '004-F', '20200622_M_R002S03C01_3': '003-F', '20200622_M_R002S03C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S04C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S04C01_1': '005-M', '20200622_M_R002S04C01_2': '004-F', '20200622_M_R002S04C01_3': '003-F', '20200622_M_R002S04C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S05C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S05C01_1': '005-M', '20200622_M_R002S05C01_2': '004-F', '20200622_M_R002S05C01_3': '003-F', '20200622_M_R002S05C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S06C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S06C01_1': '005-M', '20200622_M_R002S06C01_2': '004-F', '20200622_M_R002S06C01_3': '003-F', '20200622_M_R002S06C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S07C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S07C01_1': '005-M', '20200622_M_R002S07C01_2': '004-F', '20200622_M_R002S07C01_3': '003-F', '20200622_M_R002S07C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200622_M_R002S08C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-F': 4}
+dic: defaultdict(None, {'20200622_M_R002S08C01_1': '005-M', '20200622_M_R002S08C01_2': '004-F', '20200622_M_R002S08C01_3': '003-F', '20200622_M_R002S08C01_4': '002-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200703_M_R002S01C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S01C01_1': '005-M', '20200703_M_R002S01C01_2': '003-F', '20200703_M_R002S01C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200703_M_R002S02C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S02C01_1': '005-M', '20200703_M_R002S02C01_2': '003-F', '20200703_M_R002S02C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200703_M_R002S03C01
+{'005-M': 1, '003-F': 2, '002-F': 3, '001-M': 4}
+dic: defaultdict(None, {'20200703_M_R002S03C01_1': '005-M', '20200703_M_R002S03C01_2': '003-F', '20200703_M_R002S03C01_3': '002-F', '20200703_M_R002S03C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200703_M_R002S04C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S04C01_1': '005-M', '20200703_M_R002S04C01_2': '003-F', '20200703_M_R002S04C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200703_M_R002S05C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S05C01_1': '005-M', '20200703_M_R002S05C01_2': '003-F', '20200703_M_R002S05C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200703_M_R002S06C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S06C01_1': '005-M', '20200703_M_R002S06C01_2': '003-F', '20200703_M_R002S06C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200703_M_R002S08C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S08C01_1': '005-M', '20200703_M_R002S08C01_2': '003-F', '20200703_M_R002S08C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200704_M_R002S01C01
+{'001-M': 1, '002-M': 2, '005-F': 3, '004-F': 4, '003-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S01C01_1': '001-M', '20200704_M_R002S01C01_2': '002-M', '20200704_M_R002S01C01_3': '005-F', '20200704_M_R002S01C01_4': '004-F', '20200704_M_R002S01C01_5': '003-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S02C01
+{'001-M': 1, '005-F': 2, '004-F': 3, '003-F': 4, '002-M': 5}
+dic: defaultdict(None, {'20200704_M_R002S02C01_1': '001-M', '20200704_M_R002S02C01_2': '005-F', '20200704_M_R002S02C01_3': '004-F', '20200704_M_R002S02C01_4': '003-F', '20200704_M_R002S02C01_5': '002-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S03C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S03C01_1': '001-M', '20200704_M_R002S03C01_2': '002-M', '20200704_M_R002S03C01_3': '003-F', '20200704_M_R002S03C01_4': '004-F', '20200704_M_R002S03C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S04C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S04C01_1': '001-M', '20200704_M_R002S04C01_2': '002-M', '20200704_M_R002S04C01_3': '003-F', '20200704_M_R002S04C01_4': '004-F', '20200704_M_R002S04C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S05C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S05C01_1': '001-M', '20200704_M_R002S05C01_2': '002-M', '20200704_M_R002S05C01_3': '003-F', '20200704_M_R002S05C01_4': '004-F', '20200704_M_R002S05C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S06C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S06C01_1': '001-M', '20200704_M_R002S06C01_2': '002-M', '20200704_M_R002S06C01_3': '003-F', '20200704_M_R002S06C01_4': '004-F', '20200704_M_R002S06C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S07C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S07C01_1': '001-M', '20200704_M_R002S07C01_2': '002-M', '20200704_M_R002S07C01_3': '003-F', '20200704_M_R002S07C01_4': '004-F', '20200704_M_R002S07C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200704_M_R002S08C01
+{'001-M': 1, '002-M': 2, '003-F': 3, '004-F': 4, '005-F': 5}
+dic: defaultdict(None, {'20200704_M_R002S08C01_1': '001-M', '20200704_M_R002S08C01_2': '002-M', '20200704_M_R002S08C01_3': '003-F', '20200704_M_R002S08C01_4': '004-F', '20200704_M_R002S08C01_5': '005-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S01C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S01C01_1': '005-M', '20200705_M_R002S01C01_2': '001-M', '20200705_M_R002S01C01_3': '002-F', '20200705_M_R002S01C01_4': '003-M', '20200705_M_R002S01C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S02C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S02C01_1': '005-M', '20200705_M_R002S02C01_2': '001-M', '20200705_M_R002S02C01_3': '002-F', '20200705_M_R002S02C01_4': '003-M', '20200705_M_R002S02C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S03C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S03C01_1': '005-M', '20200705_M_R002S03C01_2': '001-M', '20200705_M_R002S03C01_3': '002-F', '20200705_M_R002S03C01_4': '003-M', '20200705_M_R002S03C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S04C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S04C01_1': '005-M', '20200705_M_R002S04C01_2': '001-M', '20200705_M_R002S04C01_3': '002-F', '20200705_M_R002S04C01_4': '003-M', '20200705_M_R002S04C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S05C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S05C01_1': '005-M', '20200705_M_R002S05C01_2': '001-M', '20200705_M_R002S05C01_3': '002-F', '20200705_M_R002S05C01_4': '003-M', '20200705_M_R002S05C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S07C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S07C01_1': '005-M', '20200705_M_R002S07C01_2': '001-M', '20200705_M_R002S07C01_3': '002-F', '20200705_M_R002S07C01_4': '003-M', '20200705_M_R002S07C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200705_M_R002S08C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S08C01_1': '005-M', '20200705_M_R002S08C01_2': '001-M', '20200705_M_R002S08C01_3': '002-F', '20200705_M_R002S08C01_4': '003-M', '20200705_M_R002S08C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S01C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S01C01_1': '005-M', '20200710_M_R002S01C01_2': '004-M', '20200710_M_R002S01C01_3': '003-M', '20200710_M_R002S01C01_4': '002-M', '20200710_M_R002S01C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S03C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S03C01_1': '005-M', '20200710_M_R002S03C01_2': '004-M', '20200710_M_R002S03C01_3': '003-M', '20200710_M_R002S03C01_4': '002-M', '20200710_M_R002S03C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S04C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S04C01_1': '005-M', '20200710_M_R002S04C01_2': '004-M', '20200710_M_R002S04C01_3': '003-M', '20200710_M_R002S04C01_4': '002-M', '20200710_M_R002S04C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S05C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S05C01_1': '005-M', '20200710_M_R002S05C01_2': '004-M', '20200710_M_R002S05C01_3': '003-M', '20200710_M_R002S05C01_4': '002-M', '20200710_M_R002S05C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S06C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S06C01_1': '005-M', '20200710_M_R002S06C01_2': '004-M', '20200710_M_R002S06C01_3': '003-M', '20200710_M_R002S06C01_4': '002-M', '20200710_M_R002S06C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S07C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S07C01_1': '005-M', '20200710_M_R002S07C01_2': '004-M', '20200710_M_R002S07C01_3': '003-M', '20200710_M_R002S07C01_4': '002-M', '20200710_M_R002S07C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200710_M_R002S08C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200710_M_R002S08C01_1': '005-M', '20200710_M_R002S08C01_2': '004-M', '20200710_M_R002S08C01_3': '003-M', '20200710_M_R002S08C01_4': '002-M', '20200710_M_R002S08C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S01C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S01C01_1': '005-M', '20200712_M_R002S01C01_2': '004-M', '20200712_M_R002S01C01_3': '003-M', '20200712_M_R002S01C01_4': '002-F', '20200712_M_R002S01C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S02C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S02C01_1': '005-M', '20200712_M_R002S02C01_2': '004-M', '20200712_M_R002S02C01_3': '003-M', '20200712_M_R002S02C01_4': '002-F', '20200712_M_R002S02C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S03C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S03C01_1': '005-M', '20200712_M_R002S03C01_2': '004-M', '20200712_M_R002S03C01_3': '003-M', '20200712_M_R002S03C01_4': '002-F', '20200712_M_R002S03C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S04C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S04C01_1': '005-M', '20200712_M_R002S04C01_2': '004-M', '20200712_M_R002S04C01_3': '003-M', '20200712_M_R002S04C01_4': '002-F', '20200712_M_R002S04C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S05C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S05C01_1': '005-M', '20200712_M_R002S05C01_2': '004-M', '20200712_M_R002S05C01_3': '003-M', '20200712_M_R002S05C01_4': '002-F', '20200712_M_R002S05C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200616_M_R001S08C01
+{'001-M': 1, '002-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200616_M_R001S08C01_1': '001-M', '20200616_M_R001S08C01_2': '002-F', '20200616_M_R001S08C01_3': '003-F', '20200616_M_R001S08C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200618_M_R001S06C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S06C01_1': '001-M', '20200618_M_R001S06C01_2': '003-M', '20200618_M_R001S06C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200621_M_R002S08C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4, '001-F': 5}
+dic: defaultdict(None, {'20200621_M_R002S08C01_1': '005-M', '20200621_M_R002S08C01_2': '004-M', '20200621_M_R002S08C01_3': '003-M', '20200621_M_R002S08C01_4': '002-M', '20200621_M_R002S08C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200703_M_R002S07C01
+{'005-M': 1, '003-F': 2, '002-F': 3}
+dic: defaultdict(None, {'20200703_M_R002S07C01_1': '005-M', '20200703_M_R002S07C01_2': '003-F', '20200703_M_R002S07C01_3': '002-F'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200705_M_R002S06C01
+{'005-M': 1, '001-M': 2, '002-F': 3, '003-M': 4, '004-M': 5}
+dic: defaultdict(None, {'20200705_M_R002S06C01_1': '005-M', '20200705_M_R002S06C01_2': '001-M', '20200705_M_R002S06C01_3': '002-F', '20200705_M_R002S06C01_4': '003-M', '20200705_M_R002S06C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S06C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S06C01_1': '005-M', '20200712_M_R002S06C01_2': '004-M', '20200712_M_R002S06C01_3': '003-M', '20200712_M_R002S06C01_4': '002-F', '20200712_M_R002S06C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S03C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S03C01_1': '005-M', '20200714_M_R002S03C01_2': '004-F', '20200714_M_R002S03C01_3': '003-F', '20200714_M_R002S03C01_4': '002-M', '20200714_M_R002S03C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S07C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S07C01_1': '005-M', '20200712_M_R002S07C01_2': '004-M', '20200712_M_R002S07C01_3': '003-M', '20200712_M_R002S07C01_4': '002-F', '20200712_M_R002S07C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200712_M_R002S08C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-F': 4, '001-M': 5}
+dic: defaultdict(None, {'20200712_M_R002S08C01_1': '005-M', '20200712_M_R002S08C01_2': '004-M', '20200712_M_R002S08C01_3': '003-M', '20200712_M_R002S08C01_4': '002-F', '20200712_M_R002S08C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S01C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S01C01_1': '005-M', '20200713_M_R002S01C01_2': '004-M', '20200713_M_R002S01C01_3': '003-F', '20200713_M_R002S01C01_4': '002-F', '20200713_M_R002S01C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S02C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S02C01_1': '005-M', '20200713_M_R002S02C01_2': '004-M', '20200713_M_R002S02C01_3': '003-F', '20200713_M_R002S02C01_4': '002-F', '20200713_M_R002S02C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S03C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S03C01_1': '005-M', '20200713_M_R002S03C01_2': '004-M', '20200713_M_R002S03C01_3': '003-F', '20200713_M_R002S03C01_4': '002-F', '20200713_M_R002S03C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S04C01
+{'005-M': 1, '001-F': 2, '002-F': 3, '003-F': 4, '004-M': 5}
+dic: defaultdict(None, {'20200713_M_R002S04C01_1': '005-M', '20200713_M_R002S04C01_2': '001-F', '20200713_M_R002S04C01_3': '002-F', '20200713_M_R002S04C01_4': '003-F', '20200713_M_R002S04C01_5': '004-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S05C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S05C01_1': '005-M', '20200713_M_R002S05C01_2': '004-M', '20200713_M_R002S05C01_3': '003-F', '20200713_M_R002S05C01_4': '002-F', '20200713_M_R002S05C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S06C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S06C01_1': '005-M', '20200713_M_R002S06C01_2': '004-M', '20200713_M_R002S06C01_3': '003-F', '20200713_M_R002S06C01_4': '002-F', '20200713_M_R002S06C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S07C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S07C01_1': '005-M', '20200713_M_R002S07C01_2': '004-M', '20200713_M_R002S07C01_3': '003-F', '20200713_M_R002S07C01_4': '002-F', '20200713_M_R002S07C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200713_M_R002S08C01
+{'005-M': 1, '004-M': 2, '003-F': 3, '002-F': 4, '001-F': 5}
+dic: defaultdict(None, {'20200713_M_R002S08C01_1': '005-M', '20200713_M_R002S08C01_2': '004-M', '20200713_M_R002S08C01_3': '003-F', '20200713_M_R002S08C01_4': '002-F', '20200713_M_R002S08C01_5': '001-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S01C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S01C01_1': '005-M', '20200714_M_R002S01C01_2': '004-F', '20200714_M_R002S01C01_3': '003-F', '20200714_M_R002S01C01_4': '002-M', '20200714_M_R002S01C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S02C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S02C01_1': '005-M', '20200714_M_R002S02C01_2': '004-F', '20200714_M_R002S02C01_3': '003-F', '20200714_M_R002S02C01_4': '002-M', '20200714_M_R002S02C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200617_M_R001S01C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S01C01_1': '001-M', '20200617_M_R001S01C01_2': '002-M', '20200617_M_R001S01C01_3': '004-F', '20200617_M_R001S01C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S02C01
+{'001-M': 1, '002-M': 2, '003-M': 3, '004-F': 4}
+dic: defaultdict(None, {'20200617_M_R001S02C01_1': '001-M', '20200617_M_R001S02C01_2': '002-M', '20200617_M_R001S02C01_3': '003-M', '20200617_M_R001S02C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S03C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S03C01_1': '001-M', '20200617_M_R001S03C01_2': '002-M', '20200617_M_R001S03C01_3': '004-F', '20200617_M_R001S03C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S04C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S04C01_1': '001-M', '20200617_M_R001S04C01_2': '002-M', '20200617_M_R001S04C01_3': '004-F', '20200617_M_R001S04C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S05C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S05C01_1': '001-M', '20200617_M_R001S05C01_2': '002-M', '20200617_M_R001S05C01_3': '004-F', '20200617_M_R001S05C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S06C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S06C01_1': '001-M', '20200617_M_R001S06C01_2': '002-M', '20200617_M_R001S06C01_3': '004-F', '20200617_M_R001S06C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S07C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S07C01_1': '001-M', '20200617_M_R001S07C01_2': '002-M', '20200617_M_R001S07C01_3': '004-F', '20200617_M_R001S07C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200617_M_R001S08C01
+{'001-M': 1, '002-M': 2, '004-F': 3, '003-M': 4}
+dic: defaultdict(None, {'20200617_M_R001S08C01_1': '001-M', '20200617_M_R001S08C01_2': '002-M', '20200617_M_R001S08C01_3': '004-F', '20200617_M_R001S08C01_4': '003-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200618_M_R001S01C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S01C01_1': '001-M', '20200618_M_R001S01C01_2': '003-M', '20200618_M_R001S01C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200618_M_R001S02C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S02C01_1': '001-M', '20200618_M_R001S02C01_2': '003-M', '20200618_M_R001S02C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200618_M_R001S03C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S03C01_1': '001-M', '20200618_M_R001S03C01_2': '003-M', '20200618_M_R001S03C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200618_M_R001S04C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S04C01_1': '001-M', '20200618_M_R001S04C01_2': '003-M', '20200618_M_R001S04C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200618_M_R001S05C01
+{'001-M': 1, '003-M': 2, '004-M': 3}
+dic: defaultdict(None, {'20200618_M_R001S05C01_1': '001-M', '20200618_M_R001S05C01_2': '003-M', '20200618_M_R001S05C01_3': '004-M'}), its len: 3
+intervals.keys(): dict_keys([1, 2, 3])
+it is multi channel audio, select first channel!
+20200714_M_R002S04C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S04C01_1': '005-M', '20200714_M_R002S04C01_2': '004-F', '20200714_M_R002S04C01_3': '003-F', '20200714_M_R002S04C01_4': '002-M', '20200714_M_R002S04C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S05C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S05C01_1': '005-M', '20200714_M_R002S05C01_2': '004-F', '20200714_M_R002S05C01_3': '003-F', '20200714_M_R002S05C01_4': '002-M', '20200714_M_R002S05C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S06C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S06C01_1': '005-M', '20200714_M_R002S06C01_2': '004-F', '20200714_M_R002S06C01_3': '003-F', '20200714_M_R002S06C01_4': '002-M', '20200714_M_R002S06C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S07C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S07C01_1': '005-M', '20200714_M_R002S07C01_2': '004-F', '20200714_M_R002S07C01_3': '003-F', '20200714_M_R002S07C01_4': '002-M', '20200714_M_R002S07C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200714_M_R002S08C01
+{'005-M': 1, '004-F': 2, '003-F': 3, '002-M': 4, '001-M': 5}
+dic: defaultdict(None, {'20200714_M_R002S08C01_1': '005-M', '20200714_M_R002S08C01_2': '004-F', '20200714_M_R002S08C01_3': '003-F', '20200714_M_R002S08C01_4': '002-M', '20200714_M_R002S08C01_5': '001-M'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200715_M_R002S01C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S01C01_1': '005-M', '20200715_M_R002S01C01_2': '004-M', '20200715_M_R002S01C01_3': '003-M', '20200715_M_R002S01C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200715_M_R002S02C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S02C01_1': '005-M', '20200715_M_R002S02C01_2': '004-M', '20200715_M_R002S02C01_3': '003-M', '20200715_M_R002S02C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200715_M_R002S03C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S03C01_1': '005-M', '20200715_M_R002S03C01_2': '004-M', '20200715_M_R002S03C01_3': '003-M', '20200715_M_R002S03C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200715_M_R002S04C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S04C01_1': '005-M', '20200715_M_R002S04C01_2': '004-M', '20200715_M_R002S04C01_3': '003-M', '20200715_M_R002S04C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200715_M_R002S05C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S05C01_1': '005-M', '20200715_M_R002S05C01_2': '004-M', '20200715_M_R002S05C01_3': '003-M', '20200715_M_R002S05C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200715_M_R002S07C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S07C01_1': '005-M', '20200715_M_R002S07C01_2': '004-M', '20200715_M_R002S07C01_3': '003-M', '20200715_M_R002S07C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200715_M_R002S08C01
+{'005-M': 1, '004-M': 2, '003-M': 3, '002-M': 4}
+dic: defaultdict(None, {'20200715_M_R002S08C01_1': '005-M', '20200715_M_R002S08C01_2': '004-M', '20200715_M_R002S08C01_3': '003-M', '20200715_M_R002S08C01_4': '002-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S07C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S07C01_1': '006-M', '20200701_S_R001S07C01_2': '004-F', '20200701_S_R001S07C01_3': '003-F', '20200701_S_R001S07C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200805_S_R001S01C01
+{'006-F': 1, '001-M': 2, '005-M': 3, '002-F': 4, '004-F': 5}
+dic: defaultdict(None, {'20200805_S_R001S01C01_1': '006-F', '20200805_S_R001S01C01_2': '001-M', '20200805_S_R001S01C01_3': '005-M', '20200805_S_R001S01C01_4': '002-F', '20200805_S_R001S01C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200623_S_R001S02C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S02C01_1': '006-M', '20200623_S_R001S02C01_2': '004-M', '20200623_S_R001S02C01_3': '003-M', '20200623_S_R001S02C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200623_S_R001S03C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S03C01_1': '006-M', '20200623_S_R001S03C01_2': '004-M', '20200623_S_R001S03C01_3': '003-M', '20200623_S_R001S03C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200623_S_R001S04C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S04C01_1': '006-M', '20200623_S_R001S04C01_2': '004-M', '20200623_S_R001S04C01_3': '003-M', '20200623_S_R001S04C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200623_S_R001S05C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S05C01_1': '006-M', '20200623_S_R001S05C01_2': '004-M', '20200623_S_R001S05C01_3': '003-M', '20200623_S_R001S05C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200623_S_R001S07C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S07C01_1': '006-M', '20200623_S_R001S07C01_2': '004-M', '20200623_S_R001S07C01_3': '003-M', '20200623_S_R001S07C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200623_S_R001S08C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-M': 4}
+dic: defaultdict(None, {'20200623_S_R001S08C01_1': '006-M', '20200623_S_R001S08C01_2': '004-M', '20200623_S_R001S08C01_3': '003-M', '20200623_S_R001S08C01_4': '001-M'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200624_S_R001S01C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S01C01_1': '006-M', '20200624_S_R001S01C01_2': '004-M', '20200624_S_R001S01C01_3': '003-F', '20200624_S_R001S01C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200624_S_R001S02C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S02C01_1': '006-M', '20200624_S_R001S02C01_2': '004-M', '20200624_S_R001S02C01_3': '003-F', '20200624_S_R001S02C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200624_S_R001S04C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S04C01_1': '006-M', '20200624_S_R001S04C01_2': '004-M', '20200624_S_R001S04C01_3': '003-F', '20200624_S_R001S04C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200624_S_R001S05C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S05C01_1': '006-M', '20200624_S_R001S05C01_2': '004-M', '20200624_S_R001S05C01_3': '003-F', '20200624_S_R001S05C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200624_S_R001S06C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S06C01_1': '006-M', '20200624_S_R001S06C01_2': '004-M', '20200624_S_R001S06C01_3': '003-F', '20200624_S_R001S06C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200624_S_R001S07C01
+{'006-M': 1, '004-M': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200624_S_R001S07C01_1': '006-M', '20200624_S_R001S07C01_2': '004-M', '20200624_S_R001S07C01_3': '003-F', '20200624_S_R001S07C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S01C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S01C01_1': '006-M', '20200630_S_R001S01C01_2': '001-F', '20200630_S_R001S01C01_3': '003-F', '20200630_S_R001S01C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S02C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S02C01_1': '006-M', '20200630_S_R001S02C01_2': '001-F', '20200630_S_R001S02C01_3': '003-F', '20200630_S_R001S02C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S03C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S03C01_1': '006-M', '20200630_S_R001S03C01_2': '001-F', '20200630_S_R001S03C01_3': '003-F', '20200630_S_R001S03C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S04C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S04C01_1': '006-M', '20200630_S_R001S04C01_2': '001-F', '20200630_S_R001S04C01_3': '003-F', '20200630_S_R001S04C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S05C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S05C01_1': '006-M', '20200630_S_R001S05C01_2': '001-F', '20200630_S_R001S05C01_3': '003-F', '20200630_S_R001S05C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S06C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S06C01_1': '006-M', '20200630_S_R001S06C01_2': '001-F', '20200630_S_R001S06C01_3': '003-F', '20200630_S_R001S06C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S07C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S07C01_1': '006-M', '20200630_S_R001S07C01_2': '001-F', '20200630_S_R001S07C01_3': '003-F', '20200630_S_R001S07C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200630_S_R001S08C01
+{'006-M': 1, '001-F': 2, '003-F': 3, '004-F': 4}
+dic: defaultdict(None, {'20200630_S_R001S08C01_1': '006-M', '20200630_S_R001S08C01_2': '001-F', '20200630_S_R001S08C01_3': '003-F', '20200630_S_R001S08C01_4': '004-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S01C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S01C01_1': '006-M', '20200701_S_R001S01C01_2': '004-F', '20200701_S_R001S01C01_3': '003-F', '20200701_S_R001S01C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S02C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S02C01_1': '006-M', '20200701_S_R001S02C01_2': '004-F', '20200701_S_R001S02C01_3': '003-F', '20200701_S_R001S02C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S03C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S03C01_1': '006-M', '20200701_S_R001S03C01_2': '004-F', '20200701_S_R001S03C01_3': '003-F', '20200701_S_R001S03C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S04C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S04C01_1': '006-M', '20200701_S_R001S04C01_2': '004-F', '20200701_S_R001S04C01_3': '003-F', '20200701_S_R001S04C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S05C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S05C01_1': '006-M', '20200701_S_R001S05C01_2': '004-F', '20200701_S_R001S05C01_3': '003-F', '20200701_S_R001S05C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S06C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S06C01_1': '006-M', '20200701_S_R001S06C01_2': '004-F', '20200701_S_R001S06C01_3': '003-F', '20200701_S_R001S06C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200701_S_R001S08C01
+{'006-M': 1, '004-F': 2, '003-F': 3, '001-F': 4}
+dic: defaultdict(None, {'20200701_S_R001S08C01_1': '006-M', '20200701_S_R001S08C01_2': '004-F', '20200701_S_R001S08C01_3': '003-F', '20200701_S_R001S08C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S01C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S01C01_1': '006-M', '20200702_S_R001S01C01_2': '004-M', '20200702_S_R001S01C01_3': '003-M', '20200702_S_R001S01C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S02C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S02C01_1': '006-M', '20200702_S_R001S02C01_2': '004-M', '20200702_S_R001S02C01_3': '003-M', '20200702_S_R001S02C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S03C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S03C01_1': '006-M', '20200702_S_R001S03C01_2': '004-M', '20200702_S_R001S03C01_3': '003-M', '20200702_S_R001S03C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S04C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S04C01_1': '006-M', '20200702_S_R001S04C01_2': '004-M', '20200702_S_R001S04C01_3': '003-M', '20200702_S_R001S04C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S05C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S05C01_1': '006-M', '20200702_S_R001S05C01_2': '004-M', '20200702_S_R001S05C01_3': '003-M', '20200702_S_R001S05C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S07C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S07C01_1': '006-M', '20200702_S_R001S07C01_2': '004-M', '20200702_S_R001S07C01_3': '003-M', '20200702_S_R001S07C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200702_S_R001S08C01
+{'006-M': 1, '004-M': 2, '003-M': 3, '001-F': 4}
+dic: defaultdict(None, {'20200702_S_R001S08C01_1': '006-M', '20200702_S_R001S08C01_2': '004-M', '20200702_S_R001S08C01_3': '003-M', '20200702_S_R001S08C01_4': '001-F'}), its len: 4
+intervals.keys(): dict_keys([1, 2, 3, 4])
+it is multi channel audio, select first channel!
+20200805_S_R001S03C01
+{'006-F': 1, '001-M': 2, '005-M': 3, '002-F': 4, '004-F': 5}
+dic: defaultdict(None, {'20200805_S_R001S03C01_1': '006-F', '20200805_S_R001S03C01_2': '001-M', '20200805_S_R001S03C01_3': '005-M', '20200805_S_R001S03C01_4': '002-F', '20200805_S_R001S03C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200805_S_R001S06C01
+{'006-F': 1, '001-M': 2, '005-M': 3, '002-F': 4, '004-F': 5}
+dic: defaultdict(None, {'20200805_S_R001S06C01_1': '006-F', '20200805_S_R001S06C01_2': '001-M', '20200805_S_R001S06C01_3': '005-M', '20200805_S_R001S06C01_4': '002-F', '20200805_S_R001S06C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200805_S_R001S08C01
+{'006-M': 1, '001-M': 2, '005-M': 3, '002-F': 4, '004-F': 5}
+dic: defaultdict(None, {'20200805_S_R001S08C01_1': '006-M', '20200805_S_R001S08C01_2': '001-M', '20200805_S_R001S08C01_3': '005-M', '20200805_S_R001S08C01_4': '002-F', '20200805_S_R001S08C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200806_S_R001S01C01
+{'006-F': 1, '001-M': 2, '005-M': 3, '004-M': 4, '002-F': 5}
+dic: defaultdict(None, {'20200806_S_R001S01C01_1': '006-F', '20200806_S_R001S01C01_2': '001-M', '20200806_S_R001S01C01_3': '005-M', '20200806_S_R001S01C01_4': '004-M', '20200806_S_R001S01C01_5': '002-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200806_S_R001S05C01
+{'006-M': 1, '001-M': 2, '005-M': 3, '004-M': 4, '002-F': 5}
+dic: defaultdict(None, {'20200806_S_R001S05C01_1': '006-M', '20200806_S_R001S05C01_2': '001-M', '20200806_S_R001S05C01_3': '005-M', '20200806_S_R001S05C01_4': '004-M', '20200806_S_R001S05C01_5': '002-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200806_S_R001S07C01
+{'006-M': 1, '004-M': 2, '001-M': 3, '005-M': 4, '002-F': 5}
+dic: defaultdict(None, {'20200806_S_R001S07C01_1': '006-M', '20200806_S_R001S07C01_2': '004-M', '20200806_S_R001S07C01_3': '001-M', '20200806_S_R001S07C01_4': '005-M', '20200806_S_R001S07C01_5': '002-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200807_S_R001S02C01
+{'006-F': 1, '001-F': 2, '005-F': 3, '002-M': 4, '004-F': 5}
+dic: defaultdict(None, {'20200807_S_R001S02C01_1': '006-F', '20200807_S_R001S02C01_2': '001-F', '20200807_S_R001S02C01_3': '005-F', '20200807_S_R001S02C01_4': '002-M', '20200807_S_R001S02C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200807_S_R001S03C01
+{'006-F': 1, '001-F': 2, '002-M': 3, '005-F': 4, '004-F': 5}
+dic: defaultdict(None, {'20200807_S_R001S03C01_1': '006-F', '20200807_S_R001S03C01_2': '001-F', '20200807_S_R001S03C01_3': '002-M', '20200807_S_R001S03C01_4': '005-F', '20200807_S_R001S03C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200807_S_R001S07C01
+{'006-M': 1, '001-F': 2, '005-F': 3, '002-M': 4, '004-F': 5}
+dic: defaultdict(None, {'20200807_S_R001S07C01_1': '006-M', '20200807_S_R001S07C01_2': '001-F', '20200807_S_R001S07C01_3': '005-F', '20200807_S_R001S07C01_4': '002-M', '20200807_S_R001S07C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200807_S_R001S08C01
+{'006-M': 1, '001-F': 2, '005-F': 3, '002-M': 4, '004-F': 5}
+dic: defaultdict(None, {'20200807_S_R001S08C01_1': '006-M', '20200807_S_R001S08C01_2': '001-F', '20200807_S_R001S08C01_3': '005-F', '20200807_S_R001S08C01_4': '002-M', '20200807_S_R001S08C01_5': '004-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!
+20200808_S_R001S02C01
+{'006-F': 1, '001-F': 2, '005-M': 3, '004-F': 4, '002-F': 5}
+dic: defaultdict(None, {'20200808_S_R001S02C01_1': '006-F', '20200808_S_R001S02C01_2': '001-F', '20200808_S_R001S02C01_3': '005-M', '20200808_S_R001S02C01_4': '004-F', '20200808_S_R001S02C01_5': '002-F'}), its len: 5
+intervals.keys(): dict_keys([1, 2, 3, 4, 5])
+it is multi channel audio, select first channel!

@@ -284,7 +284,7 @@ class TSVADDataset(torch.utils.data.Dataset):
     def load_rs(self, file, speaker_ids, start, stop):
         audio_start = self.sample_rate // self.label_rate * start
         audio_stop = self.sample_rate // self.label_rate * stop
-        if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
+        if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc" or self.dataset_name=="alimeeting_ami_aishell_4" or self.dataset_name=="aishell_4" or self.dataset_name=="ami":
             audio_path = os.path.join(self.audio_path, file + "/all.wav")  ## This audio_path is single channel mixer audio,
                                                                            ## now it is used in alimeeting dataset,and is stored at target_audio directory.
             ref_speech, rc = self.read_audio_with_resample(
@@ -410,7 +410,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         return target_speeches
 
     def load_ts_embed(self, file, speaker_ids):
-        if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
+        if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc" or self.dataset_name=="alimeeting_ami_aishell_4" or  self.dataset_name=="aishell_4" or self.dataset_name=="ami":
             target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
         return target_speeches
 

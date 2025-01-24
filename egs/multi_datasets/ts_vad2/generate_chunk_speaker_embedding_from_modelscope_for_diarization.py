@@ -373,15 +373,14 @@ def setup_logging(verbose=1):
 
 if __name__ == '__main__':
     setup_logging(verbose=1)
-    #main()
+    main()
 
     # for debug
-    args = get_args()
-    args.model_id="iic/speech_campplus_sv_zh_en_16k-common_advanced"
-    args.length_embedding=6
-    args.step_embedding=1
-    args.batch_size=96
-    feature_extractor = FBank(80, sample_rate=16000, mean_nor=True)
-
-    inp="/data/maduo/datasets/aishell-4/data_processed/train/target_audio/20200712_M_R002S07C01/4.wav"
-    b = extract_embed(args, inp, feature_extractor)
+    #args = get_args()
+    #args.model_id="iic/speech_campplus_sv_zh_en_16k-common_advanced"
+    #args.length_embedding=6
+    #args.step_embedding=1
+    #args.batch_size=96
+    #feature_extractor = FBank(80, sample_rate=16000, mean_nor=True)
+    #inp="/data/maduo/datasets/aishell-4/data_processed/train/target_audio/20200712_M_R002S07C01/4.wav"
+    #b = extract_embed(args, inp, feature_extractor)
