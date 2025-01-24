@@ -184,7 +184,7 @@ class TSVADDataset(torch.utils.data.Dataset):
 
             if speaker_id_full not in spk2data:
                 spk2data[speaker_id_full] = []
-            if self.dataset_name == "alimeeting" or self.dataset_name=="magicdata-ramc":
+            if self.dataset_name == "alimeeting" or self.dataset_name=="magicdata-ramc" or self.dataset_name=="alimeeting_ami_aishell_4" or self.dataset_name=="aishell_4" or self.dataset_name=="ami":
                 spk2data[speaker_id_full].append(filename + "/" + speaker_key) # A speaker corresponds to all its speech segment in the long mixture audio.
                                                                               # in order to random choice target embedding base on the above list.
                 data2spk[filename + "/" + speaker_key] = speaker_id_full

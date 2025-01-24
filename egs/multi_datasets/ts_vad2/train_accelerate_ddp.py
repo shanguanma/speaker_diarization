@@ -875,7 +875,7 @@ def main(args):
     if params.dataset_name=="alimeeting":
         valid_dataset = load_dataset(data_cfg, "Eval")
         train_dataset = load_dataset(data_cfg, "Train")
-    elif params.dataset_name=="magicdata-ramc":
+    elif params.dataset_name=="magicdata-ramc" or params.dataset_name=="alimeeting_ami_aishell_4" or  params.dataset_name=="aishell_4" or params.dataset_name=="ami":
         valid_dataset = load_dataset(data_cfg, "dev")
         train_dataset = load_dataset(data_cfg, "train")
     valid_dl = DataLoader(
