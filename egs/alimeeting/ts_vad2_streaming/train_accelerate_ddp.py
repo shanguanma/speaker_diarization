@@ -312,7 +312,7 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2`")
     parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2` ")
-    
+
     #parser.add_argument("--")
     return parser
 
@@ -453,8 +453,8 @@ def compute_loss(
         outs_prob = outs_prob.data.cpu().numpy()
         mi, fa, cf, acc, der = model.module.calc_diarization_result(
             # mi, fa, cf, acc, der = model.calc_diarization_result(
-            outs_prob.transpose((0, 2, 1)),
-            labels.transpose(1, 2),
+            outs_prob.transpose((0, 2, 1)), # (B,T',4)
+            labels.transpose(1, 2), #(B,T',4)
             labels_len,
         )
 

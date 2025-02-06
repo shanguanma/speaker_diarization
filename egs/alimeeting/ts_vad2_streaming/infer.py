@@ -272,16 +272,17 @@ def main(args):
     model_cfg.speech_encoder_type = args.speech_encoder_type  #
     model_cfg.speech_encoder_path = args.speech_encoder_path
     model_cfg.speaker_embed_dim = args.speaker_embed_dim
-    model_cfg.select_encoder_layer_nums = (
-        args.select_encoder_layer_nums
-    )  # only for speech_encoder_type=="WavLm"
-    model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
-    model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
-    model_cfg.single_backend_type=args.single_backend_type
-    model_cfg.multi_backend_type=args.multi_backend_type
+    #model_cfg.select_encoder_layer_nums = (
+    #    args.select_encoder_layer_nums
+    #)  # only for speech_encoder_type=="WavLm"
+    #model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
+    #model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
+    #model_cfg.single_backend_type=args.single_backend_type
+    #model_cfg.multi_backend_type=args.multi_backend_type
     model_cfg.num_transformer_layer=args.num_transformer_layer
-    model_cfg.d_state = args.d_state
-    model_cfg.expand = args.expand
+    #model_cfg.d_state = args.d_state
+    #model_cfg.expand = args.expand
+
 
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
@@ -302,24 +303,17 @@ def main(args):
     # for sample in progress:
     for batch_idx, batch in enumerate(infer_dl):
         ref_speech = batch["net_input"]["ref_speech"].to(device)
+        ref_speech_len = batch["net_input"]["ref_speech_len"].to(device)
         target_speech = batch["net_input"]["target_speech"].to(device)
         labels = batch["net_input"]["labels"].to(device)
+        #print(f"labels: {labels}")
         labels_len = batch["net_input"]["labels_len"].to(device)
         with torch.no_grad():
             # print(f"ref_speech: {ref_speech}")
             # print(f"target_speech shape: {target_speech.shape}")
             # print(f"labels shape: {labels.shape}")
             # print(f"labels_len shape: {labels_len.shape}")
-            result, res_dict = model.infer(
-                ref_speech=ref_speech,
-                target_speech=target_speech,
-                labels=labels,
-                labels_len=labels_len,
-                # inference=True,
-                file_path=batch["net_input"]["file_path"],
-                speaker_ids=batch["net_input"]["speaker_ids"],
-                start=batch["net_input"]["start"],
-            )
+            result,res_dict = model.infer_debug(ref_speech=ref_speech,ref_speech_len=ref_speech_len,target_speech=target_speech,labels=labels,labels_len=labels_len,file_path=batch["net_input"]["file_path"],speaker_ids=batch["net_input"]["speaker_ids"],start=batch["net_input"]["start"],decoding_chunk_size=args.decoding_chunk_size,num_decoding_left_chunks=args.num_decoding_left_chunks,simulate_streaming=args.simulate_streaming,)
         for filename in res_dict:
             for time_step in res_dict[filename]:
                 res_dict_all[filename][time_step].extend(res_dict[filename][time_step])
@@ -328,9 +322,35 @@ def main(args):
         ACC.append(result["ACC"])
     print("Model DER: ", sum(DER) / len(DER))
     print("Model ACC: ", sum(ACC) / len(ACC))
-
-    ## final post process diarization result:
+    #print(f"res_dict_all: {res_dict_all}")
     postprocess(res_dict_all, args)
+#            """
+#            result, res_dict = model.infer(
+#                ref_speech=ref_speech,
+#                ref_speech_len=ref_speech_len,
+#                target_speech=target_speech,
+#                labels=labels,
+#                labels_len=labels_len,
+#                # inference=True,
+#                file_path=batch["net_input"]["file_path"],
+#                speaker_ids=batch["net_input"]["speaker_ids"],
+#                start=batch["net_input"]["start"],
+#                decoding_chunk_size=args.decoding_chunk_size,
+#                num_decoding_left_chunks=args.num_decoding_left_chunks,
+#                simulate_streaming=args.simulate_streaming,
+#            )
+#        for filename in res_dict:
+#            for time_step in res_dict[filename]:
+#                res_dict_all[filename][time_step].extend(res_dict[filename][time_step])
+#
+#        DER.append(result["DER"])
+#        ACC.append(result["ACC"])
+#    print("Model DER: ", sum(DER) / len(DER))
+#    print("Model ACC: ", sum(ACC) / len(ACC))
+#
+#    ## final post process diarization result:
+#    postprocess(res_dict_all, args)
+#    """
 
 
 def get_args():
@@ -467,8 +487,11 @@ def get_args():
         default="ts_vad/exp",
         help="The experiment dir",
     )
+    parser.add_argument("--decoding-chunk-size",type=int, default=-1, help="0 means daymic chunk train mode -1 means offline mode, >0, i.e. 16 means chunk_size=16 frames in online mode")
+    parser.add_argument("--num-decoding-left-chunks", type=int, default=-1, help="-1 means all left chunk as context, >0, i.e. 5, means five left chunks as context")
+    parser.add_argument("--simulate-streaming", type=str2bool,default=True, help="if it is true and decode-chunk-size>0 , it will run on the online mode")
     #from train_accelerate_ddp2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
-    from train_accelerate_ddp2_debug2 import add_model_arguments, add_data_model_common_arguments, add_data_arguments
+    from train_accelerate_ddp import add_model_arguments, add_data_model_common_arguments, add_data_arguments
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)

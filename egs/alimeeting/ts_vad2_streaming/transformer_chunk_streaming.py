@@ -332,6 +332,7 @@ class MultiHeadedAttention(nn.Module):
             # >>> d = torch.split(a, 2, dim=-1)
             # >>> torch.equal(d[0], d[1])  # True
             key_cache, value_cache = cache
+            print(f"key_cache shape: {key_cache.shape}, k shape: {k.shape}")
             if key_cache.size(0) > 0:
                 k = torch.cat([key_cache, k], dim=seq_axis)
             if value_cache.size(0) > 0:

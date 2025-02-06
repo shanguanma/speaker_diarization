@@ -172,7 +172,7 @@ def add_optional_chunk_mask(xs: torch.Tensor,
     # Whether to use chunk mask or not
     if use_dynamic_chunk:
         max_len = xs.size(1)
-        #logging.debug(f"max_len: {max_len}, xs shape: {xs.shape} in fn add_optional_chunk_mask") 
+        #logging.debug(f"max_len: {max_len}, xs shape: {xs.shape} in fn add_optional_chunk_mask")
         # for non streaming inference stage
         if decoding_chunk_size < 0:
             chunk_size = max_len
@@ -181,6 +181,7 @@ def add_optional_chunk_mask(xs: torch.Tensor,
         elif decoding_chunk_size > 0:
             chunk_size = decoding_chunk_size
             num_left_chunks = num_decoding_left_chunks
+            print(f"decoding_chunk_size: {decoding_chunk_size}, num_decoding_left_chunks: {num_decoding_left_chunks},chunk_size: {chunk_size}")
         else:
             # for streaming train stage
             # chunk size is either [1, max_chunk_size] or full context(max_len).
@@ -192,7 +193,7 @@ def add_optional_chunk_mask(xs: torch.Tensor,
                 chunk_size = max_len
             else:
                 chunk_size = chunk_size % max_chunk_size + 1
-                if use_dynamic_left_chunk:# default is False for streaming mode in training stage 
+                if use_dynamic_left_chunk:# default is False for streaming mode in training stage
                     max_left_chunks = (max_len - 1) // chunk_size
                     num_left_chunks = torch.randint(0, max_left_chunks,
                                                     (1, )).item()
@@ -201,9 +202,9 @@ def add_optional_chunk_mask(xs: torch.Tensor,
                                             xs.device)  # (L, L)
         chunk_masks = chunk_masks.unsqueeze(0)  # (1, L, L)
         # maduo add
-        print(f"chunk_masks shape: {chunk_masks.shape}, masks shape: {masks.shape} in fn add_optional_chunk_mask")
-        if masks.size(-1) != chunk_masks.size(-1):
-            chunk_masks = chunk_masks[:,:masks.size(-1),:masks.size(-1)]
+        #print(f"chunk_masks shape: {chunk_masks.shape}, masks shape: {masks.shape} in fn add_optional_chunk_mask")
+        #if masks.size(-1) != chunk_masks.size(-1):
+        #    chunk_masks = chunk_masks[:,:masks.size(-1),:masks.size(-1)]
         chunk_masks = masks & chunk_masks  # (B, L, L)
     elif static_chunk_size > 0:
         num_left_chunks = num_decoding_left_chunks
@@ -390,3 +391,23 @@ def causal_or_lookahead_mask(
     lt = (indices_expand < end)
 
     return (gt & lt) * mask.transpose(1, 2) * mask
+
+
+if __name__ == "__main__":
+   length = 20
+   chunk_size=2
+   num_left_chunks=-1
+   out = subsequent_chunk_mask(length, chunk_size,num_left_chunks)
+   print(f"out: {out.long()}, out shape: {out.shape}")
+   length = 20
+   chunk_size=2
+   num_left_chunks=3
+   out = subsequent_chunk_mask(length, chunk_size,num_left_chunks)
+   print(f"out: {out.long()}, out shape: {out.shape}")
+   length = 250
+   chunk_size=25
+   num_left_chunks=-1
+   out = subsequent_chunk_mask(length, chunk_size,num_left_chunks)
+   print(f"out: {out.long()}, out shape: {out.shape}")
+   print(f"out[-50:-25]: {out[-50:-25].shape}, out[-50:-25]: {out[-50:-25].long()}")
+   print(f"{out[-50:-25,224:].long()}")
