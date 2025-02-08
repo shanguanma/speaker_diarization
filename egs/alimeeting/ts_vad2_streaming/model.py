@@ -81,11 +81,17 @@ data_cfg = TSVADDataConfig()
 
 def calculate_loss(outs, labels, labels_len):
     total_loss = 0
+    
+    #if outs.size(-1) < labels.size(-1):
+    #    gap = labels.size(-1) - outs.size(-1)
+    #    outs = torch.nn.functional.pad(outs,(0,gap))
+
     for i in range(labels_len.size(0)):
         total_loss += F.binary_cross_entropy_with_logits(
             outs[i, :, : labels_len[i]], labels[i, :, : labels_len[i]]
         )
     return total_loss / labels_len.size(0)
+
 class TSVADModel(nn.Module):
     def __init__(
         self, cfg=model_cfg, task_cfg=data_cfg, device=torch.device("cpu")
@@ -477,20 +483,26 @@ class TSVADModel(nn.Module):
         #decoding_window = (decoding_chunk_size - 1) * subsampling + context
 
         # version2
-        #embed_left_context = 7
-        #embed_conv_right_context = 3
-        #context = embed_conv_right_context
-        #stride = subsampling * decoding_chunk_size
-        #decoding_window = embed_conv_right_context + stride
+        embed_left_context = 7
+        embed_conv_right_context = 3
+        context = embed_conv_right_context
+        stride = subsampling * decoding_chunk_size
+        decoding_window = embed_conv_right_context + stride
 
         # version3
+
         embed_left_context = 0
         embed_conv_right_context = 3
         context = embed_conv_right_context
+        stride = subsampling * decoding_chunk_size
+        decoding_window = embed_conv_right_context + stride
+        #embed_left_context = 0
+        #embed_conv_right_context = 3
+        #context = embed_conv_right_context
         #stride = subsampling * decoding_chunk_size
         #decoding_window = (decoding_chunk_size - 1) * subsampling + context
-        decoding_window=100
-        stride=97
+        #decoding_window=100
+        #stride=97
         #num_frames = xs.size(1)
         all_s_att_cache: torch.Tensor = torch.zeros((0, 0, 0, 0, self.max_num_speaker), device=xs.device)
         m_att_cache: torch.Tensor = torch.zeros((0, 0, 0, 0), device=xs.device)
@@ -523,6 +535,7 @@ class TSVADModel(nn.Module):
             end_subframe= math.ceil(end/4)
             cur_subframe=math.ceil(cur/4)
             chunk_labels = labels[:,:,cur_subframe:end_subframe]
+            print(f"chunk_labels shape: {chunk_labels.shape}")
             # >>> a = torch.randn(1,5,6)
             # >>> a
             # tensor([[[ 1.4701, -0.2330, -0.1054,  0.8062, -0.7554, -1.5689],
@@ -576,6 +589,69 @@ class TSVADModel(nn.Module):
         print(f"ys shape: {ys.shape}")
         #masks = torch.ones((1, 1, ys.size(1)), device=ys.device, dtype=torch.bool)
         #return ys, masks
+        return ys
+
+    def forward_chunk_by_chunk_temp1(
+        self,
+        xs: torch.Tensor,
+        target_speech: torch.Tensor,
+        labels: torch.Tensor,
+        decoding_chunk_size: int = 0,
+        num_decoding_left_chunks: int = -1,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+
+        assert decoding_chunk_size > 0
+        # The model is trained by static or dynamic chunk
+        assert self.static_chunk_size > 0 or self.use_dynamic_chunk
+        subsampling = self.embed.subsampling_rate # 4
+        all_s_att_cache: torch.Tensor = torch.zeros((0, 0, 0, 0, self.max_num_speaker), device=xs.device)
+        m_att_cache: torch.Tensor = torch.zeros((0, 0, 0, 0), device=xs.device)
+
+        outputs = []
+        offset = 0
+        #num_decoding_left_chunks=0
+        required_cache_size = decoding_chunk_size * num_decoding_left_chunks
+        print(f"xs shape: {xs.shape}, labels shape: {labels.shape}")
+        if xs.size(1) != subsampling*labels.size(-1):
+            gap = subsampling*labels.size(-1) - xs.size(1)
+            xs = torch.nn.functional.pad(xs.permute(0,2,1),(0,gap))
+            xs = xs.permute(0,2,1) # (B,T,80), T=subsampling*label.size(-1)
+        num_frames = xs.size(1)
+
+        stride= subsampling * decoding_chunk_size
+        
+        for cur in range(0, num_frames, stride):
+            end = min(cur + stride, num_frames)
+            #print(f"cur: {}")
+            #end = min(cur+stride, num_frames)
+            print(f"cur: {cur}, end: {end}")
+            chunk_xs = xs[:, cur:end, :]
+            print(f"chunk_xs shape: {chunk_xs.shape}")
+            end_subframe= math.ceil(end/4)
+            cur_subframe=math.ceil(cur/4)
+            chunk_labels = labels[:,:,cur_subframe:end_subframe]
+            # y shape: (B,4,chunk_size+1)
+            (y, all_s_att_cache, m_att_cache) = self.forward_chunk(
+                chunk_xs,
+                target_speech,
+                chunk_labels,
+                offset,
+                required_cache_size,
+                all_s_att_cache,
+                m_att_cache,
+            )
+            offset += y.size(2)
+            # Update the previous context information
+            #if end < num_frames:
+            #    prev_context = chunk_xs[:, -context+1:, :]
+            #else:
+            #    prev_context = None
+            # Remove the context part from the output
+            #y = y[:,:, :decoding_chunk_size]
+            print(f"y shape: {y.shape}")
+            outputs.append(y)
+        ys = torch.cat(outputs, 2) # (B,4,T')
+        print(f"ys shape: {ys.shape}")
         return ys
 
     def forward_chunk(
@@ -888,8 +964,9 @@ class TSVADModel(nn.Module):
         with torch.set_grad_enabled(False):
             if simulate_streaming and decoding_chunk_size > 0:
                 # The 'masks' is fake mask
-                #outs = self.forward_chunk_by_chunk(
-                outs = self.forward_chunk_by_chunk_temp(
+                #  it contains version1,2,3
+                #outs = self.forward_chunk_by_chunk_temp(
+                outs = self.forward_chunk_by_chunk_temp1(
                     xs=ref_speech,
                     target_speech=target_speech,
                     labels=labels,
@@ -906,6 +983,10 @@ class TSVADModel(nn.Module):
                     num_decoding_left_chunks=num_decoding_left_chunks,
                 )
             print(f"outs shape: {outs.shape} in fn infer_debug")
+            if outs.size(-1) < labels.size(-1):
+                gap = labels.size(-1) - outs.size(-1)
+                outs = torch.nn.functional.pad(outs,(0,gap))
+            print(f"pad outs shape: {outs.shape} in fn infer_debug")
             loss = calculate_loss(outs=outs, labels=labels, labels_len=labels_len)
             print(f"loss is {loss} in fn infer_debug")
             ## public logger
