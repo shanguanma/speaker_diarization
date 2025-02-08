@@ -846,6 +846,54 @@ if [ ${stage} -le 22 ] && [ ${stop_stage} -ge 22 ];then
  done
 done
 fi
+#grep -r Eval logs/run_ts_vad2_stage22_infer_cam++_zh_200k_transformer_rs_len8.log
+# Eval of alimeeting, collar=0.0
+#2025-02-08 09:06:41,681 (infer:257) INFO: currently, it will infer Eval set.
+#Eval for threshold 0.2 DER=19.67, miss=2.45, falarm=15.89, confusion=1.32
+#Eval for threshold 0.3 DER=15.99, miss=3.70, falarm=10.81, confusion=1.49
+#Eval for threshold 0.35 DER=15.00, miss=4.45, falarm=9.03, confusion=1.52
+#Eval for threshold 0.4 DER=14.30, miss=5.29, falarm=7.51, confusion=1.50
+#Eval for threshold 0.45 DER=13.87, miss=6.13, falarm=6.27, confusion=1.48
+#Eval for threshold 0.5 DER=13.64, miss=6.97, falarm=5.20, confusion=1.47
+#Eval for threshold 0.55 DER=13.71, miss=7.91, falarm=4.40, confusion=1.41
+#Eval for threshold 0.6 DER=13.91, miss=8.97, falarm=3.61, confusion=1.32
+#Eval for threshold 0.7 DER=15.05, miss=11.64, falarm=2.36, confusion=1.05
+#Eval for threshold 0.8 DER=17.33, miss=15.15, falarm=1.47, confusion=0.70
+# Test of alimeeting, collar=0.0
+#Eval for threshold 0.2 DER=17.96, miss=2.63, falarm=14.15, confusion=1.18
+#Eval for threshold 0.3 DER=14.85, miss=4.02, falarm=9.48, confusion=1.34
+#Eval for threshold 0.35 DER=14.03, miss=4.81, falarm=7.84, confusion=1.38
+#Eval for threshold 0.4 DER=13.51, miss=5.67, falarm=6.47, confusion=1.37
+#Eval for threshold 0.45 DER=13.30, miss=6.61, falarm=5.35, confusion=1.35
+#Eval for threshold 0.5 DER=13.29, miss=7.57, falarm=4.44, confusion=1.27
+#Eval for threshold 0.55 DER=13.42, miss=8.60, falarm=3.62, confusion=1.20
+#Eval for threshold 0.6 DER=13.83, miss=9.73, falarm=2.99, confusion=1.10
+#Eval for threshold 0.7 DER=15.22, miss=12.40, falarm=1.94, confusion=0.88
+#Eval for threshold 0.8 DER=17.78, miss=16.05, falarm=1.13, confusion=0.60
+# Eval of alimeeting, collar=0.25
+#2025-02-08 09:17:27,866 (infer:257) INFO: currently, it will infer Eval set.
+#Eval for threshold 0.2 DER=8.97, miss=0.85, falarm=7.64, confusion=0.48
+#Eval for threshold 0.3 DER=6.68, miss=1.36, falarm=4.76, confusion=0.56
+#Eval for threshold 0.35 DER=6.13, miss=1.75, falarm=3.80, confusion=0.58
+#Eval for threshold 0.4 DER=5.71, miss=2.13, falarm=2.98, confusion=0.60
+#Eval for threshold 0.45 DER=5.47, miss=2.54, falarm=2.34, confusion=0.60
+#Eval for threshold 0.5 DER=5.33, miss=2.88, falarm=1.84, confusion=0.61
+#Eval for threshold 0.55 DER=5.46, miss=3.35, falarm=1.53, confusion=0.59
+#Eval for threshold 0.6 DER=5.69, miss=3.92, falarm=1.21, confusion=0.56
+#Eval for threshold 0.7 DER=6.54, miss=5.41, falarm=0.71, confusion=0.43
+#Eval for threshold 0.8 DER=8.29, miss=7.55, falarm=0.45, confusion=0.29
+
+# Test of alimeeting, collar=0.25
+#Eval for threshold 0.2 DER=7.80, miss=1.13, falarm=6.27, confusion=0.39
+#Eval for threshold 0.3 DER=5.93, miss=1.81, falarm=3.66, confusion=0.46
+#Eval for threshold 0.35 DER=5.48, miss=2.18, falarm=2.82, confusion=0.47
+#Eval for threshold 0.4 DER=5.19, miss=2.60, falarm=2.13, confusion=0.46
+#Eval for threshold 0.45 DER=5.14, miss=3.08, falarm=1.62, confusion=0.45
+#Eval for threshold 0.5 DER=5.22, miss=3.58, falarm=1.22, confusion=0.42
+#Eval for threshold 0.55 DER=5.42, miss=4.13, falarm=0.91, confusion=0.38
+#Eval for threshold 0.6 DER=5.80, miss=4.75, falarm=0.70, confusion=0.34
+#Eval for threshold 0.7 DER=6.89, miss=6.26, falarm=0.38, confusion=0.25
+#Eval for threshold 0.8 DER=8.71, miss=8.38, falarm=0.18, confusion=0.16
 
 if [ ${stage} -le 23 ] && [ ${stop_stage} -ge 23 ];then
  exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/alimeeting_ami_aishell_4_ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_transformer_multi_backend_transformer_rs_len8
@@ -912,6 +960,32 @@ if [ ${stage} -le 23 ] && [ ${stop_stage} -ge 23 ];then
  done
 done
 fi
+
+#grep -r Eval logs/run_ts_vad2_stage23_infer_cam++_zh_200k_transformer_rs_len8.log
+
+# collar=0.0
+#Eval for threshold 0.2 DER=18.50, miss=1.07, falarm=15.87, confusion=1.55
+#Eval for threshold 0.3 DER=12.63, miss=2.06, falarm=8.76, confusion=1.81
+#Eval for threshold 0.35 DER=11.38, miss=2.72, falarm=6.78, confusion=1.88
+#Eval for threshold 0.4 DER=10.60, miss=3.50, falarm=5.23, confusion=1.87
+#Eval for threshold 0.45 DER=10.45, miss=4.48, falarm=4.17, confusion=1.80
+#Eval for threshold 0.5 DER=10.69, miss=5.64, falarm=3.36, confusion=1.69
+#Eval for threshold 0.55 DER=11.30, miss=7.00, falarm=2.73, confusion=1.57
+#Eval for threshold 0.6 DER=12.34, miss=8.69, falarm=2.21, confusion=1.44
+#Eval for threshold 0.7 DER=15.71, miss=13.10, falarm=1.47, confusion=1.14
+#Eval for threshold 0.8 DER=21.32, miss=19.57, falarm=0.90, confusion=0.85
+
+# collar=0.25
+#Eval for threshold 0.2 DER=11.27, miss=0.47, falarm=9.83, confusion=0.98
+#Eval for threshold 0.3 DER=6.57, miss=0.94, falarm=4.45, confusion=1.18
+#Eval for threshold 0.35 DER=5.64, miss=1.27, falarm=3.12, confusion=1.24
+#Eval for threshold 0.4 DER=5.04, miss=1.75, falarm=2.06, confusion=1.23
+#Eval for threshold 0.45 DER=5.02, miss=2.41, falarm=1.44, confusion=1.17
+#Eval for threshold 0.5 DER=5.31, miss=3.18, falarm=1.01, confusion=1.11
+#Eval for threshold 0.55 DER=5.89, miss=4.14, falarm=0.70, confusion=1.04
+#Eval for threshold 0.6 DER=6.90, miss=5.43, falarm=0.50, confusion=0.97
+#Eval for threshold 0.7 DER=10.15, miss=9.12, falarm=0.26, confusion=0.77
+#Eval for threshold 0.8 DER=15.54, miss=14.84, falarm=0.10, confusion=0.59
 
 
 if [ ${stage} -le 24 ] && [ ${stop_stage} -ge 24 ];then
@@ -980,3 +1054,95 @@ if [ ${stage} -le 24 ] && [ ${stop_stage} -ge 24 ];then
 done
 fi
 
+#grep -r Eval logs/run_ts_vad2_stage24_infer_cam++_zh_200k_transformer_rs_len8.log
+# collar=0.0
+#Eval for threshold 0.2 DER=27.81, miss=3.09, falarm=22.77, confusion=1.95
+#Eval for threshold 0.3 DER=21.96, miss=5.34, falarm=14.19, confusion=2.43
+#Eval for threshold 0.35 DER=20.37, miss=6.60, falarm=11.21, confusion=2.57
+#Eval for threshold 0.4 DER=19.31, miss=7.89, falarm=8.82, confusion=2.60
+#Eval for threshold 0.45 DER=18.81, miss=9.33, falarm=6.92, confusion=2.56
+#Eval for threshold 0.5 DER=18.85, miss=10.94, falarm=5.45, confusion=2.46
+#Eval for threshold 0.55 DER=19.22, miss=12.66, falarm=4.29, confusion=2.27
+#Eval for threshold 0.6 DER=19.93, miss=14.57, falarm=3.36, confusion=2.00
+#Eval for threshold 0.7 DER=22.24, miss=18.83, falarm=1.98, confusion=1.43
+#Eval for threshold 0.8 DER=26.03, miss=24.13, falarm=1.07, confusion=0.83
+
+# collar=0.25
+#Eval for threshold 0.2 DER=17.31, miss=2.00, falarm=14.34, confusion=0.97
+#Eval for threshold 0.3 DER=13.40, miss=3.52, falarm=8.57, confusion=1.31
+#Eval for threshold 0.35 DER=12.44, miss=4.37, falarm=6.62, confusion=1.45
+#Eval for threshold 0.4 DER=11.80, miss=5.27, falarm=5.04, confusion=1.50
+#Eval for threshold 0.45 DER=11.51, miss=6.24, falarm=3.76, confusion=1.51
+#Eval for threshold 0.5 DER=11.69, miss=7.36, falarm=2.86, confusion=1.48
+#Eval for threshold 0.55 DER=12.12, miss=8.63, falarm=2.12, confusion=1.37
+#Eval for threshold 0.6 DER=12.82, miss=10.04, falarm=1.60, confusion=1.18
+#Eval for threshold 0.7 DER=14.89, miss=13.27, falarm=0.80, confusion=0.83
+#Eval for threshold 0.8 DER=18.25, miss=17.44, falarm=0.36, confusion=0.45
+
+
+
+if [ ${stage} -le 31 ] && [ ${stop_stage} -ge 31 ];then
+    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
+    # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
+    #  oracle target speaker embedding is from cam++ pretrain model
+    # this w2v-bert2.0 is trained Languages: 143+ , Size: 4.5M hours (it is from this paper https://arxiv.org/pdf/2312.05187)
+    # checkpoint is from https://huggingface.co/facebook/w2v-bert-2.0/tree/main
+    # how to look for port ?
+    # netstat -tuln
+    export NCCL_DEBUG=INFO
+    export PYTHONFAULTHANDLER=1
+    musan_path=/mntcephfs/lee_dataset/asr/musan
+    rir_path=/mntcephfs/lee_dataset/asr/RIRS_NOISES
+    dataset_name="alimeeting_ami_aishell_4" # dataset name
+    # for loading pretrain model weigt
+    speech_encoder_type="CAM++"
+    # cam++ 200k
+    speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
+    # cam++ en_zh
+    #speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt"
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+    # for loading speaker embedding file
+    spk_path=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4 # store speaker embedding directory
+    speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
+    exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/alimeeting_ami_aishell_4_ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_conformer_rs_len8
+   #CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
+  #accelerate launch --debug --multi_gpu --mixed_precision=fp16 --num_processes=2  --main_process_port=12673 ts_vad2/train_accelerate_ddp2.py \
+   data_dir="/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4" # oracle target audio , mix audio and labels path
+   rs_len=8
+   segment_shift=2
+   single_backend_type="conformer"
+   multi_backend_type="conformer"
+   d_state=256
+   num_transformer_layer=2
+   max_num_speaker=7
+  CUDA_VISIABLE_DEVICES=0,1 \
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 17115 \
+   ts_vad2/train_accelerate_ddp.py \
+    --world-size 2 \
+    --num-epochs 20\
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --freeze-updates 4000\
+    --grad-clip true\
+    --lr 2e-4\
+    --musan-path $musan_path \
+    --rir-path $rir_path \
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --exp-dir $exp_dir\
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state\
+    --max-num-speaker $max_num_speaker
+fi

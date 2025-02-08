@@ -252,6 +252,31 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.transformer_embed_dim),
                 nn.ReLU(),
             )
+        elif cfg.single_backend_type=="conformer":
+            self.pos_encoder = PositionalEncoding(
+                cfg.transformer_embed_dim,
+                dropout=cfg.dropout,
+                max_len=(task_cfg.rs_len * self.label_rate),
+            )
+            self.single_backend = torchaudio.models.Conformer(
+                    input_dim=cfg.transformer_embed_dim,
+                    num_heads=cfg.num_attention_head,
+                    ffn_dim=cfg.transformer_ffn_embed_dim,
+                    num_layers=cfg.num_transformer_layer,
+                    depthwise_conv_kernel_size=31,
+                )
+            self.backend_down = nn.Sequential(
+                nn.Conv1d(
+                    cfg.transformer_embed_dim * self.max_num_speaker,
+                    cfg.transformer_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                nn.ReLU(),
+            )
+
         elif cfg.single_backend_type=="mamba":
             self.pos_encoder = PositionalEncoding(
                 cfg.transformer_embed_dim,
@@ -311,6 +336,7 @@ class TSVADModel(nn.Module):
                 nn.ReLU(),
         )
 
+
         return self.single_backend,self.pos_encoder,self.backend_down
 
     def create_multi_backend(self,cfg):
@@ -327,6 +353,15 @@ class TSVADModel(nn.Module):
                 ),
                 num_layers=cfg.num_transformer_layer,
             )
+            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+        elif cfg.multi_backend_type=="conformer":
+            self.multi_backend = torchaudio.models.Conformer(
+                    input_dim=cfg.transformer_embed_dim,
+                    num_heads=cfg.num_attention_head,
+                    ffn_dim=cfg.transformer_ffn_embed_dim,
+                    num_layers=cfg.num_transformer_layer,
+                    depthwise_conv_kernel_size=31,
+                )
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
 
         elif cfg.multi_backend_type=="mamba":
@@ -719,9 +754,20 @@ class TSVADModel(nn.Module):
                 cat_embed = self.proj_layer(cat_embed)
             logging.debug(f"cat_embed: shape: {cat_embed.shape}") #(B,T,384)
             cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
-            cat_embed = self.pos_encoder(cat_embed)
-            cat_embed = self.single_backend(cat_embed)  # T, B, F
-            cat_embed = cat_embed.transpose(0, 1)  # B, T, F
+            if self.single_backend_type=="conformer":
+                cat_embed = cat_embed.transpose(0, 1)  # B,T, 2D
+                lengths = torch.tensor([cat_embed.size(1) for i in cat_embed], dtype=torch.int32,device=cat_embed.device)
+                cat_embed = cat_embed.transpose(0, 1)  # T,B 2D
+                cat_embed = self.pos_encoder(cat_embed)
+                cat_embed = cat_embed.transpose(0, 1)  # B,T, F
+                #print(f"before single_backend, cat_embed shape: {cat_embed.shape}")
+                cat_embed,_ = self.single_backend(cat_embed,lengths)  # B,T, F
+                #print(f"after single_backend, cat_embed shape: {cat_embed.shape}")
+            else:
+                cat_embed = self.pos_encoder(cat_embed)
+                cat_embed = self.single_backend(cat_embed)  # T, B, F
+                cat_embed = cat_embed.transpose(0, 1)  # B, T, F
+
             cat_embeds.append(cat_embed)
         cat_embeds = torch.stack(cat_embeds)  # 4, B, T, F
         cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T
@@ -733,9 +779,18 @@ class TSVADModel(nn.Module):
         # Downsampling
         cat_embeds = self.backend_down(cat_embeds)  # B, F, T'
         # Transformer for multiple speakers
-        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
-        cat_embeds = self.multi_backend(cat_embeds)  # T', B, F
-        cat_embeds = cat_embeds.transpose(0, 1)  # B,T',F
+        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))# T',B,F
+        #print(f"after pos_encoder at multi_backend, cat_embeds shape: {cat_embeds.shape}")
+        if self.multi_backend_type=="conformer":
+            cat_embeds = cat_embeds.transpose(0, 1)  # B, T', F
+            lengths = torch.tensor([cat_embeds.size(1) for i in cat_embeds], dtype=torch.int32,device=cat_embeds.device)
+            #print(f"before multi_backend, cat_embeds shape: {cat_embeds.shape},lengths shape: {lengths.shape}")
+            cat_embeds,_ = self.multi_backend(cat_embeds,lengths)  # B, T', F
+            #print(f"after multi_backend, cat_embeds shape: {cat_embeds.shape}")
+        else:
+            cat_embeds = self.multi_backend(cat_embeds)  # T', B, F
+            cat_embeds = cat_embeds.transpose(0, 1)  # B,T',F
+
         if self.multi_backend_type=="mamba2":
             cat_embeds = self.multi_backend_proj(cat_embeds)
         outs = self.fc(cat_embeds)  # B T' 4

@@ -249,6 +249,10 @@ def main(args):
     data_cfg.speaker_embedding_name_dir = args.speaker_embedding_name_dir
     data_cfg.data_dir = args.data_dir
     data_cfg.speaker_embed_dim = args.speaker_embed_dim
+    data_cfg.max_num_speaker = args.max_num_speaker
+    data_cfg.rs_len = args.rs_len
+    data_cfg.segment_shift = args.segment_shift
+
     logging.info(f"infer data_cfg: {data_cfg}")
     logging.info(f"currently, it will infer {args.split} set.")
     # split=args.split # i.e.: Eval , Test
@@ -277,6 +281,7 @@ def main(args):
     # load model
     model_cfg.speech_encoder_type = args.speech_encoder_type  #
     model_cfg.speech_encoder_path = args.speech_encoder_path
+    model_cfg.speech_encoder_config=args.speech_encoder_config # only for wav-bert2 ssl model
     model_cfg.speaker_embed_dim = args.speaker_embed_dim
     model_cfg.select_encoder_layer_nums = (
         args.select_encoder_layer_nums
