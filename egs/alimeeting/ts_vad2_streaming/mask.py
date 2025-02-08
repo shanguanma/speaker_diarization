@@ -201,11 +201,13 @@ def add_optional_chunk_mask(xs: torch.Tensor,
                                             num_left_chunks,
                                             xs.device)  # (L, L)
         chunk_masks = chunk_masks.unsqueeze(0)  # (1, L, L)
+        print(f"befor chunk_masks shape: {chunk_masks.shape}")
         # maduo add
         #print(f"chunk_masks shape: {chunk_masks.shape}, masks shape: {masks.shape} in fn add_optional_chunk_mask")
         #if masks.size(-1) != chunk_masks.size(-1):
         #    chunk_masks = chunk_masks[:,:masks.size(-1),:masks.size(-1)]
         chunk_masks = masks & chunk_masks  # (B, L, L)
+        print(f"after chunk_masks shape: {chunk_masks.shape}")
     elif static_chunk_size > 0:
         num_left_chunks = num_decoding_left_chunks
         chunk_masks = subsequent_chunk_mask(xs.size(1), static_chunk_size,
