@@ -399,9 +399,14 @@ if __name__ == "__main__":
    num_left_chunks=-1
    out = subsequent_chunk_mask(length, chunk_size,num_left_chunks)
    print(f"out: {out.long()}, out shape: {out.shape}")
-   length = 20
+   length = 23
    chunk_size=2
    num_left_chunks=3
+   out = subsequent_chunk_mask(length, chunk_size,num_left_chunks)
+   print(f"out: {out.long()}, out shape: {out.shape}")
+   length = 23
+   chunk_size=3
+   num_left_chunks=0
    out = subsequent_chunk_mask(length, chunk_size,num_left_chunks)
    print(f"out: {out.long()}, out shape: {out.shape}")
    length = 250

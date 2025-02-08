@@ -22,7 +22,7 @@ from torch.utils.checkpoint import checkpoint
 from torch.nn import LayerNorm
 
 from cam_pplus_wespeaker import CAMPPlus
-#from cam_pplus_wespeaker_wo_batchnorm import CAMPPlus
+#from cam_pplus_wespeaker_wo_batchnorm import CAMPPlus # only for compute left and right context of cam++
 from transformer_chunk_streaming import TransformerEncoderLayer, MultiHeadedAttention, PositionwiseFeedForward
 from mask import make_pad_mask
 from mask import mask_to_bias
