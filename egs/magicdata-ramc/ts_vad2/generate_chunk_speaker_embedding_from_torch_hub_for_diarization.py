@@ -32,15 +32,13 @@ from resnet_wespeaker import  (
 )
 from samresnet_wespeaker import SimAM_ResNet34_ASP, SimAM_ResNet100_ASP
 
-from redimnet_wespeaker import ReDimNetB0,ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5,ReDimNetB6
-from features import MelBanks
 def get_args():
     parser = argparse.ArgumentParser(description="Extract speaker embeddings.")
     parser.add_argument(
-        "--pretrained_model", default="", type=str, help="Model  in wespeaker"
+        "--pretrained_model", default="", type=str, help="Model  in pytorch hub"
     )
     parser.add_argument(
-        "--model_name", default="ReDimNetB3", type=str, help="Model name  in wespeaker"
+        "--model_name", default="ECAPA_TDNN_GLOB_c1024", type=str, help="Model name  in pytorch hub"
     )
     parser.add_argument("--wavs", nargs="+", type=str, help="Wavs")
     # parser.add_argument('--local_model_dir', default='pretrained', type=str, help='Local model dir')
@@ -66,6 +64,33 @@ def get_args():
     return args
 
 
+class FBank(object):
+    def __init__(
+        self,
+        n_mels,
+        sample_rate,
+        mean_nor: bool = False,
+    ):
+        self.n_mels = n_mels
+        self.sample_rate = sample_rate
+        self.mean_nor = mean_nor
+
+    def __call__(self, wav, dither=0):
+        sr = 16000
+        assert sr == self.sample_rate
+        if len(wav.shape) == 1:
+            wav = wav.unsqueeze(0)
+        # select single channel
+        if wav.shape[0] > 1:
+            wav = wav[0, :]
+        assert len(wav.shape) == 2 and wav.shape[0] == 1
+        feat = Kaldi.fbank(
+            wav, num_mel_bins=self.n_mels, sample_frequency=sr, dither=dither
+        )
+        # feat: [T, N]
+        if self.mean_nor:
+            feat = feat - feat.mean(0, keepdim=True)
+        return feat
 
 
 def extract_embeddings(args, batch):
@@ -79,25 +104,23 @@ def extract_embeddings(args, batch):
         logging.info(f"{msg}")
         device = torch.device("cpu")
 
-    pretrained_state = torch.load(args.pretrained_model, map_location=device, weights_only=False)
-    #pretrained_state = torch.load(args.pretrained_model, map_location=torch.device("cpu"), weights_only=False)
-    # Instantiate model(TODO) maduo add model choice
-    #model=ECAPA_TDNN_GLOB_c1024(feat_dim=80,embed_dim=192,pooling_func="ASTP")
+    #pretrained_state = torch.load(args.pretrained_model, map_location=device, weights_only=False)
+    # Instantiate model
     model: Optional[nn.Module] = None
+    # you can see more details about redimnet from https://github.com/IDRnD/redimnet/blob/master/EVALUATION.md
+    if args.model_name=="ReDimNet_b3_ft_lm_vox2":
+        model = torch.hub.load('IDRnD/ReDimNet', 'ReDimNet',model_name="b3",train_type="ft_lm",dataset="vox2",pretrained=True)
+    elif args.model_name=="ReDimNet_b4_ft_lm_vox2":
+         model = torch.hub.load('IDRnD/ReDimNet', 'ReDimNet',model_name="b4",train_type="ft_lm",dataset="vox2")
+    elif  args.model_name=="ReDimNet_M_ft_mix_vb2+vox2+cnc":
+          model = torch.hub.load('IDRnD/ReDimNet', 'ReDimNet',model_name="M",train_type="ft_mix",dataset="vb2+vox2+cnc")
 
-    if args.model_name=="ReDimNetB3":
-        model = ReDimNetB3(feat_dim=72,embed_dim=192,pooling_func="ASTP")
-    elif args.model_name=="ReDimNetB4":
-        model = ReDimNetB4(feat_dim=72,embed_dim=192,pooling_func="ASTP")
-    elif args.model_name=="ReDimNetB2":
-        model = ReDimNetB2(feat_dim=72,embed_dim=192,pooling_func="ASTP")
     # load weight of model
-    model.load_state_dict(pretrained_state,strict=False)
+    #model.load_state_dict(pretrained_state,strict=False)
     model.to(device)
     model.eval()
 
     batch = torch.stack(batch)  # expect B,T,F
-    #logging.info(f"batch shape: {batch.shape}")
     # compute embedding
     embeddings = model.forward(batch.to(device))  # (B,D)
     if isinstance(embeddings, tuple): # for Resnet* model
@@ -126,15 +149,11 @@ def extract_embed(args, file, feature_extractor):
             target_speech = torch.FloatTensor(np.array(target_speech))
             # because 3d-speaker and wespeaker are offer speaker models which are not include Fbank module,
             # We should perform fbank feature extraction before sending it to the network
-            #logging.info(f"target_speech shape: {target_speech.shape}")
+
             # compute feat
-            target_speech = target_speech.unsqueeze(0)
-            #logging.info(f"after add batch dim, target_speech shape: {target_speech.shape}")
-            feat = feature_extractor(target_speech)  #(1,T) ->(1,F,T')
-            #logging.info(f"after feature_extactor, feat shape: {feat.shape}")
-            feat = feat.permute(0,2,1).squeeze(0) # (1,F,T') -> (T',F)
+            feat = feature_extractor(target_speech)  # (T,F)
             # compute embedding
-            batch.append(feat)  # [(T',F),(T',F),...]
+            batch.append(feat)  # [(T,F),(T,F),...]
             if len(batch) == args.batch_size:
                 embeddings.extend(extract_embeddings(args, batch))
                 batch = []
@@ -153,7 +172,7 @@ def extract_embed(args, file, feature_extractor):
 
 def main():
     args = get_args()
-    feature_extractor = MelBanks(n_mels=72) # its output shape: (1,F,T')
+    feature_extractor = FBank(80, sample_rate=16000, mean_nor=True)
     logging.info(f"Extracting embeddings...")
     # input is wav list
     wav_list_file = args.wavs[0]

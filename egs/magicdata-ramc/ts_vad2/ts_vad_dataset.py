@@ -103,6 +103,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         embed_shift: float = 0.4,
         embed_input: bool = False,
         fbank_input: bool = False,
+        redimnet_input: bool=False,
 
         label_rate: int = 25,
         random_channel: bool = False,
@@ -145,14 +146,20 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.embed_input = embed_input
         self.label_rate = label_rate
         self.fbank_input = fbank_input
+        self.redimnet_input = redimnet_input
         self.random_channel = random_channel
         self.support_mc = support_mc
         self.update_num = 0
         if fbank_input:
             logger.info(f"model expect fbank as input , fbank_input should be {fbank_input} !!!")
-            self.feature_extractor = FBank(
-                80, sample_rate=self.sample_rate, mean_nor=True
-            )
+            if not  redimnet_input:
+                self.feature_extractor = FBank(
+                    80, sample_rate=self.sample_rate, mean_nor=True
+                )
+            else:
+                logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
+                from features import MelBanks
+                self.feature_extractor =  MelBanks(n_mels=72) # its output shape: (1,F,T'), F=72 , because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
         else:
             logger.info(f"speech encoder may be self supervise pretrain model, its input is wavform.")
             self.feature_extractor = None
@@ -590,8 +597,12 @@ class TSVADDataset(torch.utils.data.Dataset):
             ref_speech = self.segment_rs(ref_speech)
 
         if self.fbank_input:
-            ref_speech = [self.feature_extractor(rs) for rs in ref_speech]
-            ref_speech = torch.stack(ref_speech)
+            if not self.redimnet_input:
+                ref_speech = [self.feature_extractor(rs) for rs in ref_speech]
+                ref_speech = torch.stack(ref_speech)
+            else:
+                ref_speech = [self.feature_extractor(rs.unsqueeze(0)).permute(0,2,1).squeeze(0) for rs in ref_speech] # [(T',F),(T',F),...]
+                ref_speech = torch.stack(ref_speech)
 
         if self.spk_path is None:
             target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)

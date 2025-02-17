@@ -1053,11 +1053,35 @@ def ReDimNetB6(feat_dim=72,
 
 
 if __name__ == "__main__":
-    x = torch.zeros(1, 200, 72)
+    #x = torch.zeros(1, 200, 72)
+    x = torch.randn(32, 601, 72)
     model = ReDimNet(feat_dim=72, embed_dim=192, two_emb_layer=False)
     model.eval()
     out = model(x)
     print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
+    model = ReDimNetB2(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
+    model = ReDimNetB3(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
+    model = ReDimNetB4(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 2304])
 
     num_params = sum(p.numel() for p in model.parameters())
     print("{} M".format(num_params / 1e6))

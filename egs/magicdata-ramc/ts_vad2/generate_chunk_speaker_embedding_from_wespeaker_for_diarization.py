@@ -32,6 +32,8 @@ from resnet_wespeaker import  (
 )
 from samresnet_wespeaker import SimAM_ResNet34_ASP, SimAM_ResNet100_ASP
 
+from redimnet_wespeaker import ReDimNetB0,ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5,ReDimNetB6
+
 def get_args():
     parser = argparse.ArgumentParser(description="Extract speaker embeddings.")
     parser.add_argument(
@@ -120,7 +122,7 @@ def extract_embeddings(args, batch):
         model = SimAM_ResNet34_ASP(in_planes=64, embed_dim=256, acoustic_dim=80, dropout=0,speech_encoder=False)
     elif args.model_name=="SimAM_ResNet100_ASP":
         model = SimAM_ResNet100_ASP(in_planes=64, embed_dim=256, acoustic_dim=80, dropout=0,speech_encoder=False)
-
+    elif args.model_name=="redimnet_b3_"
     # load weight of model
     model.load_state_dict(pretrained_state,strict=False)
     model.to(device)

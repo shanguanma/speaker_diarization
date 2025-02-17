@@ -28,6 +28,7 @@ from ecapa_tdnn_wespeaker import ECAPA_TDNN_GLOB_c1024
 from ecapa_tdnn import ECAPA_TDNN
 from whisper_encoder import ModelDimensions
 from whisper_encoder import WhisperEncoder
+from redimnet_wespeaker  import ReDimNetB2,ReDimNetB3,ReDimNetB4
 #from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 try:
     from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
@@ -371,6 +372,67 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.speaker_embed_dim),
                 nn.ReLU(),
             )
+        elif self.speech_encoder_type == "ReDimNetB2":
+             self.speech_encoder = ReDimNetB2(feat_dim=72,embed_dim=192,pooling_func="ASTP")
+             self.speech_encoder.train()
+             self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+             )
+             # Because input and output of ReDimNetB2 are not subsample, so I need to subsample rate is 4 to match label_rate.
+             stride = int(4 // sample_times) if self.label_rate == 25 else 1
+             pretrain_speech_encoder_dim=1152
+             self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+        elif self.speech_encoder_type == "ReDimNetB3":
+             self.speech_encoder = ReDimNetB3(feat_dim=72,embed_dim=192,pooling_func="ASTP")
+             self.speech_encoder.train()
+             self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+             )
+             # Because input and output of ReDimNetB3 are not subsample, so I need to subsample rate is 4 to match label_rate.
+             stride = int(4 // sample_times) if self.label_rate == 25 else 1
+             pretrain_speech_encoder_dim=1152
+             self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+
+        elif self.speech_encoder_type == "ReDimNetB4":
+             self.speech_encoder = ReDimNetB4(feat_dim=72,embed_dim=192,pooling_func="ASTP")
+             self.speech_encoder.train()
+             self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+             )
+             # Because input and output of ReDimNetB4 are not subsample, so I need to subsample rate is 4 to match label_rate.
+             stride = int(4 // sample_times) if self.label_rate == 25 else 1
+             pretrain_speech_encoder_dim=2304
+             self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
         elif self.speech_encoder_type == "w2v-bert2":
             # Its input is 80-dim fbank(i.e.B,T,D),however it reshape to (B,T//2,D*2)
             # It is kaldi fbank(10ms(160 samples) frame shift, 25ms(400samples) windows lens),
@@ -685,12 +747,19 @@ class TSVADModel(nn.Module):
                 x = x.hidden_states[-1] #(B,T,D)
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             x = self.speech_down_or_up(x)
+        elif self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or self.speech_encoder_type == "ReDimNetB4":
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                 # its input melbank feature(72-dim)
+                x = self.speech_encoder.get_frame_level_feat(ref_speech) # (B,T,D)
+            x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
+            x = self.speech_down_or_up(x) # (B,D,T) -> (B,F,T)
         else:
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)
                 x = self.speech_encoder(ref_speech, get_time_out=True)
             # print(f"x shape: {x.shape}") # B,F',T'
             x = self.speech_down_or_up(x)
+        #print(f"x shape: {x.shape}, max_len: {max_len}")
         assert (
             x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
         ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"

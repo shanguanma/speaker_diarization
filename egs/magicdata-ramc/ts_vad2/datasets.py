@@ -116,6 +116,9 @@ def load_dataset(
         or cfg.speech_encoder_type == "hubert"
     ):
         fbank_input = False
+    elif cfg.speech_encoder_type=="ReDimNetB3" or cfg.speech_encoder_type=="ReDimNetB2" or cfg.speech_encoder_type=="ReDimNetB4":
+        redimnet_input=True
+        fbank_input = True
     else:
         fbank_input = True
     datasets = TSVADDataset(
@@ -134,6 +137,7 @@ def load_dataset(
         embed_shift=cfg.embed_shift,
         embed_input=cfg.embed_input,
         fbank_input=fbank_input,
+        redimnet_input=redimnet_input,
         label_rate=cfg.label_rate,
         random_channel=cfg.random_channel,
         random_mask_speaker_prob=cfg.random_mask_speaker_prob,
