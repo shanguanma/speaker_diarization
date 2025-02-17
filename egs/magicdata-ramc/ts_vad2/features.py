@@ -49,7 +49,7 @@ class PreEmphasis(torch.nn.Module):
         if x.ndim == 2:
             x = x.unsqueeze(1)
         x = F.pad(x, (1, 0), 'reflect')
-        print(f"F.conv1d(x, self.flipped_filter).squeeze(1) shape: {F.conv1d(x, self.flipped_filter).squeeze(1).shape}")
+        #print(f"F.conv1d(x, self.flipped_filter).squeeze(1) shape: {F.conv1d(x, self.flipped_filter).squeeze(1).shape}") # (B, num_samples_points), i.e. one 6s audio, its shape: (1,96000)
         return F.conv1d(x, self.flipped_filter).squeeze(1)
 
 class FbankAug(nn.Module):
