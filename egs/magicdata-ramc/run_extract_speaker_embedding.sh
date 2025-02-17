@@ -45,6 +45,37 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
    feature_name=redimnet_b4-vox2-ft_lm_feature_dir
    #dest_dir=/mntcephfs/lab_data/maduo/model_hub
    model_path=/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b4-vox2-ft_lm.pt
+   model_name="ReDimNetB4"
+   subsets="dev test train"
+   for name in $subsets;do
+    #if [ $name = "Train" ];then
+     #echo "extract Train settrain target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/datasets/alimeeting/${name}_Ali_far/target_audio/
+     #wav_path=$input_dir/wavs.txt
+     #else
+     echo "extract $name target speaker embedding"
+     # 提取embedding
+     input_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${name}/target_audio
+     wav_path=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${name}/wavs.txt
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
+     save_dir=$dest_dir/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding/$name/$feature_name
+     python3 ts_vad2/generate_chunk_speaker_embedding_from_redimenet_for_diarization.py\
+           --pretrained_model $model_path\
+           --model_name $model_name\
+           --wavs $wav_path\
+           --save_dir $save_dir\
+           --batch_size 32
+   done
+fi
+
+if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ];then
+   echo "generate speaker embedding"
+   dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   feature_name=redimnet_b3-vox2-ft_lm_feature_dir
+   #dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   model_path=/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b3-vox2-ft_lm.pt
    model_name="ReDimNetB3"
    subsets="dev test train"
    for name in $subsets;do
@@ -58,10 +89,40 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
      # 提取embedding
      input_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${name}/target_audio
      wav_path=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${name}/wavs.txt
-     find $input_dir -name "*.wav" | grep -v "all.wav" >$file
-     head $file
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
      save_dir=$dest_dir/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding/$name/$feature_name
-     python3 ts_vad2/generate_chunk_speaker_embedding_from_modelscope_for_diarization.py\
+     python3 ts_vad2/generate_chunk_speaker_embedding_from_redimenet_for_diarization.py\
+           --pretrained_model $model_path\
+           --model_name $model_name\
+           --wavs $wav_path\
+           --save_dir $save_dir\
+           --batch_size 32
+   done
+fi
+if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ];then
+   echo "generate speaker embedding"
+   dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   feature_name=redimnet_b2-vox2-ft_lm_feature_dir
+   #dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   model_path=/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b2-vox2-ft_lm.pt
+   model_name="ReDimNetB2"
+   subsets="dev test train"
+   for name in $subsets;do
+    #if [ $name = "Train" ];then
+     #echo "extract Train settrain target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/datasets/alimeeting/${name}_Ali_far/target_audio/
+     #wav_path=$input_dir/wavs.txt
+     #else
+     echo "extract $name target speaker embedding"
+     # 提取embedding
+     input_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${name}/target_audio
+     wav_path=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${name}/wavs.txt
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
+     save_dir=$dest_dir/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding/$name/$feature_name
+     python3 ts_vad2/generate_chunk_speaker_embedding_from_redimenet_for_diarization.py\
            --pretrained_model $model_path\
            --model_name $model_name\
            --wavs $wav_path\
