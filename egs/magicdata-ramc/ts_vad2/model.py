@@ -105,6 +105,8 @@ class TSVADConfig:
     """d_state of mamba2 """
     expand: int = 4
     """expand of mamba2"""
+    label_rate: int = 25
+    """default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100"""
 
 model_cfg = TSVADConfig()
 
@@ -184,10 +186,10 @@ class TSVADModel(nn.Module):
         self.use_spk_embed = cfg.use_spk_embed
         self.rs_dropout = nn.Dropout(p=cfg.dropout)
         self.label_rate = task_cfg.label_rate
-        assert (
-            self.label_rate == 25
-        ), f"self.label_rate is {elf.label_rate} not support!"
-
+        #assert (
+        #    self.label_rate == cfg.label_rate
+        #), f"self.label_rate is {elf.label_rate} not support!"
+        self.label_rate == cfg.label_rate
         self.speech_encoder_type = cfg.speech_encoder_type
         self.speech_encoder_path = cfg.speech_encoder_path
         self.wavlm_fuse_feat_post_norm = cfg.wavlm_fuse_feat_post_norm
@@ -749,10 +751,13 @@ class TSVADModel(nn.Module):
             x = self.speech_down_or_up(x)
         elif self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or self.speech_encoder_type == "ReDimNetB4":
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                 # its input melbank feature(72-dim)
+                # its input melbank feature(72-dim)
+                #print(f"input shape of speech_encoder: {ref_speech.shape}")
                 x = self.speech_encoder.get_frame_level_feat(ref_speech) # (B,T,D)
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
+            #print(f"output shape of speech_encoder: {x.shape}")
             x = self.speech_down_or_up(x) # (B,D,T) -> (B,F,T)
+            #print(f"output shape of self.speech_down_or_up(x): {x.shape}")
         else:
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)
@@ -760,12 +765,25 @@ class TSVADModel(nn.Module):
             # print(f"x shape: {x.shape}") # B,F',T'
             x = self.speech_down_or_up(x)
         #print(f"x shape: {x.shape}, max_len: {max_len}")
-        assert (
-            x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
-        ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
-        if x.size(-1) - max_len == -1:
-            x = nn.functinal.pad(x, (0, 1))
+
+        ## process gap of audio len and label len
+        gap = x.size(-1) - max_len
+        assert abs(x.size(-1) -max_len)<=2, f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
+        # padding audio len to label len
+        if gap == -1:
+             x = nn.functional.pad(x, (0, 1))
+        elif gap == -2:
+            x = nn.functional.pad(x, (0, 2))
+        # cut audio len to label len
         x = x[:, :, :max_len]  # (B,D,T)
+        #print(f"after padding audio len shape: {x.shape}")
+
+        #assert (
+        #    x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
+        #), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
+        #if x.size(-1) - max_len == -1:
+        #    x = nn.functinal.pad(x, (0, 1))
+        #x = x[:, :, :max_len]  # (B,D,T)
         mix_embeds = x.transpose(1, 2)  # (B,T,D)
 
         # target speech

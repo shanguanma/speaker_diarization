@@ -150,6 +150,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.random_channel = random_channel
         self.support_mc = support_mc
         self.update_num = 0
+
         if fbank_input:
             logger.info(f"model expect fbank as input , fbank_input should be {fbank_input} !!!")
             if not  redimnet_input:
@@ -158,8 +159,13 @@ class TSVADDataset(torch.utils.data.Dataset):
                 )
             else:
                 logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
-                from features import MelBanks
-                self.feature_extractor =  MelBanks(n_mels=72) # its output shape: (1,F,T'), F=72 , because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
+                # because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
+                self.feature_extractor = FBank(
+                    72, sample_rate=self.sample_rate, mean_nor=True
+                )
+                #logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
+                #from features import MelBanks
+                #self.feature_extractor =  MelBanks(n_mels=72) # its output shape: (1,F,T'), F=72 , because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
         else:
             logger.info(f"speech encoder may be self supervise pretrain model, its input is wavform.")
             self.feature_extractor = None
@@ -289,6 +295,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         return speaker_ids
 
     def load_rs(self, file, speaker_ids, start, stop):
+        #logger.info(f"self.label_rate: {self.label_rate} in fn load_rs")
         audio_start = self.sample_rate // self.label_rate * start
         audio_stop = self.sample_rate // self.label_rate * stop
         if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
@@ -304,6 +311,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                 ref_speech = np.expand_dims(np.array(ref_speech), axis=0)
 
         frame_len = audio_stop - audio_start
+        #logger.info(f"ref_speech shape: {ref_speech.shape} in fn load_rs")
         assert (
             frame_len - ref_speech.shape[1] <= 100
         ), f"frame_len {frame_len} ref_speech.shape[1] {ref_speech.shape[1]}"
@@ -596,13 +604,16 @@ class TSVADDataset(torch.utils.data.Dataset):
         if self.embed_input:
             ref_speech = self.segment_rs(ref_speech)
 
+        #if self.fbank_input:
+        #    if not self.redimnet_input:
+        #        ref_speech = [self.feature_extractor(rs) for rs in ref_speech]
+        #        ref_speech = torch.stack(ref_speech)
+        #    else:
+        #        ref_speech = [self.feature_extractor(rs.unsqueeze(0)).permute(0,2,1).squeeze(0) for rs in ref_speech] # [(T',F),(T',F),...]
+        #        ref_speech = torch.stack(ref_speech)
         if self.fbank_input:
-            if not self.redimnet_input:
-                ref_speech = [self.feature_extractor(rs) for rs in ref_speech]
-                ref_speech = torch.stack(ref_speech)
-            else:
-                ref_speech = [self.feature_extractor(rs.unsqueeze(0)).permute(0,2,1).squeeze(0) for rs in ref_speech] # [(T',F),(T',F),...]
-                ref_speech = torch.stack(ref_speech)
+            ref_speech = [self.feature_extractor(rs) for rs in ref_speech]
+            ref_speech = torch.stack(ref_speech)
 
         if self.spk_path is None:
             target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
@@ -682,3 +693,13 @@ class TSVADDataset(torch.utils.data.Dataset):
                 audio = np.transpose(audio)
 
         return audio, rc
+
+if __name__ == "__main__":
+    x = torch.randn(1,96000)
+    feature_extract = FBank(n_mels=72,sample_rate=16000,mean_nor=True)
+    y = feature_extract(x)
+    print(f"fbank output shape: {y.shape}")
+    from features import MelBanks
+    feature_extract = MelBanks(n_mels=72)
+    y = feature_extract(x)
+    print(f"melbank output shape: {y.shape}")

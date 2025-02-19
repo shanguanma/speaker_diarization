@@ -249,6 +249,8 @@ def main(args):
     data_cfg.speaker_embedding_name_dir = args.speaker_embedding_name_dir
     data_cfg.data_dir = args.data_dir
     data_cfg.speaker_embed_dim = args.speaker_embed_dim
+    data_cfg.label_rate = args.label_rate
+
     logging.info(f"infer data_cfg: {data_cfg}")
     logging.info(f"currently, it will infer {args.split} set.")
     # split=args.split # i.e.: Eval , Test
@@ -288,6 +290,7 @@ def main(args):
     model_cfg.num_transformer_layer=args.num_transformer_layer
     model_cfg.d_state = args.d_state
     model_cfg.expand = args.expand
+    model_cfg.label_rate = args.label_rate
 
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
@@ -394,12 +397,12 @@ def get_args():
         default="0.0",
         help="min speech",
     )
-    parser.add_argument(
-        "--label-rate",
-        type=int,
-        default=25,
-        help="diarization label rate",
-    )
+    #parser.add_argument(
+    #    "--label-rate",
+    #    type=int,
+    #    default=25,
+    #    help="diarization label rate",
+    #)
 
     parser.add_argument(
         "--model-file",

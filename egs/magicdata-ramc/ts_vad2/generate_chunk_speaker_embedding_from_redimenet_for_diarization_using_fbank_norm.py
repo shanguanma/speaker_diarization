@@ -33,7 +33,7 @@ from resnet_wespeaker import  (
 from samresnet_wespeaker import SimAM_ResNet34_ASP, SimAM_ResNet100_ASP
 
 from redimnet_wespeaker import ReDimNetB0,ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5,ReDimNetB6
-from features import MelBanks
+#from features import MelBanks
 def get_args():
     parser = argparse.ArgumentParser(description="Extract speaker embeddings.")
     parser.add_argument(
@@ -66,7 +66,32 @@ def get_args():
     return args
 
 
+class FBank(object):
+    def __init__(self,
+        n_mels,
+        sample_rate,
+        mean_nor: bool = False,
+    ):
+        self.n_mels = n_mels
+        self.sample_rate = sample_rate
+        self.mean_nor = mean_nor
 
+    def __call__(self, wav, dither=0):
+        sr = 16000
+        assert sr==self.sample_rate
+        if len(wav.shape) == 1:
+            wav = wav.unsqueeze(0)
+        # select single channel
+        if wav.shape[0] > 1:
+            wav = wav[0, :]
+        assert len(wav.shape) == 2 and wav.shape[0]==1
+        wav = wav * (1 << 15)
+        feat = Kaldi.fbank(wav, num_mel_bins=self.n_mels,
+            sample_frequency=sr, dither=dither)
+        # feat: [T, N]
+        if self.mean_nor:
+            feat = feat - feat.mean(0, keepdim=True)
+        return feat
 
 def extract_embeddings(args, batch):
 
@@ -128,12 +153,13 @@ def extract_embed(args, file, feature_extractor):
             # We should perform fbank feature extraction before sending it to the network
             #logging.info(f"target_speech shape: {target_speech.shape}")
             # compute feat
-            target_speech = target_speech.unsqueeze(0)
+            #target_speech = target_speech.unsqueeze(0)
             #logging.info(f"after add batch dim, target_speech shape: {target_speech.shape}")
-            feat = feature_extractor(target_speech)  #(1,T) ->(1,F,T')
+            #feat = feature_extractor(target_speech)  #(1,T) ->(1,F,T')
             #logging.info(f"after feature_extactor, feat shape: {feat.shape}")
-            feat = feat.permute(0,2,1).squeeze(0) # (1,F,T') -> (T',F)
+            #feat = feat.permute(0,2,1).squeeze(0) # (1,F,T') -> (T',F)
             # compute embedding
+            feat = feature_extractor(target_speech) # (T,F)
             batch.append(feat)  # [(T',F),(T',F),...]
             if len(batch) == args.batch_size:
                 embeddings.extend(extract_embeddings(args, batch))
@@ -153,8 +179,9 @@ def extract_embed(args, file, feature_extractor):
 
 def main():
     args = get_args()
-    feature_extractor = MelBanks(n_mels=72) # its output shape: (1,F,T')
-    logging.info(f"Extracting embeddings...")
+    #feature_extractor = MelBanks(n_mels=72) # its output shape: (1,F,T')
+    feature_extractor = FBank(72, sample_rate=16000, mean_nor=True)
+    logging.info(f'Extracting embeddings...')
     # input is wav list
     wav_list_file = args.wavs[0]
     with open(wav_list_file, "r") as f:

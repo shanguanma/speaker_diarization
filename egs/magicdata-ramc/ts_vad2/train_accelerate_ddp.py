@@ -246,6 +246,12 @@ def get_parser():
         default=False,
         help="train on the average model, how to average model, you can see '--average-period'",
     )
+    #parser.add_argument(
+    #    "--label-rate",
+    #    type=int,
+    #    default=25,
+    #    help="diarization label rate, default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100",
+    #)
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)
@@ -317,6 +323,12 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument("--single-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2`")
     parser.add_argument("--multi-backend-type",type=str, default="transformer",help="choice from `transformer` , `mamba`, `mamba_v2` or `mamba2` ")
+    parser.add_argument(
+        "--label-rate",
+        type=int,
+        default=25,
+        help="diarization label rate, default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100",
+    )
     return parser
 
 def add_model_arguments(parser: argparse.ArgumentParser):
@@ -870,6 +882,8 @@ def main(args):
     data_cfg.max_num_speaker = params.max_num_speaker
     data_cfg.rs_len = params.rs_len
     data_cfg.segment_shift = params.segment_shift
+    data_cfg.label_rate = params.label_rate
+
     logging.info(f"data_cfg: {data_cfg}")
     data_cfg.dataset_name = params.dataset_name
     if params.dataset_name=="alimeeting":
@@ -942,6 +956,7 @@ def main(args):
     model_cfg.num_transformer_layer=params.num_transformer_layer
     model_cfg.d_state = params.d_state
     model_cfg.expand = params.expand
+    model_cfg.label_rate = params.label_rate
 
     logging.info(f"model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg,task_cfg=data_cfg)

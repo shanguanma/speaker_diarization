@@ -146,10 +146,10 @@ def main(args):
             os.makedirs(output_dir, exist_ok=True)
             output_wav = os.path.join(output_dir, str(key) + ".wav")
             new_audio = []
-            labels = [0] * int(length / 16000 * 25)  # 40ms, one label
+            labels = [0] * int(length / 16000 * 100)  # 10ms, one label
             for interval in new_intervals[key]:
                 s, e = interval
-                for i in range(int(s * 25), min(int(e * 25) + 1, len(labels))):
+                for i in range(int(s * 100), min(int(e * 100) + 1, len(labels))):
                     labels[i] = 1
                 s *= 16000
                 e *= 16000
@@ -160,10 +160,10 @@ def main(args):
 
         # Save the labels
         for key in intervals:
-            labels = [0] * int(length / 16000 * 25)  # 40ms, one label
+            labels = [0] * int(length / 16000 * 100)  # 10ms, one label
             for interval in intervals[key]:
                 s, e = interval
-                for i in range(int(s * 25), min(int(e * 25) + 1, len(labels))):
+                for i in range(int(s * 100), min(int(e * 100) + 1, len(labels))):
                     labels[i] = 1
 
             room_speaker_id = id_full + "_" + str(key) # uttid_keys

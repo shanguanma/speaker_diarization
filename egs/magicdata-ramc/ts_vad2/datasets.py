@@ -59,9 +59,6 @@ class TSVADDataConfig:
     embed_shift: float = 0.4
     """embedding shift for diarization"""
 
-    label_rate: int = 25
-    """diarization label rate"""
-
     random_channel: bool = False
     """for multi-channel, use a randomly one"""
 
@@ -76,7 +73,8 @@ class TSVADDataConfig:
 
     rir_path: str = "/mntcephfs/lee_dataset/asr/RIRS_NOISES"
     """rir path."""
-
+    label_rate: int = 25
+    """default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100"""
 
 cfg = TSVADDataConfig()
 from model import TSVADConfig
@@ -116,11 +114,13 @@ def load_dataset(
         or cfg.speech_encoder_type == "hubert"
     ):
         fbank_input = False
+        redimnet_input=False
     elif cfg.speech_encoder_type=="ReDimNetB3" or cfg.speech_encoder_type=="ReDimNetB2" or cfg.speech_encoder_type=="ReDimNetB4":
         redimnet_input=True
         fbank_input = True
     else:
         fbank_input = True
+        redimnet_input=False
     datasets = TSVADDataset(
         json_path=json_path,
         audio_path=audio_path,
