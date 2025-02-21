@@ -2927,6 +2927,7 @@ if [ ${stage} -le 100 ] && [ ${stop_stage} -ge 100 ];then
   done
  done
 fi
+# cat /data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh-cn_200k_w2v-bert2.0_epoch40_front_fix_seed_lr1e4/magicdata-ramc_collar*/*/der_result
 #grep -r Eval logs/run_ts_vad2_hltsz_stage100_cam++200k_w2v-bert2.log
 # collar=0.0
 # dev of magicdata-ramc
