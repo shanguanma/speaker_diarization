@@ -2087,113 +2087,8 @@ done
 #Eval for threshold 0.8 DER=9.49, miss=6.84, falarm=1.56, confusion=1.08
 fi
 
-
-if [ ${stage} -le 73 ] && [ ${stop_stage} -ge 73 ];then
-    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
-    # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
-    #  oracle target speaker embedding is from cam++ pretrain model
-    # this w2v-bert2.0 is trained Languages: 143+ , Size: 4.5M hours (it is from this paper https://arxiv.org/pdf/2312.05187)
-    # checkpoint is from https://huggingface.co/facebook/w2v-bert-2.0/tree/main
-    # how to look for port ?
-    # netstat -tuln
-    export NCCL_DEBUG=INFO
-    export PYTHONFAULTHANDLER=1
-    musan_path=/data/maduo/datasets/musan
-    rir_path=/data/maduo/datasets/RIRS_NOISES
-    dataset_name="magicdata-ramc" # dataset name
-    # for loading pretrain model weigt
-    speech_encoder_type="CAM++"
-    speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
-    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
-
-    # for loading speaker embedding file
-    spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
-    speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
-
-    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
-    exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_again
-   #CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
-  #accelerate launch --debug --multi_gpu --mixed_precision=fp16 --num_processes=2  --main_process_port=12673 ts_vad2/train_accelerate_ddp2.py \
-   data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
-   rs_len=4
-   segment_shift=2
-  CUDA_VISIABLE_DEVICES=0,1 \
-  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 12815 \
-   ts_vad2/train_accelerate_ddp.py \
-    --world-size 2 \
-    --num-epochs 20\
-    --start-epoch 1\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
-    --freeze-updates 4000\
-    --grad-clip true\
-    --lr 2e-4\
-    --musan-path $musan_path \
-    --rir-path $rir_path \
-    --rs-len $rs_len\
-    --segment-shift $segment_shift\
-    --speech-encoder-type $speech_encoder_type\
-    --speech-encoder-path $speech_encoder_path\
-    --spk-path $spk_path\
-    --speaker-embedding-name-dir $speaker_embedding_name_dir\
-    --exp-dir $exp_dir\
-    --data-dir $data_dir\
-    --dataset-name $dataset_name
-fi
-
-if [ ${stage} -le 74 ] && [ ${stop_stage} -ge 74 ];then
- exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_again
- model_file=$exp_dir/best-valid-der.pt
- rs_len=4
- segment_shift=1
- label_rate=25
- min_silence=0.32
- min_speech=0.0
- infer_sets="dev test"
- #infer_sets="Test"
- rttm_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
- sctk_tool_path="./SCTK-2.4.12"
- collar=0.25
- #collar=0.0
-
- dataset_name="magicdata-ramc" # dataset name
- # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
- speech_encoder_type="CAM++"
- speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
- #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
-
- # for loading speaker embedding file
- spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
- speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
-
- data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
-
- for name in $infer_sets;do
-    results_path=$exp_dir/${dataset_name}_collar${collar}
-  python3 ts_vad2/infer.py \
-    --model-file $model_file\
-    --rs-len $rs_len\
-    --segment-shift $segment_shift\
-    --label-rate $label_rate\
-    --min-speech $min_speech\
-    --min-silence $min_silence\
-    --rttm-name ${name}/rttm_debug_nog0\
-    --rttm-dir $rttm_dir\
-    --sctk-tool-path $sctk_tool_path \
-    --collar $collar\
-    --results-path $results_path \
-    --split $name\
-    --speech-encoder-type $speech_encoder_type\
-    --speech-encoder-path $speech_encoder_path \
-    --spk-path $spk_path\
-    --speaker-embedding-name-dir $speaker_embedding_name_dir\
-    --wavlm-fuse-feat-post-norm false \
-    --data-dir $data_dir\
-    --dataset-name $dataset_name
-done
-fi
-
-if [ ${stage} -le 80 ] && [ ${stop_stage} -ge 80 ];then
+## 2025-2-8 
+if [ ${stage} -le 65 ] && [ ${stop_stage} -ge 65 ];then
     . path_for_speaker_diarization_hltsz.sh
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
@@ -2217,15 +2112,14 @@ if [ ${stage} -le 80 ] && [ ${stop_stage} -ge 80 ];then
     speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
-    exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state16
+    exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_conformer_rs_len6
    #CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
   #accelerate launch --debug --multi_gpu --mixed_precision=fp16 --num_processes=2  --main_process_port=12673 ts_vad2/train_accelerate_ddp2.py \
    data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
-   rs_len=4
+   rs_len=6
    segment_shift=2
-   single_backend_type="mamba2"
-   multi_backend_type="transformer"
-   d_state=16
+   single_backend_type="conformer"
+   multi_backend_type="conformer"
    num_transformer_layer=2
   CUDA_VISIABLE_DEVICES=0,1 \
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 17815 \
@@ -2237,7 +2131,7 @@ if [ ${stage} -le 80 ] && [ ${stop_stage} -ge 80 ];then
     --keep-last-epoch 1\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 1e-4\
+    --lr 2e-4\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --rs-len $rs_len\
@@ -2252,17 +2146,16 @@ if [ ${stage} -le 80 ] && [ ${stop_stage} -ge 80 ];then
     --single-backend-type $single_backend_type\
     --multi-backend-type $multi_backend_type\
     --num-transformer-layer $num_transformer_layer\
-    --d-state $d_state
+  
 fi
 
-if [ ${stage} -le 81 ] && [ ${stop_stage} -ge 81 ];then
- exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state16
+if [ ${stage} -le 66 ] && [ ${stop_stage} -ge 66 ];then
+ exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_conformer_rs_len6
  model_file=$exp_dir/best-valid-der.pt
- rs_len=4
+ rs_len=6
  segment_shift=1
- single_backend_type="mamba2"
- multi_backend_type="transformer"
- d_state=16
+ single_backend_type="conformer"
+ multi_backend_type="conformer"
  num_transformer_layer=2
  label_rate=25
  min_silence=0.32
@@ -2271,7 +2164,7 @@ if [ ${stage} -le 81 ] && [ ${stop_stage} -ge 81 ];then
  #infer_sets="Test"
  rttm_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
  sctk_tool_path="./SCTK-2.4.12"
- collar=0.25
+ collar="0.0 0.25"
  #collar=0.0
 
  dataset_name="magicdata-ramc" # dataset name
@@ -2285,9 +2178,9 @@ if [ ${stage} -le 81 ] && [ ${stop_stage} -ge 81 ];then
  speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
 
  data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
-
- for name in $infer_sets;do
-    results_path=$exp_dir/${dataset_name}_collar${collar}
+ for c in $collar ;do
+  for name in $infer_sets;do
+    results_path=$exp_dir/${dataset_name}_${name}_collar${c}
   python3 ts_vad2/infer.py \
     --model-file $model_file\
     --rs-len $rs_len\
@@ -2298,7 +2191,7 @@ if [ ${stage} -le 81 ] && [ ${stop_stage} -ge 81 ];then
     --rttm-name ${name}/rttm_debug_nog0\
     --rttm-dir $rttm_dir\
     --sctk-tool-path $sctk_tool_path \
-    --collar $collar\
+    --collar $c\
     --results-path $results_path \
     --split $name\
     --speech-encoder-type $speech_encoder_type\
@@ -2310,7 +2203,347 @@ if [ ${stage} -le 81 ] && [ ${stop_stage} -ge 81 ];then
     --dataset-name $dataset_name\
     --single-backend-type $single_backend_type\
     --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer
+ done
+done
+fi
+#grep -r Eval logs/run_ts_vad2_hltsz_stage66_wo_nog0.log
+# dev of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=18.79, miss=0.35, falarm=16.29, confusion=2.15
+#Eval for threshold 0.3 DER=13.98, miss=0.63, falarm=10.10, confusion=3.25
+#Eval for threshold 0.35 DER=12.85, miss=0.83, falarm=8.52, confusion=3.50
+#Eval for threshold 0.4 DER=12.13, miss=1.08, falarm=7.39, confusion=3.66
+#Eval for threshold 0.45 DER=11.63, miss=1.38, falarm=6.54, confusion=3.71
+#Eval for threshold 0.5 DER=11.39, miss=1.83, falarm=5.85, confusion=3.71
+#Eval for threshold 0.55 DER=11.52, miss=2.55, falarm=5.40, confusion=3.57
+#Eval for threshold 0.6 DER=11.78, miss=3.42, falarm=5.00, confusion=3.37
+#Eval for threshold 0.7 DER=13.16, miss=6.26, falarm=4.17, confusion=2.72
+#Eval for threshold 0.8 DER=17.22, miss=12.28, falarm=3.27, confusion=1.68
+
+# test of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=19.65, miss=0.52, falarm=17.73, confusion=1.39
+#Eval for threshold 0.3 DER=15.98, miss=1.01, falarm=13.08, confusion=1.89
+#Eval for threshold 0.35 DER=14.94, miss=1.31, falarm=11.55, confusion=2.08
+#Eval for threshold 0.4 DER=14.26, miss=1.71, falarm=10.36, confusion=2.19
+#Eval for threshold 0.45 DER=13.78, miss=2.22, falarm=9.29, confusion=2.26
+#Eval for threshold 0.5 DER=12.72, miss=3.05, falarm=6.79, confusion=2.88
+#Eval for threshold 0.55 DER=13.64, miss=6.24, falarm=5.40, confusion=2.01
+#Eval for threshold 0.6 DER=14.10, miss=7.31, falarm=4.94, confusion=1.85
+#Eval for threshold 0.7 DER=15.86, miss=10.33, falarm=4.12, confusion=1.42
+#Eval for threshold 0.8 DER=19.44, miss=15.30, falarm=3.27, confusion=0.87
+
+# dev of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=10.96, miss=0.13, falarm=8.96, confusion=1.87
+#Eval for threshold 0.3 DER=7.00, miss=0.23, falarm=3.85, confusion=2.92
+#Eval for threshold 0.35 DER=6.19, miss=0.29, falarm=2.73, confusion=3.17
+#Eval for threshold 0.4 DER=5.74, miss=0.40, falarm=2.04, confusion=3.31
+#Eval for threshold 0.45 DER=5.43, miss=0.51, falarm=1.54, confusion=3.37
+#Eval for threshold 0.5 DER=5.37, miss=0.72, falarm=1.25, confusion=3.40
+#Eval for threshold 0.55 DER=5.63, miss=1.17, falarm=1.16, confusion=3.30
+#Eval for threshold 0.6 DER=6.01, miss=1.78, falarm=1.10, confusion=3.13
+#Eval for threshold 0.7 DER=7.45, miss=3.89, falarm=0.97, confusion=2.59
+#Eval for threshold 0.8 DER=11.63, miss=9.21, falarm=0.84, confusion=1.58
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=11.46, miss=0.21, falarm=10.24, confusion=1.02
+#Eval for threshold 0.3 DER=8.78, miss=0.41, falarm=6.97, confusion=1.40
+#Eval for threshold 0.35 DER=8.13, miss=0.54, falarm=6.06, confusion=1.53
+#Eval for threshold 0.4 DER=7.78, miss=0.73, falarm=5.44, confusion=1.61
+#Eval for threshold 0.45 DER=7.59, miss=0.99, falarm=4.94, confusion=1.66
+#Eval for threshold 0.5 DER=6.78, miss=1.45, falarm=3.01, confusion=2.33
+#Eval for threshold 0.55 DER=7.82, miss=4.36, falarm=1.95, confusion=1.51
+#Eval for threshold 0.6 DER=8.28, miss=5.05, falarm=1.81, confusion=1.41
+#Eval for threshold 0.7 DER=9.92, miss=7.24, falarm=1.56, confusion=1.12
+#Eval for threshold 0.8 DER=13.27, miss=11.25, falarm=1.30, confusion=0.72
+
+
+if [ ${stage} -le 67 ] && [ ${stop_stage} -ge 67 ];then
+    . path_for_speaker_diarization_hltsz.sh
+    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
+    # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
+    #  oracle target speaker embedding is from cam++ pretrain model
+    # this w2v-bert2.0 is trained Languages: 143+ , Size: 4.5M hours (it is from this paper https://arxiv.org/pdf/2312.05187)
+    # checkpoint is from https://huggingface.co/facebook/w2v-bert-2.0/tree/main
+    # how to look for port ?
+    # netstat -tuln
+    export NCCL_DEBUG=INFO
+    export PYTHONFAULTHANDLER=1
+    musan_path=/data/maduo/datasets/musan
+    rir_path=/data/maduo/datasets/RIRS_NOISES
+    dataset_name="magicdata-ramc" # dataset name
+    # for loading pretrain model weigt
+    speech_encoder_type="CAM++"
+    speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+    # for loading speaker embedding file
+    spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+    speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
+    exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_transformer_rs_len6
+   #CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
+  #accelerate launch --debug --multi_gpu --mixed_precision=fp16 --num_processes=2  --main_process_port=12673 ts_vad2/train_accelerate_ddp2.py \
+   data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+   rs_len=6
+   segment_shift=2
+   single_backend_type="conformer"
+   multi_backend_type="transformer"
+   num_transformer_layer=2
+  CUDA_VISIABLE_DEVICES=0,1 \
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 17815 \
+   ts_vad2/train_accelerate_ddp.py \
+    --world-size 2 \
+    --num-epochs 20\
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --freeze-updates 4000\
+    --grad-clip true\
+    --lr 2e-4\
+    --musan-path $musan_path \
+    --rir-path $rir_path \
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --exp-dir $exp_dir\
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
     --num-transformer-layer $num_transformer_layer\
-    --d-state $d_state
+
+fi
+
+
+if [ ${stage} -le 68 ] && [ ${stop_stage} -ge 68 ];then
+ exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_transformer_rs_len6
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=6
+ segment_shift=1
+ single_backend_type="conformer"
+ multi_backend_type="transformer"
+ num_transformer_layer=2
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="dev test"
+ #infer_sets="Test"
+ rttm_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+ sctk_tool_path="./SCTK-2.4.12"
+ collar="0.0 0.25"
+ #collar=0.0
+
+ dataset_name="magicdata-ramc" # dataset name
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+ speech_encoder_type="CAM++"
+ speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
+ #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+ # for loading speaker embedding file
+ spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+ speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+ data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+ for c in $collar;do
+  for name in $infer_sets;do
+    results_path=$exp_dir/${dataset_name}_${name}_collar${c}
+  python3 ts_vad2/infer.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name ${name}/rttm_debug_nog0\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $c\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer
+ done
+done
+fi
+#grep -r Eval logs/run_ts_vad2_hltsz_stage67-68_wo_nog0.log
+# dev of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=17.82, miss=0.32, falarm=15.04, confusion=2.46
+#Eval for threshold 0.3 DER=13.49, miss=0.60, falarm=9.59, confusion=3.30
+#Eval for threshold 0.35 DER=12.57, miss=0.79, falarm=8.25, confusion=3.52
+#Eval for threshold 0.4 DER=11.95, miss=1.02, falarm=7.29, confusion=3.64
+#Eval for threshold 0.45 DER=11.58, miss=1.31, falarm=6.57, confusion=3.70
+#Eval for threshold 0.5 DER=11.41, miss=1.66, falarm=6.03, confusion=3.71
+#Eval for threshold 0.55 DER=11.39, miss=2.16, falarm=5.62, confusion=3.61
+#Eval for threshold 0.6 DER=11.51, miss=2.80, falarm=5.22, confusion=3.49
+#Eval for threshold 0.7 DER=12.40, miss=4.92, falarm=4.42, confusion=3.06
+#Eval for threshold 0.8 DER=15.71, miss=10.04, falarm=3.53, confusion=2.13
+
+# test of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=19.52, miss=0.49, falarm=17.63, confusion=1.39
+#Eval for threshold 0.3 DER=16.33, miss=0.94, falarm=13.53, confusion=1.86
+#Eval for threshold 0.35 DER=15.36, miss=1.23, falarm=12.11, confusion=2.03
+#Eval for threshold 0.4 DER=14.62, miss=1.58, falarm=10.84, confusion=2.19
+#Eval for threshold 0.45 DER=14.08, miss=2.02, falarm=9.76, confusion=2.30
+#Eval for threshold 0.5 DER=12.31, miss=2.68, falarm=6.26, confusion=3.36
+#Eval for threshold 0.55 DER=13.67, miss=5.98, falarm=5.55, confusion=2.14
+#Eval for threshold 0.6 DER=14.13, miss=7.08, falarm=5.11, confusion=1.94
+#Eval for threshold 0.7 DER=15.62, miss=9.94, falarm=4.21, confusion=1.47
+#Eval for threshold 0.8 DER=18.64, miss=14.31, falarm=3.35, confusion=0.99
+
+# dev of magicdata-rmac, collar=0.25
+#Eval for threshold 0.2 DER=9.81, miss=0.10, falarm=7.50, confusion=2.20
+#Eval for threshold 0.3 DER=6.38, miss=0.19, falarm=3.19, confusion=3.01
+#Eval for threshold 0.35 DER=5.77, miss=0.25, falarm=2.31, confusion=3.21
+#Eval for threshold 0.4 DER=5.41, miss=0.32, falarm=1.78, confusion=3.31
+#Eval for threshold 0.45 DER=5.24, miss=0.42, falarm=1.46, confusion=3.35
+#Eval for threshold 0.5 DER=5.18, miss=0.55, falarm=1.26, confusion=3.37
+#Eval for threshold 0.55 DER=5.28, miss=0.80, falarm=1.17, confusion=3.31
+#Eval for threshold 0.6 DER=5.49, miss=1.15, falarm=1.11, confusion=3.24
+#Eval for threshold 0.7 DER=6.44, miss=2.55, falarm=0.99, confusion=2.90
+#Eval for threshold 0.8 DER=9.76, miss=6.82, falarm=0.86, confusion=2.08
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=11.19, miss=0.18, falarm=9.98, confusion=1.03
+#Eval for threshold 0.3 DER=9.01, miss=0.36, falarm=7.27, confusion=1.37
+#Eval for threshold 0.35 DER=8.42, miss=0.48, falarm=6.44, confusion=1.50
+#Eval for threshold 0.4 DER=7.96, miss=0.63, falarm=5.70, confusion=1.62
+#Eval for threshold 0.45 DER=7.65, miss=0.83, falarm=5.11, confusion=1.71
+#Eval for threshold 0.5 DER=6.19, miss=1.16, falarm=2.23, confusion=2.81
+#Eval for threshold 0.55 DER=7.76, miss=4.15, falarm=1.99, confusion=1.62
+#Eval for threshold 0.6 DER=8.21, miss=4.87, falarm=1.87, confusion=1.47
+#Eval for threshold 0.7 DER=9.61, miss=6.87, falarm=1.58, confusion=1.15
+#Eval for threshold 0.8 DER=12.40, miss=10.29, falarm=1.30, confusion=0.82
+
+
+if [ ${stage} -le 69 ] && [ ${stop_stage} -ge 69 ];then
+    . path_for_speaker_diarization_hltsz.sh
+    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
+    # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
+    #  oracle target speaker embedding is from cam++ pretrain model
+    # this w2v-bert2.0 is trained Languages: 143+ , Size: 4.5M hours (it is from this paper https://arxiv.org/pdf/2312.05187)
+    # checkpoint is from https://huggingface.co/facebook/w2v-bert-2.0/tree/main
+    # how to look for port ?
+    # netstat -tuln
+    export NCCL_DEBUG=INFO
+    export PYTHONFAULTHANDLER=1
+    musan_path=/data/maduo/datasets/musan
+    rir_path=/data/maduo/datasets/RIRS_NOISES
+    dataset_name="magicdata-ramc" # dataset name
+    # for loading pretrain model weigt
+    speech_encoder_type="CAM++"
+    speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+    # for loading speaker embedding file
+    spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+    speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
+    exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_transformer_rs_len8
+   #CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
+  #accelerate launch --debug --multi_gpu --mixed_precision=fp16 --num_processes=2  --main_process_port=12673 ts_vad2/train_accelerate_ddp2.py \
+   data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+   rs_len=8
+   segment_shift=2
+   single_backend_type="conformer"
+   multi_backend_type="transformer"
+   num_transformer_layer=2
+  CUDA_VISIABLE_DEVICES=0,1 \
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 17815 \
+   ts_vad2/train_accelerate_ddp.py \
+    --world-size 2 \
+    --num-epochs 20\
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --freeze-updates 4000\
+    --grad-clip true\
+    --lr 2e-4\
+    --musan-path $musan_path \
+    --rir-path $rir_path \
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --exp-dir $exp_dir\
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+
+fi
+
+
+if [ ${stage} -le 70 ] && [ ${stop_stage} -ge 70 ];then
+ exp_dir=/data/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_transformer_rs_len8
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=8
+ segment_shift=1
+ single_backend_type="conformer"
+ multi_backend_type="transformer"
+ num_transformer_layer=2
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="dev test"
+ #infer_sets="Test"
+ rttm_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+ sctk_tool_path="./SCTK-2.4.12"
+ collar="0.0 0.25"
+ #collar=0.0
+
+ dataset_name="magicdata-ramc" # dataset name
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+ speech_encoder_type="CAM++"
+ speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
+ #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+ # for loading speaker embedding file
+ spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+ speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+ data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+ for c in $collar;do
+  for name in $infer_sets;do
+    results_path=$exp_dir/${dataset_name}_${name}_collar${c}
+  python3 ts_vad2/infer.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name ${name}/rttm_debug_nog0\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $c\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer
+ done
 done
 fi
