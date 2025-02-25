@@ -28,7 +28,7 @@ from ecapa_tdnn_wespeaker import ECAPA_TDNN_GLOB_c1024
 from ecapa_tdnn import ECAPA_TDNN
 from whisper_encoder import ModelDimensions
 from whisper_encoder import WhisperEncoder
-from redimnet_wespeaker  import ReDimNetB2,ReDimNetB3,ReDimNetB4
+from redimnet_wespeaker  import ReDimNetB2,ReDimNetB3,ReDimNetM, ReDimNetS
 #from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 try:
     from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
@@ -378,6 +378,8 @@ class TSVADModel(nn.Module):
             self.multi_backend_proj = nn.Linear(
                 2*cfg.transformer_embed_dim, cfg.transformer_embed_dim)
             self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+
+
         return self.multi_backend,self.fc,self.multi_backend_proj
 
     def create_speech_encoder(self, sample_times, cfg, device):
@@ -447,16 +449,36 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.speaker_embed_dim),
                 nn.ReLU(),
             )
-
-        elif self.speech_encoder_type == "ReDimNetB4":
-             self.speech_encoder = ReDimNetB4(feat_dim=72,embed_dim=192,pooling_func="ASTP")
+        elif self.speech_encoder_type == "ReDimNetM":
+             self.speech_encoder = ReDimNetM(feat_dim=72,embed_dim=192,pooling_func="ASTP")
              self.speech_encoder.train()
              self.load_speaker_encoder(
                 cfg.speech_encoder_path, device=device, module_name="speech_encoder"
              )
-             # Because input and output of ReDimNetB4 are not subsample, so I need to subsample rate is 4 to match label_rate.
+             # Because input and output of ReDimNetM are not subsample, so I need to subsample rate is 4 to match label_rate.
              stride = int(4 // sample_times) if self.label_rate == 25 else 1
-             pretrain_speech_encoder_dim=2304
+             pretrain_speech_encoder_dim=1728
+             self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+
+        elif self.speech_encoder_type == "ReDimNetS":
+             self.speech_encoder = ReDimNetS(feat_dim=72,embed_dim=192,pooling_func="ASTP")
+             self.speech_encoder.train()
+             self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+             )
+             # Because input and output of ReDimNetS are not subsample, so I need to subsample rate is 4 to match label_rate.
+             stride = int(4 // sample_times) if self.label_rate == 25 else 1
+             pretrain_speech_encoder_dim=1152
              self.speech_down_or_up = nn.Sequential(
                 nn.Conv1d(
                     pretrain_speech_encoder_dim,
@@ -782,7 +804,7 @@ class TSVADModel(nn.Module):
                 x = x.hidden_states[-1] #(B,T,D)
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             x = self.speech_down_or_up(x)
-        elif self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or self.speech_encoder_type == "ReDimNetB4":
+        elif self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or self.speech_encoder_type == "ReDimNetM" or  self.speech_encoder_type == "ReDimNetS":
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input melbank feature(72-dim)
                 #print(f"input shape of speech_encoder: {ref_speech.shape}")
@@ -1120,8 +1142,10 @@ class TSVADModel(nn.Module):
 
 if __name__ == "__main__":
     """Build a new model instance."""
-
-    model = TSVADModel()
+    model_cfg = TSVADConfig()
+    model_cfg.single_backend_type="mamba2"
+    model_cfg.d_state=256
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=torch.device("cpu"))
     print(model)
     x = torch.zeros(10, 398, 80)  # B,T,F
     out = model.speech_encoder(x)
@@ -1132,3 +1156,4 @@ if __name__ == "__main__":
     print("{} M".format(num_params / 1e6))  # 6.61M
     data_cfg = TSVADDataConfig()
     print(vars(data_cfg))
+

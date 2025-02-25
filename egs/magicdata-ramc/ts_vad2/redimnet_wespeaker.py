@@ -1051,7 +1051,79 @@ def ReDimNetB6(feat_dim=72,
         two_emb_layer=two_emb_layer,
     )
 
+def ReDimNetM(feat_dim=72,
+               embed_dim=192,
+               pooling_func="ASTP",
+               two_emb_layer=False):
+    return ReDimNet(
+        feat_dim=feat_dim,
+        C=24,
+        block_1d_type="conv+att",
+        block_2d_type="basic_resnet",
+        stages_setup=[
+            (1, 4, 2, [(3, 3)], 24),
+            (2, 5, 2, [(3, 3)], 24),
+            (1, 6, 2, [(3, 3)], 24),
+            (2, 8, 1, [(3, 3)], 24),
+            (1, 8, 1, [(3, 3)], 24),
+            (2, 3, 1, [(3, 3)], 24),
+        ],
+        group_divisor=8,
+        out_channels=None,
+        embed_dim=embed_dim,
+        pooling_func=pooling_func,
+        global_context_att=True,
+        two_emb_layer=two_emb_layer,
+    )
 
+
+
+def ReDimNetS(feat_dim=72,
+               embed_dim=192,
+               pooling_func="ASTP",
+               two_emb_layer=False):
+    return ReDimNet(
+        feat_dim=feat_dim,
+        C=16,
+        block_1d_type="conv+att",
+        block_2d_type="basic_resnet",
+        stages_setup=[
+            (1, 4, 2, [(3, 3)], 16),
+            (2, 5, 2, [(3, 3)], 16),
+            (1, 6, 2, [(3, 3)], 16),
+            (2, 8, 1, [(3, 3)], 16),
+            (1, 8, 1, [(3, 3)], 16),
+            (2, 3, 1, [(3, 3)], 16),
+        ],
+        group_divisor=8,
+        out_channels=None,
+        embed_dim=embed_dim,
+        pooling_func=pooling_func,
+        global_context_att=True,
+        two_emb_layer=two_emb_layer,
+    )
+"""
+>>> import torch
+>>> URL_TEMPLATE = "https://github.com/IDRnD/ReDimNet/releases/download/latest/{model_name}"
+>>> model_name = f'M-vb2+vox2+cnc-ft_mix.pt'
+>>> url = URL_TEMPLATE.format(model_name = model_name)
+>>> full_state_dict = torch.hub.load_state_dict_from_url(url, progress=True)
+Downloading: "https://github.com/IDRnD/ReDimNet/releases/download/latest/M-vb2+vox2+cnc-ft_mix.pt" to /home/maduo/.cache/torch/hub/checkpoints/M-vb2+vox2+cnc-ft_mix.pt
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 18.8M/18.8M [00:08<00:00, 2.35MB/s]
+>>> full_state_dict["model_config"]
+{'C': 24, 'F': 72, 'block_1d_type': 'conv+att', 'block_2d_type': 'basic_resnet', 'emb_bn': False, 'embed_dim': 192, 'feat_type': 'pt', 'global_context_att': True, 'group_divisor': 8, 'hop_length': 160, 'out_channels': None, 'pooling_func': 'ASTP', 'spec_params': {'do_preemph': True, 'do_spec_aug': True, 'freq_mask_width': [0, 10], 'freq_start_bin': 40, 'norm_signal': True, 'time_mask_width': [0, 20]}, 'stages_setup': [[1, 4, 2, [[3, 3]], 24], [2, 5, 2, [[3, 3]], 24], [1, 6, 2, [[3, 3]], 24], [2, 8, 1, [[3, 3]], 24], [1, 8, 1, [[3, 3]], 24], [2, 3, 1, [[3, 3]], 24]]}
+>>>  model_name = f'S-vb2+vox2+cnc-ft_mix.pt'
+  File "<stdin>", line 1
+    model_name = f'S-vb2+vox2+cnc-ft_mix.pt'
+IndentationError: unexpected indent
+>>> model_name = f'S-vb2+vox2+cnc-ft_mix.pt'
+>>> url = URL_TEMPLATE.format(model_name = model_name)
+>>> full_state_dict_S = torch.hub.load_state_dict_from_url(url, progress=True)
+Downloading: "https://github.com/IDRnD/ReDimNet/releases/download/latest/S-vb2+vox2+cnc-ft_mix.pt" to /home/maduo/.cache/torch/hub/checkpoints/S-vb2+vox2+cnc-ft_mix.pt
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 12.5M/12.5M [00:05<00:00, 2.35MB/s]
+>>> full_state_dict_S["model_config"]
+{'C': 16, 'F': 72, 'block_1d_type': 'conv+att', 'block_2d_type': 'basic_resnet', 'emb_bn': False, 'embed_dim': 192, 'feat_type': 'pt', 'global_context_att': True, 'group_divisor': 8, 'hop_length': 160, 'out_channels': None, 'pooling_func': 'ASTP', 'spec_params': {'do_preemph': True, 'do_spec_aug': True, 'freq_mask_width': [0, 7], 'freq_start_bin': 32, 'norm_signal': True, 'time_mask_width': [0, 12]}, 'stages_setup': [[1, 4, 2, [[3, 3]], 16], [2, 5, 2, [[3, 3]], 16], [1, 6, 2, [[3, 3]], 16], [2, 8, 1, [[3, 3]], 16], [1, 8, 1, [[3, 3]], 16], [2, 3, 1, [[3, 3]], 16]]}
+"""
 if __name__ == "__main__":
     #x = torch.zeros(1, 200, 72)
     x = torch.randn(32, 601, 72)
@@ -1077,21 +1149,51 @@ if __name__ == "__main__":
     out = model(x)
     print(f"load pretrain model, out[-1].size() shape: {out[-1].size()}, out: {out}")
     out_frame = model.get_frame_level_feat(x)
-    print(f"load pretrain model, out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+    print(f"B2 load pretrain model, out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
 
     model = ReDimNetB3(feat_dim=72, embed_dim=192, two_emb_layer=False)
     model.eval()
     out = model(x)
     print(out[-1].size())
     out_frame = model.get_frame_level_feat(x)
-    print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+    print(f"B3 out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
 
     model = ReDimNetB4(feat_dim=72, embed_dim=192, two_emb_layer=False)
     model.eval()
     out = model(x)
     print(out[-1].size())
     out_frame = model.get_frame_level_feat(x)
-    print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 2304])
+    print(f"B4 out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 2304])
+
+    model = ReDimNetB5(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"B5 out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 2304])
+
+    model = ReDimNetB6(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"B6 out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 2304])
+
+    model = ReDimNetM(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"M out_frame shape: {out_frame.shape}") # M out_frame shape: torch.Size([32, 601, 1728])
+
+
+    model = ReDimNetS(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(out[-1].size())
+    out_frame = model.get_frame_level_feat(x)
+    print(f"S out_frame shape: {out_frame.shape}") # S out_frame shape: torch.Size([32, 601, 1152])
 
     num_params = sum(p.numel() for p in model.parameters())
     print("{} M".format(num_params / 1e6))

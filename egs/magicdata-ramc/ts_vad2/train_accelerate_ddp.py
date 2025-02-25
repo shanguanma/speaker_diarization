@@ -866,7 +866,7 @@ def load_checkpoint_if_available(
 def main(args):
     params = get_params()
     params.update(vars(args))
-    logging.info(f"params: {params}")
+    #logging.info(f"params: {params}")
     ## set seed firstly, it will effect batch and lr,
     fix_random_seed(params.seed)  # fairseq1 seed=1337
     world_size = params.world_size
@@ -959,6 +959,7 @@ def main(args):
     model_cfg.label_rate = params.label_rate
 
     logging.info(f"model_cfg: {model_cfg}")
+
     model = TSVADModel(cfg=model_cfg,task_cfg=data_cfg)
     #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     logging.info(f"model: {model}")
