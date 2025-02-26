@@ -22,10 +22,10 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ];then
      #else
      echo "extract $name target speaker embedding"
      # 提取embedding
-     input_dir=/mntcephfs/lab_data/maduo/datasets/alimeeting/${name}_Ali/${name}_Ali_far/target_audio/
+     input_dir=/data/maduo/datasets/alimeeting/${name}_Ali/${name}_Ali_far/target_audio/
      wav_path=$input_dir/wavs.txt
-     find $input_dir -name "*.wav" | grep -v "all.wav" >$file
-     head $file
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
      save_dir=$dest_dir/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding/$name/$feature_name
      python3 ts_vad2/generate_chunk_speaker_embedding_from_modelscope_for_diarization.py\
            --model_id $model_id\
