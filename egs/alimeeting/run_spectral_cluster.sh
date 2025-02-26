@@ -264,6 +264,7 @@ fi
 
 #  cat logs/run_spectral_cluster_stage10-13_alimeeting_eval_oracle.log
 # Eval set oracle vad, speaker embedding is from  cam++ model which is trained on cn-celeb and voxceleb.
+# collar=0.25
 # DER, MS, FA, SC
 # 13.57/12.92/0.00/0.65
 # cat logs/run_spectral_cluster_stage10-13_alimeeting_test_oracle.log
@@ -271,7 +272,24 @@ fi
 # DER, MS, FA, SC
 # 13.56/12.72/0.00/0.85
 
+# only overlap
+# Eval and collar=0.25
+# spyder -r overlap -c 0.25  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm /mntcephfs/lab_data/maduo/exp/speaker_diarization/spectral_cluster/exp/spectral_cluster/alimeeting_eval_oracle_sad_rttm_cam++_advanced
+# ╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+#│ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+#╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+#│ Overall     │        2782.96 │  53.74% │      0.00% │   0.58% │ 54.32% │
+#╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
+# Test and collar=0.25
+# spyder -r overlap -c 0.25  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm /mntcephfs/lab_data/maduo/exp/speaker_diarization/spectral_cluster/exp/spectral_cluster/alimeeting_test_oracle_sad_rttm_cam++_advanced
+# ╒═════════════╤════════════════╤═════════╤════════════╤═════════╤════════╕
+# │ Recording   │   Duration (s) │   Miss. │   F.Alarm. │   Conf. │    DER │
+# ╞═════════════╪════════════════╪═════════╪════════════╪═════════╪════════╡
+# │ Overall     │        6848.25 │  54.95% │      0.00% │   0.90% │ 55.85% │
+# ╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
+
 # cat logs/run_spectral_cluster_stage12-13_alimeeting_eval_system.log
+# collar=0.0
 # Eval set system vad, speaker embedding is from  cam++ model which is trained on cn-celeb and voxceleb.
 # DER, MS, FA, SC
 # 16.94/15.39/0.82/0.73
@@ -285,6 +303,26 @@ fi
 # Train set system vad, speaker embedding is from  cam++ model which is trained on cn-celeb and voxceleb.
 # DER, MS, FA, SC
 # 23.50/20.09/1.53/1.89
+
+# 2025-2-26, more specify short term DER
+# for example: less than 1s segment
+# Eval of alimeeting, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/lab_data/maduo/exp/speaker_diarization/spectral_cluster/exp/spectral_cluster/alimeeting_eval_oracle_sad_rttm_cam++_advanced /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm
+# der=10.39,miss=0.01, false=0.0,confusion=10.38
+
+# Test of alimeeting, collar=0.25
+#  python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/lab_data/maduo/exp/speaker_diarization/spectral_cluster/exp/spectral_cluster/alimeeting_test_oracle_sad_rttm_cam++_advanced /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm
+# der=9.61,miss=0.0, false=0.0,confusion=9.6
+
+# for example: less than 2s segment
+# Eval of alimeeting, collar=0.25
+#  python3 ../multi_datasets/ts_vad2/short_term_statistics.py 2 /mntcephfs/lab_data/maduo/exp/speaker_diarization/spectral_cluster/exp/spectral_cluster/alimeeting_eval_oracle_sad_rttm_cam++_advanced /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm
+# der=4.02,miss=0.02, false=0.0,confusion=4.0
+
+# Test of alimeeting, collar=0.25
+#  python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/lab_data/maduo/exp/speaker_diarization/spectral_cluster/exp/spectral_cluster/alimeeting_test_oracle_sad_rttm_cam++_advanced /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm
+# der=4.02,miss=0.02, false=0.0,confusion=4.0
+
 
 
 # I want to finetune period_secs, it is from `FROM MODULAR TO END-TO-END SPEAKER DIARIZATION`

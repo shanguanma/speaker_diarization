@@ -4964,7 +4964,25 @@ done
 # ╘═════════════╧════════════════╧═════════╧════════════╧═════════╧════════╛
 
 
-# only nonoverlap der
+# 2025-2-26, more specify short term DER
+# for example: less than 1s segment
+# Eval of alimeeting, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Eval/res_rttm_0.5  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm
+# der=15.33,miss=7.24, false=4.82,confusion=3.27
+
+# Test of alimeeting, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Test/res_rttm_0.5  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm
+# der=15.07,miss=10.9, false=2.09,confusion=2.09
+
+
+# for example: less than 2s segment
+#  Eval of alimeeting, collar=0.25
+#  python3 ../multi_datasets/ts_vad2/short_term_statistics.py 2 /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Eval/res_rttm_0.5  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_eval.rttm
+# der=5.27,miss=2.14, false=2.25,confusion=0.88
+
+# Test of alimeeting, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 2 /mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_w2v-bert2.0_first6layer_epoch40_front_fix_seed_lr1e4/Test/res_rttm_0.5  /mntcephfs/lab_data/maduo/model_hub/ts_vad/alimeeting_test.rttm
+# der=5.33,miss=3.27, false=1.31,confusion=0.75
 fi
 
 if [ ${stage} -le 106 ] && [ ${stop_stage} -ge 106 ];then
@@ -7995,6 +8013,57 @@ if [ ${stage} -le 145 ] && [ ${stop_stage} -ge 145 ];then
  done
 done
 fi
+# grep -r Eval logs/run_ts_vad2_stage144-145_cam++_zh_en_advanced.log
+# collar=0.0
+# Eval of alimeeting
+#Eval for threshold 0.20: DER 17.55%, MS 2.79%, FA 13.61%, SC 1.15%
+#Eval for threshold 0.30: DER 14.77%, MS 4.12%, FA 9.38%, SC 1.26%
+#Eval for threshold 0.35: DER 13.94%, MS 4.77%, FA 7.89%, SC 1.28%
+#Eval for threshold 0.40: DER 13.43%, MS 5.49%, FA 6.69%, SC 1.25%
+#Eval for threshold 0.45: DER 13.11%, MS 6.20%, FA 5.68%, SC 1.22%
+#Eval for threshold 0.50: DER 12.98%, MS 6.97%, FA 4.85%, SC 1.16%
+#Eval for threshold 0.55: DER 13.02%, MS 7.82%, FA 4.13%, SC 1.07%
+#Eval for threshold 0.60: DER 13.27%, MS 8.77%, FA 3.50%, SC 0.99%
+#Eval for threshold 0.70: DER 14.44%, MS 11.14%, FA 2.48%, SC 0.82%
+#Eval for threshold 0.80: DER 16.51%, MS 14.31%, FA 1.61%, SC 0.59%
+
+# Test of alimeeting
+#Eval for threshold 0.20: DER 17.72%, MS 2.70%, FA 13.87%, SC 1.15%
+#Eval for threshold 0.30: DER 14.81%, MS 3.99%, FA 9.52%, SC 1.29%
+#Eval for threshold 0.35: DER 14.05%, MS 4.73%, FA 7.98%, SC 1.34%
+#Eval for threshold 0.40: DER 13.59%, MS 5.46%, FA 6.75%, SC 1.37%
+#Eval for threshold 0.45: DER 13.32%, MS 6.22%, FA 5.70%, SC 1.39%
+#Eval for threshold 0.50: DER 13.27%, MS 7.05%, FA 4.85%, SC 1.38%
+#Eval for threshold 0.55: DER 13.40%, MS 7.99%, FA 4.09%, SC 1.32%
+#Eval for threshold 0.60: DER 13.72%, MS 9.06%, FA 3.40%, SC 1.25%
+#Eval for threshold 0.70: DER 15.05%, MS 11.68%, FA 2.30%, SC 1.06%
+#Eval for threshold 0.80: DER 17.50%, MS 15.28%, FA 1.44%, SC 0.78%
+
+# collar=0.25
+# Eval of alimeeting
+#Eval for threshold 0.20: DER 7.12%, MS 0.98%, FA 5.80%, SC 0.34%
+#Eval for threshold 0.30: DER 5.56%, MS 1.52%, FA 3.66%, SC 0.37%
+#Eval for threshold 0.35: DER 5.07%, MS 1.77%, FA 2.90%, SC 0.40%
+#Eval for threshold 0.40: DER 4.83%, MS 2.08%, FA 2.36%, SC 0.39%
+#Eval for threshold 0.45: DER 4.67%, MS 2.40%, FA 1.90%, SC 0.37%
+#Eval for threshold 0.50: DER 4.67%, MS 2.79%, FA 1.54%, SC 0.34%
+#Eval for threshold 0.55: DER 4.77%, MS 3.21%, FA 1.26%, SC 0.29%
+#Eval for threshold 0.60: DER 5.00%, MS 3.70%, FA 1.04%, SC 0.27%
+#Eval for threshold 0.70: DER 5.92%, MS 5.00%, FA 0.70%, SC 0.21%
+#Eval for threshold 0.80: DER 7.48%, MS 6.87%, FA 0.47%, SC 0.14%
+
+# Test of alimeeting
+#Eval for threshold 0.20: DER 7.90%, MS 1.16%, FA 6.32%, SC 0.42%
+#Eval for threshold 0.30: DER 6.10%, MS 1.77%, FA 3.85%, SC 0.48%
+#Eval for threshold 0.35: DER 5.65%, MS 2.13%, FA 3.01%, SC 0.52%
+#Eval for threshold 0.40: DER 5.39%, MS 2.49%, FA 2.36%, SC 0.55%
+#Eval for threshold 0.45: DER 5.29%, MS 2.89%, FA 1.82%, SC 0.57%
+#Eval for threshold 0.50: DER 5.32%, MS 3.34%, FA 1.40%, SC 0.58%
+#Eval for threshold 0.55: DER 5.50%, MS 3.88%, FA 1.08%, SC 0.54%
+#Eval for threshold 0.60: DER 5.79%, MS 4.47%, FA 0.81%, SC 0.51%
+#Eval for threshold 0.70: DER 6.86%, MS 5.99%, FA 0.46%, SC 0.41%
+#Eval for threshold 0.80: DER 8.70%, MS 8.18%, FA 0.24%, SC 0.28%
+
 
 # #compared with stage144-145, stage146-147 rs_len is reduced from 15 to 10
 if [ ${stage} -le 146 ] && [ ${stop_stage} -ge 146 ];then
@@ -8112,3 +8181,54 @@ if [ ${stage} -le 147 ] && [ ${stop_stage} -ge 147 ];then
  done
 done
 fi
+# grep -r Eval logs/run_ts_vad2_stage146-147_cam++_zh_en_advanced_rs_len10.log
+# collar=0.0
+# Eval of alimeeting
+#Eval for threshold 0.20: DER 18.30%, MS 2.95%, FA 14.21%, SC 1.14%
+#Eval for threshold 0.30: DER 15.07%, MS 4.29%, FA 9.51%, SC 1.28%
+#Eval for threshold 0.35: DER 14.24%, MS 4.99%, FA 7.95%, SC 1.30%
+#Eval for threshold 0.40: DER 13.73%, MS 5.81%, FA 6.63%, SC 1.28%
+#Eval for threshold 0.45: DER 13.47%, MS 6.66%, FA 5.55%, SC 1.26%
+#Eval for threshold 0.50: DER 13.47%, MS 7.55%, FA 4.69%, SC 1.23%
+#Eval for threshold 0.55: DER 13.65%, MS 8.54%, FA 3.97%, SC 1.14%
+#Eval for threshold 0.60: DER 13.99%, MS 9.58%, FA 3.38%, SC 1.02%
+#Eval for threshold 0.70: DER 15.25%, MS 12.09%, FA 2.36%, SC 0.79%
+#Eval for threshold 0.80: DER 17.79%, MS 15.70%, FA 1.54%, SC 0.56%
+
+# Test of alimeeting
+#Eval for threshold 0.20: DER 18.10%, MS 2.90%, FA 14.02%, SC 1.17%
+#Eval for threshold 0.30: DER 14.99%, MS 4.28%, FA 9.38%, SC 1.34%
+#Eval for threshold 0.35: DER 14.18%, MS 5.00%, FA 7.79%, SC 1.38%
+#Eval for threshold 0.40: DER 13.73%, MS 5.85%, FA 6.45%, SC 1.43%
+#Eval for threshold 0.45: DER 13.56%, MS 6.76%, FA 5.38%, SC 1.43%
+#Eval for threshold 0.50: DER 13.59%, MS 7.74%, FA 4.47%, SC 1.37%
+#Eval for threshold 0.55: DER 13.83%, MS 8.81%, FA 3.71%, SC 1.30%
+#Eval for threshold 0.60: DER 14.34%, MS 10.04%, FA 3.09%, SC 1.21%
+#Eval for threshold 0.70: DER 15.91%, MS 12.86%, FA 2.06%, SC 0.99%
+#Eval for threshold 0.80: DER 18.82%, MS 16.87%, FA 1.25%, SC 0.70%
+
+# collar=0.25
+# Eval of alimeeting
+#Eval for threshold 0.20: DER 7.69%, MS 1.04%, FA 6.35%, SC 0.30%
+#Eval for threshold 0.30: DER 5.72%, MS 1.59%, FA 3.78%, SC 0.35%
+#Eval for threshold 0.35: DER 5.27%, MS 1.90%, FA 2.99%, SC 0.38%
+#Eval for threshold 0.40: DER 4.98%, MS 2.27%, FA 2.33%, SC 0.38%
+#Eval for threshold 0.45: DER 4.88%, MS 2.68%, FA 1.83%, SC 0.37%
+#Eval for threshold 0.50: DER 4.95%, MS 3.11%, FA 1.46%, SC 0.38%
+#Eval for threshold 0.55: DER 5.16%, MS 3.65%, FA 1.18%, SC 0.32%
+#Eval for threshold 0.60: DER 5.43%, MS 4.21%, FA 0.96%, SC 0.26%
+#Eval for threshold 0.70: DER 6.55%, MS 5.75%, FA 0.62%, SC 0.18%
+#Eval for threshold 0.80: DER 8.52%, MS 7.98%, FA 0.43%, SC 0.10%
+
+# Test of alimeeting
+#Eval for threshold 0.20: DER 8.11%, MS 1.30%, FA 6.38%, SC 0.43%
+#Eval for threshold 0.30: DER 6.08%, MS 1.95%, FA 3.63%, SC 0.50%
+#Eval for threshold 0.35: DER 5.59%, MS 2.32%, FA 2.75%, SC 0.52%
+#Eval for threshold 0.40: DER 5.38%, MS 2.77%, FA 2.06%, SC 0.55%
+#Eval for threshold 0.45: DER 5.39%, MS 3.29%, FA 1.54%, SC 0.56%
+#Eval for threshold 0.50: DER 5.49%, MS 3.82%, FA 1.15%, SC 0.53%
+#Eval for threshold 0.55: DER 5.78%, MS 4.42%, FA 0.87%, SC 0.49%
+#Eval for threshold 0.60: DER 6.23%, MS 5.15%, FA 0.64%, SC 0.44%
+#Eval for threshold 0.70: DER 7.53%, MS 6.84%, FA 0.36%, SC 0.33%
+#Eval for threshold 0.80: DER 9.75%, MS 9.37%, FA 0.17%, SC 0.21%
+

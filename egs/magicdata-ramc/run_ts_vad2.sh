@@ -2270,7 +2270,7 @@ done
 
 fi
 
-
+### 2025-2-26, note: util now, it is sota.
 # compared with stage94-95, stage108-109will increase rs_len from 4 to 6
 if [ ${stage} -le 108 ] && [ ${stop_stage} -ge 108 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
@@ -2443,6 +2443,25 @@ done
 #Eval for threshold 0.6 DER=13.73, miss=6.48, falarm=5.31, confusion=1.94
 #Eval for threshold 0.7 DER=14.69, miss=8.65, falarm=4.40, confusion=1.64
 #Eval for threshold 0.8 DER=16.73, miss=12.02, falarm=3.44, confusion=1.27
+
+# 2025-2-26, more  specify short term DER
+# for example: less than 1s segment
+# dev of magicdata-ramc, collar=0.25
+#  python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.25/dev/res_rttm_0.5 /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0
+# der=11.35,miss=5.5, false=0.07,confusion=5.78
+
+# test of magicdata-ramc, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 1 /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.25/test/res_rttm_0.5 /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/rttm_debug_nog0
+# der=16.19,miss=8.75, false=0.37,confusion=7.07
+
+# for example: less than 2s segment
+# dev of magicdata-ramc, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 2 /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.25/dev/res_rttm_0.5 /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0
+# der=6.46,miss=2.62, false=0.04,confusion=3.79
+
+# test of magicdata-ramc, collar=0.25
+# python3 ../multi_datasets/ts_vad2/short_term_statistics.py 2 /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.25/test/res_rttm_0.5 /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/rttm_debug_nog0
+# der=9.86,miss=4.67, false=0.13,confusion=5.06
 fi
 
 
