@@ -14,6 +14,13 @@ step4: We crop the short-term segment extracted in the third step from the non-o
 step5: We crop the non-overlap segment from hyp rttm via non-overlap segment of the second step
 step6: We crop the short-term segment from non-overlap segment of step 5 via short-term segment of step 3.
 
+
+how to run it ?
+computer der of less than 1s segment 
+python3 ts_vad2/short_term_statistics.py 1 hyp_rttm ref_rttm
+
+computer der of less than 2s segment
+python3 ts_vad2/short_term_statistics.py 2 hyp_rttm ref_rttm
 """
 import os
 import sys
@@ -136,13 +143,3 @@ if __name__ == "__main__":
     false_ = der.report()["false alarm"].iloc[-1,-1]
     miss_ = der.report()["missed detection"].iloc[-1,-1]
     print(f"der={round(der_,2)},miss={round(miss_,2)}, false={round(false_,2)},confusion={round(confusion_,2)}")
-    ## display
-    #conf_sum = {}
-    #der_sim = {}
-    #false_sum = {}
-    #miss_sum = {}
-    #confusion_ = der.report()["confusion"].iloc[-1,-1]/100
-    #der_ = der.report()["diarization error rate"].iloc[-1,-1]/100
-    #false_ = der.report()["false alarm"].iloc[-1,-1]/100
-    #miss_ = der.report()["missed detection"].iloc[-1,-1]/100
-    #conf_sum[]
