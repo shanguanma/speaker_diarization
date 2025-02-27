@@ -245,17 +245,20 @@ class TSVADModel(nn.Module):
                 ),
                 num_layers=cfg.num_transformer_layer,
             )
-            self.backend_down = nn.Sequential(
-                nn.Conv1d(
-                    cfg.transformer_embed_dim * self.max_num_speaker,
-                    cfg.transformer_embed_dim,
-                    5,
-                    stride=1,
-                    padding=2,
-                ),
-                BatchNorm1D(num_features=cfg.transformer_embed_dim),
-                nn.ReLU(),
-            )
+            if self.support_variable_number_speakers:
+                self.backend_down=None
+            else:
+                self.backend_down = nn.Sequential(
+                    nn.Conv1d(
+                        cfg.transformer_embed_dim * self.max_num_speaker,
+                        cfg.transformer_embed_dim,
+                        5,
+                        stride=1,
+                        padding=2,
+                    ),
+                    BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                    nn.ReLU(),
+                )
         elif cfg.single_backend_type=="conformer":
             self.pos_encoder = PositionalEncoding(
                 cfg.transformer_embed_dim,
@@ -1108,30 +1111,34 @@ class TSVADModel(nn.Module):
 
             cat_embeds.append(cat_embed)
         cat_embeds = torch.stack(cat_embeds)  # num_speaker, B, T, F
-        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,num_speaker,F,T
+        num_speaker,B, T, F = cat_embeds.shape
+        #cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,num_speaker,F,T
         # Combine the outputs
-        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, num_speaker * F, T
+        cat_embeds = cat_embeds.permute(0,1,3,2) #  num_speaker, B,  F, T
+        cat_embeds = cat_embeds.reshape(-1, F, T)  # num_speaker* B, F, T
 
         # cat multi forward
-        B, _, T = cat_embeds.size()
+        #B, _, T = cat_embeds.size()
         # Downsampling
-        cat_embeds = self.backend_down(cat_embeds)  # B, F, T'
+        #cat_embeds = self.backend_down(cat_embeds)  # B, F, T
         # Transformer for multiple speakers
-        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
+        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1))) # T,B*num_speaker,F
         if self.multi_backend_type=="conformer":
-            cat_embeds = cat_embeds.transpose(0, 1)  # B, T', F
+            cat_embeds = cat_embeds.transpose(0, 1)  # B*num_speaker, T, F
             lengths = torch.tensor([cat_embeds.size(1) for i in cat_embeds], dtype=torch.int32,device=cat_embeds.device)
             #print(f"before multi_backend, cat_embeds shape: {cat_embeds.shape},lengths shape: {lengths.shape}")
-            cat_embeds,_ = self.multi_backend(cat_embeds,lengths)  # B, T', F
+            cat_embeds,_ = self.multi_backend(cat_embeds,lengths)  # B*num_speaker, T, F
+            cat_embeds = cat_embeds.view(B,num_speaker,T, -1)
+            cat_embeds = cat_embeds.permute(0,2,1,3) # B,T,num_speaker, F
             #print(f"after multi_backend, cat_embeds shape: {cat_embeds.shape}")
         else:
-            cat_embeds = self.multi_backend(cat_embeds)  # T', B, F
-            cat_embeds = cat_embeds.transpose(0, 1)  # B,T',F
+            cat_embeds = self.multi_backend(cat_embeds)  # T, B*num_speaker, F
+            #cat_embeds = cat_embeds.transpose(0, 1)  # B*num_speaker,T,F
+            cat_embeds = cat_embeds.view(T,B,num_speaker, -1) # T,B, num_speaker, F
+            cat_embeds = cat_embeds.permute(1,0,2,3) # B,T,num_speaker, F
 
-        if self.multi_backend_type=="mamba2":
-            cat_embeds = self.multi_backend_proj(cat_embeds)
-        outs = self.fc(cat_embeds)  # B T' 1
-        outs = outs.transpose(1, 2)  # B,1,T'
+        outs = self.fc(cat_embeds).squeeze(-1)  # B, T, num_speaker
+        outs = outs.transpose(1, 2)  # B,num_speaker,T
         return outs
 
 
@@ -1142,13 +1149,21 @@ class TSVADModel(nn.Module):
         labels: torch.Tensor,
         num_updates: int,
     ):
-        outs = self.forward_common(
-            ref_speech=ref_speech,
-            target_speech=target_speech,
-            labels=labels,
-            num_updates=num_updates,
-        )
-        return outs
+        if not self.support_variable_number_speakers:
+            outs = self.forward_common(
+                ref_speech=ref_speech,
+                target_speech=target_speech,
+                labels=labels,
+                num_updates=num_updates,
+            )
+        else:
+            outs = self.forward_common_variable_number_speakers(
+                ref_speech=ref_speech,
+                target_speech=target_speech,
+                labels=labels,
+                num_updates=num_updates,
+            )
+            return outs
 
     def infer(
         self,
