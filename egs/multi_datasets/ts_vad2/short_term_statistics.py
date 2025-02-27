@@ -123,7 +123,7 @@ if __name__ == "__main__":
     collar = sys.argv[4] # default 0.25
     uri_list = get_uris_from_rttm(res_path)
     print(f"total utts: {len(uri_list)}")
-    der = DiarizationErrorRate(skip_overlap=False,collar=collar)
+    der = DiarizationErrorRate(skip_overlap=False,collar=float((collar))
     for uri in uri_list:
         print(f"uri: {uri}")
         hyp = rttm_parser(res_path, uri,"")
