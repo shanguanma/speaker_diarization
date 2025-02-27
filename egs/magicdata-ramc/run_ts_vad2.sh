@@ -2462,6 +2462,16 @@ done
 # test of magicdata-ramc, collar=0.25
 # python3 ../multi_datasets/ts_vad2/short_term_statistics.py 2 /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.25/test/res_rttm_0.5 /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/rttm_debug_nog0
 # der=9.86,miss=4.67, false=0.13,confusion=5.06
+
+# 2025-2-27, CDER
+# dev of magicdata-ramc, collar=0.0
+# python3 cder/score.py -s /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.0/dev/res_rttm_0.5 /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0
+# Avg CDER : 0.142
+# test of magicdata-ramc, collar=0.0
+# python3 cder/score.py -s /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state128_rs_len6/magicdata-ramc_collar0.0/test/res_rttm_0.5 -r /mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/rttm_debug_nog0
+# Avg CDER : 0.135
+
+
 fi
 
 
