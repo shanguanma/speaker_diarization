@@ -28,7 +28,7 @@ from ecapa_tdnn_wespeaker import ECAPA_TDNN_GLOB_c1024
 from ecapa_tdnn import ECAPA_TDNN
 from whisper_encoder import ModelDimensions
 from whisper_encoder import WhisperEncoder
-from redimnet_wespeaker  import ReDimNetB2,ReDimNetB3,ReDimNetM, ReDimNetS
+from redimnet_wespeaker  import ReDimNetB0,ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetM, ReDimNetS
 #from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 try:
     from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
@@ -186,6 +186,7 @@ class TSVADModel(nn.Module):
         self.use_spk_embed = cfg.use_spk_embed
         self.rs_dropout = nn.Dropout(p=cfg.dropout)
         self.label_rate = task_cfg.label_rate
+        self.support_variable_number_speakers = task_cfg.support_variable_number_speakers
         #assert (
         #    self.label_rate == cfg.label_rate
         #), f"self.label_rate is {elf.label_rate} not support!"
@@ -340,7 +341,8 @@ class TSVADModel(nn.Module):
 
         return self.single_backend,self.pos_encoder,self.backend_down
 
-    def create_multi_backend(self,cfg):
+
+     def create_multi_backend(self,cfg):
         self.multi_backend: Optional[nn.Module] = None
         self.fc: Optional[nn.Module] = None
         self.multi_backend_proj: nn.Module=None
@@ -354,7 +356,10 @@ class TSVADModel(nn.Module):
                 ),
                 num_layers=cfg.num_transformer_layer,
             )
-            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+            if self.support_variable_number_speakers:
+                self.fc = nn.Linear(cfg.transformer_embed_dim, 1)
+            else:
+                self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
         elif cfg.multi_backend_type=="conformer":
             self.multi_backend = torchaudio.models.Conformer(
                     input_dim=cfg.transformer_embed_dim,
@@ -363,7 +368,11 @@ class TSVADModel(nn.Module):
                     num_layers=cfg.num_transformer_layer,
                     depthwise_conv_kernel_size=31,
                 )
-            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+
+            if self.support_variable_number_speakers:
+                self.fc = nn.Linear(cfg.transformer_embed_dim, 1)
+            else:
+                self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
 
         elif cfg.multi_backend_type=="mamba":
             self.multi_backend= MambaBlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=64,d_conv=4,expand=4,bidirectional=True)
@@ -377,10 +386,15 @@ class TSVADModel(nn.Module):
             self.multi_backend = Mamba2BlockV2(cfg.transformer_embed_dim,n_layer=cfg.num_transformer_layer,d_state=cfg.d_state,d_conv=4,expand=cfg.expand,bidirectional=True)
             self.multi_backend_proj = nn.Linear(
                 2*cfg.transformer_embed_dim, cfg.transformer_embed_dim)
-            self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
+
+            if self.support_variable_number_speakers:
+                self.fc = nn.Linear(cfg.transformer_embed_dim, 1)
+            else:
+                self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
 
 
         return self.multi_backend,self.fc,self.multi_backend_proj
+
 
     def create_speech_encoder(self, sample_times, cfg, device):
         self.speech_encoder: Optional[nn.Module] = None
@@ -399,6 +413,46 @@ class TSVADModel(nn.Module):
             stride = int(2 // sample_times) if self.label_rate == 25 else 1
             pretrain_speech_encoder_dim = 512
             self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+        elif self.speech_encoder_type == "ReDimNetB0":
+             self.speech_encoder = ReDimNetB0(feat_dim=60,embed_dim=192,pooling_func="ASTP")
+             self.speech_encoder.train()
+             self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+             )
+             # Because input and output of ReDimNetB2 are not subsample, so I need to subsample rate is 4 to match label_rate.
+             stride = int(4 // sample_times) if self.label_rate == 25 else 1
+             pretrain_speech_encoder_dim=600
+             self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+        elif self.speech_encoder_type == "ReDimNetB1":
+             self.speech_encoder = ReDimNetB1(feat_dim=72,embed_dim=192,pooling_func="ASTP")
+             self.speech_encoder.train()
+             self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+             )
+             # Because input and output of ReDimNetB2 are not subsample, so I need to subsample rate is 4 to match label_rate.
+             stride = int(4 // sample_times) if self.label_rate == 25 else 1
+             pretrain_speech_encoder_dim=864
+             self.speech_down_or_up = nn.Sequential(
                 nn.Conv1d(
                     pretrain_speech_encoder_dim,
                     cfg.speaker_embed_dim,
@@ -804,7 +858,7 @@ class TSVADModel(nn.Module):
                 x = x.hidden_states[-1] #(B,T,D)
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             x = self.speech_down_or_up(x)
-        elif self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or self.speech_encoder_type == "ReDimNetM" or  self.speech_encoder_type == "ReDimNetS":
+        elif self.speech_encoder_type == "ReDimNetB0" or self.speech_encoder_type == "ReDimNetB1" or self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or  self.speech_encoder_type == "ReDimNetM" or  self.speech_encoder_type == "ReDimNetS":
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input melbank feature(72-dim)
                 #print(f"input shape of speech_encoder: {ref_speech.shape}")
@@ -902,6 +956,184 @@ class TSVADModel(nn.Module):
         outs = self.fc(cat_embeds)  # B T' 4
         outs = outs.transpose(1, 2)  # B,4,T'
         return outs
+
+    def forward_common_variable_number_speakers(
+        self,
+        ref_speech: torch.Tensor,
+        target_speech: torch.Tensor,
+        labels: torch.Tensor,
+        # labels_len: torch.Tensor,
+        fix_encoder: bool = True,
+        num_updates: int = 0,
+    ):
+        B = ref_speech.size(0)
+        T = ref_speech.size(1)
+        # print(f"ref_speech shape: {ref_speech.shape}")
+        max_len = labels.size(-1)
+        fix_encoder = num_updates < self.freeze_speech_encoder_updates
+        if self.speech_encoder_type == "WavLM":
+            # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                x = self.speech_encoder.extract_features(ref_speech)[0]
+            x = x.view(
+                B, -1, self.pretrain_speech_encoder_dim
+            )  # B, 50 * T, self.pretrain_speech_encoder_dim
+            x = x.transpose(1, 2)  # (B,D,T)
+            x = self.speech_down_or_up(x)
+        elif self.speech_encoder_type == "WavLM_weight_sum":
+            # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # print(x[0][0].shape)#(B,T,D), it is output of last layer of transformer
+                # print(len(x[0][1])) # when output_layer=12,ret_layer_results=True, it is 13,
+                # Because the first element of ret_layer_results is the result of pos_conv,
+                # and the second element is the output of the first layer of transformer,
+                # Each element here is actually a tuple. The first element of the tuple is hidden state, and the second element is attention_state.
+                x = self.speech_encoder.extract_features(
+                    ref_speech,
+                    output_layer=self.wavlm_encoder_num_layer,
+                    ret_layer_results=True,
+                )
+            hss = [hs for hs, att in x[0][1]]
+            # print(f"hss len: {len(hss)}")
+            stacked_hs = torch.stack(hss[1:], dim=-1)  # (T,B,D,12)
+
+            if self.wavlm_fuse_feat_post_norm:
+                x = self.weights(stacked_hs) # (T,B,D,1)
+                x = torch.squeeze(x, -1) #(T,B,D)
+                x = x.permute(1,0,2) #(B,T,D)
+                x = self.wavlmproj(x) # (B,T,D)
+                x = self.wavlmlnorm(x) # (B,T,D)
+                x = x.permute(0,2,1) # (B,D,T)
+                x = self.speech_down_or_up(x)
+            else:
+                _, T, B, D = stacked_hs.shape
+                # print(f"stacked_hs.shape: {stacked_hs.shape}")
+                stacked_hs = stacked_hs.view(stacked_hs.shape[-1], -1)  # (12,T*B*D)
+                # print(f"stacked_hs shap: {stacked_hs.shape}")
+                norm_weights = F.softmax(self.weights, dim=-1)
+                # print(f"norm_weights.unsqueeze(-1) shape: {norm_weights.unsqueeze(-1).shape}")
+                weighted_hs = (norm_weights.unsqueeze(-1) * stacked_hs).sum(dim=0)
+                weighted_hs = weighted_hs.view(B, T, D)
+                x = weighted_hs.permute(0, 2, 1)  # (B,D,T)
+                x = self.speech_down_or_up(x)
+        elif self.speech_encoder_type == "whisper":
+            # it should be wavform input, shape (B,T), fbank_input of ts_vad_dataset.py should be set False
+            # whisper output frame rate 50,so I need to downsample to 25.
+            # whisper encoder output  shape (B,T,D)
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                x = self.speech_encoder(ref_speech)
+            x = x.transpose(1, 2)  # (B,T,D)-> (B,D,T)
+            x = self.speech_down_or_up(x)  # (B,D,T/2)
+
+        elif self.speech_encoder_type == "w2v-bert2":
+            # its input fbank feature(80-dim)
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                batch_size, num_frames, num_channels = ref_speech.shape
+                ref_speech = torch.reshape(ref_speech,(batch_size,num_frames//2,num_channels*2)) # (batch_size, T, 160)
+                x = self.speech_encoder(ref_speech,output_hidden_states=True) #
+                x = x.hidden_states[-1] #it is equal to x = x['hidden_states'][self.select_encoder_layer_nums]
+            x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
+            x = self.speech_down_or_up(x)
+        elif self.speech_encoder_type == 'hubert':
+            # its input is wavform. we use pretrain mask setting again
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                batch_size, raw_sequence_length = ref_speech.shape
+                x = self.speech_encoder(ref_speech,output_hidden_states=True)
+                x = x.hidden_states[-1] #(B,T,D)
+            x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
+            x = self.speech_down_or_up(x)
+        elif self.speech_encoder_type == "ReDimNetB0" or self.speech_encoder_type == "ReDimNetB1" or self.speech_encoder_type == "ReDimNetB2" or self.speech_encoder_type == "ReDimNetB3" or self.speech_encoder_type == "ReDimNetM" or  self.speech_encoder_type == "ReDimNetS":
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # its input melbank feature(72-dim)
+                #print(f"input shape of speech_encoder: {ref_speech.shape}")
+                x = self.speech_encoder.get_frame_level_feat(ref_speech) # (B,T,D)
+            x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
+            #print(f"output shape of speech_encoder: {x.shape}")
+            x = self.speech_down_or_up(x) # (B,D,T) -> (B,F,T)
+            #print(f"output shape of self.speech_down_or_up(x): {x.shape}")
+        else:
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # its input fbank feature(80-dim)
+                x = self.speech_encoder(ref_speech, get_time_out=True)
+            # print(f"x shape: {x.shape}") # B,F',T'
+            x = self.speech_down_or_up(x)
+        #print(f"x shape: {x.shape}, max_len: {max_len}")
+
+        ## process gap of audio len and label len
+        gap = x.size(-1) - max_len
+        assert abs(x.size(-1) -max_len)<=2, f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
+        # padding audio len to label len
+        if gap == -1:
+             x = nn.functional.pad(x, (0, 1))
+        elif gap == -2:
+            x = nn.functional.pad(x, (0, 2))
+        # cut audio len to label len
+        x = x[:, :, :max_len]  # (B,D,T)
+
+         mix_embeds = x.transpose(1, 2)  # (B,T,D)
+
+        # target speech
+        ts_embeds = self.rs_dropout(target_speech)  # B, max_num_speaker in current batch, D
+
+        # combine target embedding and mix embedding
+        # Extend ts_embeds for time alignemnt
+        ts_embeds = ts_embeds.unsqueeze(2)  # B, max_num_speaker in current batch, 1, D
+        # repeat T to cat mix frame-level information
+        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, max_num_speaker in current batch, T, D
+        B, num_speaker, T, _ = ts_embeds.shape
+
+        # Transformer for single speaker
+        # assume self.max_num_speaker==4,
+        cat_embeds = []
+        for i in range(num_speaker):
+            ts_embed = ts_embeds[:, i, :, :]  # B,T,D
+            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T,2D
+            if self.proj_layer is not None:
+                cat_embed = self.proj_layer(cat_embed)
+            logging.debug(f"cat_embed: shape: {cat_embed.shape}") #(B,T,384)
+            cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
+            if self.single_backend_type=="conformer":
+                cat_embed = cat_embed.transpose(0, 1)  # B,T, 2D
+                lengths = torch.tensor([cat_embed.size(1) for i in cat_embed], dtype=torch.int32,device=cat_embed.device)
+                cat_embed = cat_embed.transpose(0, 1)  # T,B 2D
+                cat_embed = self.pos_encoder(cat_embed)
+                cat_embed = cat_embed.transpose(0, 1)  # B,T, F
+                #print(f"before single_backend, cat_embed shape: {cat_embed.shape}")
+                cat_embed,_ = self.single_backend(cat_embed,lengths)  # B,T, F
+                #print(f"after single_backend, cat_embed shape: {cat_embed.shape}")
+            else:
+                cat_embed = self.pos_encoder(cat_embed)
+                cat_embed = self.single_backend(cat_embed)  # T, B, F
+                cat_embed = cat_embed.transpose(0, 1)  # B, T, F
+
+            cat_embeds.append(cat_embed)
+        cat_embeds = torch.stack(cat_embeds)  # num_speaker, B, T, F
+        cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,num_speaker,F,T
+        # Combine the outputs
+        cat_embeds = cat_embeds.reshape(B, -1, T)  # B, num_speaker * F, T
+
+        # cat multi forward
+        B, _, T = cat_embeds.size()
+        # Downsampling
+        cat_embeds = self.backend_down(cat_embeds)  # B, F, T'
+        # Transformer for multiple speakers
+        cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
+        if self.multi_backend_type=="conformer":
+            cat_embeds = cat_embeds.transpose(0, 1)  # B, T', F
+            lengths = torch.tensor([cat_embeds.size(1) for i in cat_embeds], dtype=torch.int32,device=cat_embeds.device)
+            #print(f"before multi_backend, cat_embeds shape: {cat_embeds.shape},lengths shape: {lengths.shape}")
+            cat_embeds,_ = self.multi_backend(cat_embeds,lengths)  # B, T', F
+            #print(f"after multi_backend, cat_embeds shape: {cat_embeds.shape}")
+        else:
+            cat_embeds = self.multi_backend(cat_embeds)  # T', B, F
+            cat_embeds = cat_embeds.transpose(0, 1)  # B,T',F
+
+        if self.multi_backend_type=="mamba2":
+            cat_embeds = self.multi_backend_proj(cat_embeds)
+        outs = self.fc(cat_embeds)  # B T' 1
+        outs = outs.transpose(1, 2)  # B,1,T'
+        return outs
+
 
     def forward(
         self,

@@ -104,13 +104,14 @@ class TSVADDataset(torch.utils.data.Dataset):
         embed_input: bool = False,
         fbank_input: bool = False,
         redimnet_input: bool=False,
-
+        speech_encoder_type: bool="CAM++",
         label_rate: int = 25,
         random_channel: bool = False,
         support_mc: bool = False,
         random_mask_speaker_prob: float = 0.0,
         random_mask_speaker_step: int = 0,
         speaker_embed_dim: int = 192, # same as speaker_embed_dim of model
+        support_variable_number_speakers: bool = False # if true, it will support variable_number_speakers in training stage and infer stage
     ):
         self.audio_path = audio_path
         self.spk_path = spk_path
@@ -121,6 +122,8 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.random_mask_speaker_prob = random_mask_speaker_prob
         self.random_mask_speaker_step = random_mask_speaker_step
         self.speaker_embed_dim = speaker_embed_dim
+        self.speech_encoder_type = speech_encoder_type
+        self.support_variable_number_speakers = support_variable_number_speakers
 
         ## load data and label,
         ## it will prepare chunk segment information for mixture audio
@@ -159,10 +162,15 @@ class TSVADDataset(torch.utils.data.Dataset):
                 )
             else:
                 logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
-                # because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
-                self.feature_extractor = FBank(
-                    72, sample_rate=self.sample_rate, mean_nor=True
-                )
+                # because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB0,ReDimNetS and ReDimNetM
+                if speech_encoder_type=="ReDimNetB0":
+                    self.feature_extractor = FBank(
+                        60, sample_rate=self.sample_rate, mean_nor=True
+                    )
+                else:
+                    self.feature_extractor = FBank(
+                        72, sample_rate=self.sample_rate, mean_nor=True
+                    )
                 #logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
                 #from features import MelBanks
                 #self.feature_extractor =  MelBanks(n_mels=72) # its output shape: (1,F,T'), F=72 , because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
@@ -423,11 +431,39 @@ class TSVADDataset(torch.utils.data.Dataset):
             target_speeches.append(feature)
         target_speeches = torch.stack(target_speeches)
         return target_speeches
+    # Stack the speaker's embedding according to the real speakerid, and no longer use fake embedding to fill
+    # In other words, assuming there are only two speakers in the sentence, our final speaker embedding size is (2, speaker_embedding)
+    # Assuming that another sentence contains three speakers, the final speaker embedding size is (3, speaker_embedding).
+    def load_alimeeting_ts_embed_variable_number_speakers(self, file, speaker_ids):
+        target_speeches = []
+        exist_spk = []
+        #print(f"file:{file}, speaker_ids: {speaker_ids}")
+        for speaker_id in speaker_ids:
+            if speaker_id != -1 and speaker_id != -2:
+                audio_filename = speaker_id
+                exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
+
+                path = os.path.join(self.spk_path, file, str(audio_filename) + ".pt")
+                feature = torch.load(path, map_location="cpu")
+            if len(feature.size()) == 2:
+                if self.is_train:
+                    feature = feature[random.randint(0, feature.shape[0] - 1), :]
+                else:
+                    # feature = torch.mean(feature, dim = 0)
+                    feature = torch.mean(feature, dim = 0)
+            target_speeches.append(feature)
+        target_speeches = torch.stack(target_speeches) # (len(exist_spk), speaker_embedding)
+        return target_speeches, len(exist_spk)
+
 
     def load_ts_embed(self, file, speaker_ids):
         if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
-            target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
-        return target_speeches
+            #target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
+            if self.support_variable_number_speakers:
+                target_speeches, num_speakers = self.load_alimeeting_ts_embed_variable_number_speakers(file, speaker_ids)
+            else:
+                target_speeches, num_speakers = self.load_alimeeting_ts_embed(file, speaker_ids)
+        return target_speeches, num_speakers
 
     def load_ts(self,file, speaker_ids, rc=0):
         target_speeches = []
@@ -562,8 +598,8 @@ class TSVADDataset(torch.utils.data.Dataset):
             ref_speech = _collate_data(
                 [s["ref_speech"] for s in samples], is_embed_input=True
             )
-
-        target_speech = torch.stack([s["target_speech"] for s in samples], dim=0)
+        target_speech = _collate_data([s["target_speech"] for s in samples], is_embed_input=True)
+        #target_speech = torch.stack([s["target_speech"] for s in samples], dim=0)
         labels_len = torch.tensor(
             [s["labels"].size(1) for s in samples], dtype=torch.long
         )
@@ -574,6 +610,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         net_input = {
             "ref_speech": ref_speech,
             "target_speech": target_speech,
+            "num_speakers":num_speakers,
             "labels": labels,
             "labels_len": labels_len,
             "file_path": [s["file_path"] for s in samples],
@@ -618,12 +655,13 @@ class TSVADDataset(torch.utils.data.Dataset):
         if self.spk_path is None:
             target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
         else:
-            target_speech = self.load_ts_embed(file, new_speaker_ids)
+            target_speech,num_speaker = self.load_ts_embed(file, new_speaker_ids)
 
         samples = {
             "id": index,
             "ref_speech": ref_speech,
             "target_speech": target_speech,
+            "num_speaker": num_speaker, #only for  variable_num_speakers
             "labels": labels,
             "file_path": file,
             "speaker_ids": np.array(speaker_ids),

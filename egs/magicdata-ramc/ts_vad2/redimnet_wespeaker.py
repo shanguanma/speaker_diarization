@@ -1134,6 +1134,23 @@ if __name__ == "__main__":
     out_frame = model.get_frame_level_feat(x)
     print(f"out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
 
+    model = ReDimNetB0(feat_dim=60, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    x1 = torch.randn(32, 601, 60)
+    out = model(x1)
+    print(f"B0 out[-1].size() shape: {out[-1].size()}, out: {out}")
+    out_frame = model.get_frame_level_feat(x1)
+    print(f"B0 out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
+    model = ReDimNetB1(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    model.eval()
+    out = model(x)
+    print(f"B1 out[-1].size() shape: {out[-1].size()}, out: {out}")
+    out_frame = model.get_frame_level_feat(x)
+    print(f"B1 out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
+
+
     model = ReDimNetB2(feat_dim=72, embed_dim=192, two_emb_layer=False)
     model.eval()
     out = model(x)

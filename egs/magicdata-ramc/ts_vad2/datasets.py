@@ -76,6 +76,9 @@ class TSVADDataConfig:
     label_rate: int = 25
     """default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100"""
 
+    support_variable_number_speakers: bool = False
+    """if true, it will support variable_number_speakers in training stage and infer stage"""
+
 cfg = TSVADDataConfig()
 from model import TSVADConfig
 
@@ -115,7 +118,7 @@ def load_dataset(
     ):
         fbank_input = False
         redimnet_input=False
-    elif cfg.speech_encoder_type=="ReDimNetB3" or cfg.speech_encoder_type=="ReDimNetB2" or cfg.speech_encoder_type=="ReDimNetM" or cfg.speech_encoder_type=="ReDimNetS":
+    elif cfg.speech_encoder_type=="ReDimNetB3" or cfg.speech_encoder_type=="ReDimNetB2" or  cfg.speech_encoder_type=="ReDimNetB1" or  cfg.speech_encoder_type=="ReDimNetB0" or cfg.speech_encoder_type=="ReDimNetM" or cfg.speech_encoder_type=="ReDimNetS":
         redimnet_input=True
         fbank_input = True
     else:
@@ -138,6 +141,7 @@ def load_dataset(
         embed_input=cfg.embed_input,
         fbank_input=fbank_input,
         redimnet_input=redimnet_input,
+        speech_encoder_type=cfg.speech_encoder_type,
         label_rate=cfg.label_rate,
         random_channel=cfg.random_channel,
         random_mask_speaker_prob=cfg.random_mask_speaker_prob,
@@ -146,6 +150,7 @@ def load_dataset(
         musan_path=cfg.musan_path if "train" in split.lower() else None,
         rir_path=cfg.rir_path if "train" in split.lower() else None,
         noise_ratio=cfg.noise_ratio,
+        support_variable_number_speakers=cfg.support_variable_number_speakers,
     )
     return datasets
 
