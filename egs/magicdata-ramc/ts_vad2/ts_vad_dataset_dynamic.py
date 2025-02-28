@@ -65,7 +65,6 @@ def _collate_data(
             out[i, :, : v.size(1)] = v
 
     if is_embed_input:
-        #print(f"frames[0] shape: {frames[0].shape}")
         if len(frames[0].size()) == 2:
             max_len = max(frame.size(0) for frame in frames)
             max_len2 = max(frame.size(1) for frame in frames)
@@ -105,14 +104,13 @@ class TSVADDataset(torch.utils.data.Dataset):
         embed_input: bool = False,
         fbank_input: bool = False,
         redimnet_input: bool=False,
-        speech_encoder_type: bool="CAM++",
+
         label_rate: int = 25,
         random_channel: bool = False,
         support_mc: bool = False,
         random_mask_speaker_prob: float = 0.0,
         random_mask_speaker_step: int = 0,
         speaker_embed_dim: int = 192, # same as speaker_embed_dim of model
-        support_variable_number_speakers: bool = False # if true, it will support variable_number_speakers in training stage and infer stage
     ):
         self.audio_path = audio_path
         self.spk_path = spk_path
@@ -123,8 +121,6 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.random_mask_speaker_prob = random_mask_speaker_prob
         self.random_mask_speaker_step = random_mask_speaker_step
         self.speaker_embed_dim = speaker_embed_dim
-        self.speech_encoder_type = speech_encoder_type
-        self.support_variable_number_speakers = support_variable_number_speakers
 
         ## load data and label,
         ## it will prepare chunk segment information for mixture audio
@@ -163,15 +159,10 @@ class TSVADDataset(torch.utils.data.Dataset):
                 )
             else:
                 logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
-                # because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB0,ReDimNetS and ReDimNetM
-                if speech_encoder_type=="ReDimNetB0":
-                    self.feature_extractor = FBank(
-                        60, sample_rate=self.sample_rate, mean_nor=True
-                    )
-                else:
-                    self.feature_extractor = FBank(
-                        72, sample_rate=self.sample_rate, mean_nor=True
-                    )
+                # because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
+                self.feature_extractor = FBank(
+                    72, sample_rate=self.sample_rate, mean_nor=True
+                )
                 #logger.info(f"model expect redimnet mel spec as input, redimnet_input should be {redimnet_input}")
                 #from features import MelBanks
                 #self.feature_extractor =  MelBanks(n_mels=72) # its output shape: (1,F,T'), F=72 , because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB4,ReDimNetB5 and ReDimNetB6
@@ -303,7 +294,7 @@ class TSVADDataset(torch.utils.data.Dataset):
             speaker_ids.append(-2)
         return speaker_ids
 
-    def load_rs_fix_num_speaker(self, file, speaker_ids, start, stop):
+    def load_rs(self, file, speaker_ids, start, stop):
         #logger.info(f"self.label_rate: {self.label_rate} in fn load_rs")
         audio_start = self.sample_rate // self.label_rate * start
         audio_stop = self.sample_rate // self.label_rate * stop
@@ -388,143 +379,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         labels = torch.from_numpy(np.array(labels)).float()  # 4, T
         return ref_speech, labels, new_speaker_ids, rc
 
-    def load_rs_variable_number_speakers(self, file, speaker_ids, start, stop):
-        audio_start = self.sample_rate // self.label_rate * start
-        audio_stop = self.sample_rate // self.label_rate * stop
-        if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
-            audio_path = os.path.join(self.audio_path, file + "/all.wav")  ## This audio_path is single channel mixer audio,
-                                                                           ## now it is used in alimeeting dataset,and is stored at target_audio directory.
-            ref_speech, rc = self.read_audio_with_resample(
-                audio_path,
-                start=audio_start,
-                length=(audio_stop - audio_start),
-                support_mc=self.support_mc,
-            )
-            if len(ref_speech.shape) == 1:
-                ref_speech = np.expand_dims(np.array(ref_speech), axis=0)
 
-        frame_len = audio_stop - audio_start
-        #logger.info(f"ref_speech shape: {ref_speech.shape} in fn load_rs")
-        assert (
-            frame_len - ref_speech.shape[1] <= 100
-        ), f"frame_len {frame_len} ref_speech.shape[1] {ref_speech.shape[1]}"
-        if frame_len - ref_speech.shape[1] > 0:
-            new_ref_speech = np.zeros((ref_speech.shape[0], frame_len))
-            new_ref_speech[:, : ref_speech.shape[1]] = ref_speech
-            ref_speech = new_ref_speech
-
-        ## add noise and rirs augment
-        if self.rir_path is not None or self.musan_path is not None:
-            add_noise = np.random.choice(2, p=[1 - self.noise_ratio, self.noise_ratio])
-            if add_noise == 1:
-                if self.rir_path is not None and self.musan_path is not None:
-                    noise_type = random.randint(0, 1)
-                    if noise_type == 0:
-                        ref_speech = self.add_rev(ref_speech, length=frame_len)
-                    elif noise_type == 1:
-                        ref_speech = self.choose_and_add_noise(
-                            random.randint(0, 2), ref_speech, frame_len
-                        )
-                elif self.rir_path is not None:
-                    ref_speech = self.add_rev(ref_speech, length=frame_len)
-                elif self.musan_path is not None:
-                    ref_speech = self.choose_and_add_noise(
-                        random.randint(0, 2), ref_speech, frame_len
-                    )
-
-        ref_speech = torch.FloatTensor(np.array(ref_speech))
-        labels = []
-        new_speaker_ids = [] # To be compatible with fixed speaker case
-        residual_label = np.zeros(stop - start)
-        for speaker_id in speaker_ids:
-            if speaker_id == -1:
-                #labels.append(np.zeros(stop - start))  # Obatin the labels for silence
-                pass
-            elif speaker_id == -2:
-                residual_label[residual_label > 1] = 1
-                #labels.append(residual_label)
-                new_speaker_ids.append(-2)
-                continue
-            else:
-                full_label_id = file + "_" + str(speaker_id)
-                label = self.label_dic[full_label_id]
-                labels.append(
-                    label[start:stop]
-                )  # Obatin the labels for the reference speech
-
-            mask_prob = 0
-            if self.random_mask_speaker_prob != 0:
-                mask_prob = self.random_mask_speaker_prob * min(
-                    self.update_num / self.random_mask_speaker_step, 1.0
-                )
-            if sum(labels[-1]) == 0 and self.is_train:
-                new_speaker_ids.append(-1)
-            elif (
-                sum(new_speaker_ids) != -1 * len(new_speaker_ids)
-                and np.random.choice(2, p=[1 - mask_prob, mask_prob])
-                and self.is_train
-            ):
-                new_speaker_ids.append(-1)
-                residual_label = residual_label + labels[-1]
-                #labels[-1] = np.zeros(stop - start)
-            else:
-                new_speaker_ids.append(speaker_id)
-        labels = torch.from_numpy(np.array(labels)).float()  # num_speaker, T
-        return ref_speech, labels, new_speaker_ids, rc
-
-    def load_rs(self,file, speaker_ids, start, stop):
-        if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
-            #target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
-            if not self.support_variable_number_speakers:
-                ref_speech, labels, new_speaker_ids, _ = self.load_rs_fix_num_speaker(file, speaker_ids, start, stop)
-            else:
-                ref_speech, labels, new_speaker_ids, _ = load_rs_variable_number_speakers(file, speaker_ids, start, stop)
-        return ref_speech, labels, new_speaker_ids
-
-    def load_alimeeting_ts_embed(self, file, speaker_ids):
-        target_speeches = []
-        exist_spk = []
-        #print(f"file:{file}, speaker_ids: {speaker_ids}")
-        for speaker_id in speaker_ids:
-            if speaker_id != -1 and speaker_id != -2:
-                audio_filename = speaker_id
-                exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
-
-        for speaker_id in speaker_ids:
-            if speaker_id == -1: # Obatin the labels for silence
-                if np.random.choice(2, p=[1 - self.zero_ratio, self.zero_ratio]) == 1 or not self.is_train:
-
-                    # (TODO) maduo add speaker embedding dimension parameter to replace hard code.
-                    feature = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model
-                else:
-                    random_spk = random.choice(list(self.spk2data))
-                    while random_spk in exist_spk:
-                        random_spk = random.choice(list(self.spk2data))
-                    exist_spk.append(random_spk)
-
-                    path = os.path.join(self.spk_path,
-                            f"{random.choice(self.spk2data[random_spk])}.pt",
-                        )
-                    ## for
-                    feature = torch.load(path, map_location="cpu")
-            elif speaker_id == -2: # # Obatin the labels for extral
-                feature = torch.zeros(self.speaker_embed_dim) # speaker embedding dimension of speaker model
-            else: # # Obatin the labels for speaker
-                audio_filename=speaker_id
-                path = os.path.join(self.spk_path, file, str(audio_filename) + ".pt")
-                feature = torch.load(path, map_location="cpu")
-
-
-            if len(feature.size()) == 2:
-                if self.is_train:
-                    feature = feature[random.randint(0, feature.shape[0] - 1), :]
-                else:
-                    # feature = torch.mean(feature, dim = 0)
-                    feature = torch.mean(feature, dim = 0)
-
-            target_speeches.append(feature)
-        target_speeches = torch.stack(target_speeches)
-        return target_speeches, len(speaker_ids)
     # Stack the speaker's embedding according to the real speakerid, and no longer use fake embedding to fill
     # In other words, assuming there are only two speakers in the sentence, our final speaker embedding size is (2, speaker_embedding)
     # Assuming that another sentence contains three speakers, the final speaker embedding size is (3, speaker_embedding).
@@ -536,7 +391,7 @@ class TSVADDataset(torch.utils.data.Dataset):
             if speaker_id != -1 and speaker_id != -2:
                 audio_filename = speaker_id
                 exist_spk.append(self.data2spk[f"{file}/{audio_filename}"])
-
+                
                 path = os.path.join(self.spk_path, file, str(audio_filename) + ".pt")
                 feature = torch.load(path, map_location="cpu")
             if len(feature.size()) == 2:
@@ -547,17 +402,14 @@ class TSVADDataset(torch.utils.data.Dataset):
                     feature = torch.mean(feature, dim = 0)
             target_speeches.append(feature)
         target_speeches = torch.stack(target_speeches) # (len(exist_spk), speaker_embedding)
-        return target_speeches, len(exist_spk)
-
+        return target_speeches
+    
 
     def load_ts_embed(self, file, speaker_ids):
         if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
             #target_speeches = self.load_alimeeting_ts_embed(file, speaker_ids)
-            if self.support_variable_number_speakers:
-                target_speeches, num_speakers = self.load_alimeeting_ts_embed_variable_number_speakers(file, speaker_ids)
-            else:
-                target_speeches, num_speakers = self.load_alimeeting_ts_embed(file, speaker_ids)
-        return target_speeches, num_speakers
+            target_speeches = self.load_alimeeting_ts_embed_variable_number_speakers(file, speaker_ids)
+        return target_speeches
 
     def load_ts(self,file, speaker_ids, rc=0):
         target_speeches = []
@@ -684,29 +536,26 @@ class TSVADDataset(torch.utils.data.Dataset):
             return {}
 
         ref_speech_len = [s["ref_speech"].size(1) for s in samples]
-        #if sum(ref_speech_len) == len(ref_speech_len) * self.rs_len * self.sample_rate:
-        #    labels = torch.stack([s["labels"] for s in samples], dim=0)
-        #    ref_speech = torch.stack([s["ref_speech"] for s in samples], dim=0)
-        #else:
-        #    labels = _collate_data([s["labels"] for s in samples], is_label_input=True)
-        #    ref_speech = _collate_data(
-        #        [s["ref_speech"] for s in samples], is_embed_input=True
-        #    )
-        labels = _collate_data([s["labels"] for s in samples], is_label_input=True)
-        ref_speech = _collate_data([s["ref_speech"] for s in samples], is_embed_input=True)
-        target_speech = _collate_data([s["target_speech"] for s in samples], is_embed_input=True)
-        #target_speech = torch.stack([s["target_speech"] for s in samples], dim=0)
+        if sum(ref_speech_len) == len(ref_speech_len) * self.rs_len * self.sample_rate:
+            labels = torch.stack([s["labels"] for s in samples], dim=0)
+            ref_speech = torch.stack([s["ref_speech"] for s in samples], dim=0)
+        else:
+            labels = _collate_data([s["labels"] for s in samples], is_label_input=True)
+            ref_speech = _collate_data(
+                [s["ref_speech"] for s in samples], is_embed_input=True
+            )
+
+        target_speech = torch.stack([s["target_speech"] for s in samples], dim=0)
         labels_len = torch.tensor(
             [s["labels"].size(1) for s in samples], dtype=torch.long
         )
-        num_speakers = torch.tensor([s["num_speaker"] for s in samples], dtype=torch.long)
+
         if not self.support_mc:
             assert ref_speech.size(1) == 1
             ref_speech = ref_speech[:, 0, :]
         net_input = {
             "ref_speech": ref_speech,
             "target_speech": target_speech,
-            "num_speakers":num_speakers,
             "labels": labels,
             "labels_len": labels_len,
             "file_path": [s["file_path"] for s in samples],
@@ -730,7 +579,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         file, num_speaker, start, stop = self.data_list[index]
         speaker_ids = self.get_ids(num_speaker) # num_speaker means that it contains number of speaker in current mixture utterance.
 
-        ref_speech, labels, new_speaker_ids  = self.load_rs(
+        ref_speech, labels, new_speaker_ids, _ = self.load_rs(
             file, speaker_ids, start, stop
         )
 
@@ -751,13 +600,12 @@ class TSVADDataset(torch.utils.data.Dataset):
         if self.spk_path is None:
             target_speech, _, _, _ = self.load_ts(file, new_speaker_ids)
         else:
-            target_speech,num_speaker = self.load_ts_embed(file, new_speaker_ids)
-        #print(f"target_speech shape: {target_speech.shape}, num_speaker : {num_speaker}") # (num_speaker, speaker_embeds), num_speaker: int
+            target_speech = self.load_ts_embed(file, new_speaker_ids)
+
         samples = {
             "id": index,
             "ref_speech": ref_speech,
             "target_speech": target_speech,
-            "num_speaker": num_speaker, #only for  variable_num_speakers
             "labels": labels,
             "file_path": file,
             "speaker_ids": np.array(speaker_ids),

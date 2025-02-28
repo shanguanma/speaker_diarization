@@ -294,6 +294,8 @@ def add_data_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument("--dataset-name",type=str,default="magicdata-ramc",help="dataset name", )
     parser.add_argument("--max-num-speaker", type=int, default=4, help="support max number of speaker in ts_vad")
+    
+    parser.add_argument("--support-variable-number-speakers", type=str2bool, default=False, help="if it is false, tsvad only support fixed max_num_speaker, if it is True, tsvad will support variable num_speaker")
     return parser
 
 def add_data_model_common_arguments(parser: argparse.ArgumentParser):
@@ -883,6 +885,7 @@ def main(args):
     data_cfg.rs_len = params.rs_len
     data_cfg.segment_shift = params.segment_shift
     data_cfg.label_rate = params.label_rate
+    data_cfg.support_variable_number_speakers = params.support_variable_number_speakers
 
     logging.info(f"data_cfg: {data_cfg}")
     data_cfg.dataset_name = params.dataset_name

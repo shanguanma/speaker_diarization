@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from shutil import copyfile
-from typing import Dict, Iterable, List, Optional, TextIO, Tuple, Union
+from typing import Dict, Iterable, List, Optional, TextIO, Tuple, Union, Any
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -395,5 +395,38 @@ def force_gatherable(data, device):
         warnings.warn(f"{type(data)} may not be gatherable by DataParallel")
         return data
 
+## for mamage cuda memory
+# reference from https://www.determined.ai/blog/act-mem-2
+class AllocatedMemContext:
+    def __init__(self) -> None:
+        # Ensure CUDA libraries are loaded
+        torch.cuda.current_blas_handle()
+        self.before: dict[str, int] = {}
+        self.after: dict[str, int] = {}
+        self.delta: dict[str, int] = {}
+    def _get_mem_dict(self) -> dict[str,int]:
+        # only need `allocated_bytes.all`
+        key_prefix = 'allocated_bytes.all.'
+        return {k.replace(key_prefix ,''): v for k, v in torch.cuda.memory_stats().items() if key_prefix in k}
 
+    def __enter__(self) -> 'AllocatedMemContext':
+        self.before  = self._get_mem_dict()
+        return self
+    def __exit__(self,*args: Any, **kwargs:Any) -> None:
+        self.after = self._get_mem_dict()
+        self.delta = {k:v - self.before[k] for k, v in self.after.items()}
 
+if __name__ == "__main__":
+    with AllocatedMemContext() as mem:
+        #a = torch.randn(2**8,device=torch.device("cuda")) # 1KiB
+        #a2 = torch.randn(2**8, device=torch.device("cuda")) # 1 KiB
+        #del a2
+        #a3 = torch.randn(2**8, device=torch.device("cuda")) # 1 KiB
+        #del a3
+        t = torch.randn(16, device="cuda")
+        
+        split_t = t.split(4)  # A tuple of four tensors
+        assert all(s.untyped_storage().data_ptr() == t.untyped_storage().data_ptr() for s in split_t) 
+    print(mem.before)
+    print(mem.after)
+    print(mem.delta) 

@@ -250,6 +250,8 @@ def main(args):
     data_cfg.data_dir = args.data_dir
     data_cfg.speaker_embed_dim = args.speaker_embed_dim
     data_cfg.label_rate = args.label_rate
+    data_cfg.support_variable_number_speakers = args.support_variable_number_speakers
+    data_cfg.max_num_speaker = args.max_num_speaker
 
     logging.info(f"infer data_cfg: {data_cfg}")
     logging.info(f"currently, it will infer {args.split} set.")

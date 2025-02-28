@@ -345,7 +345,7 @@ class TSVADModel(nn.Module):
         return self.single_backend,self.pos_encoder,self.backend_down
 
 
-     def create_multi_backend(self,cfg):
+    def create_multi_backend(self,cfg):
         self.multi_backend: Optional[nn.Module] = None
         self.fc: Optional[nn.Module] = None
         self.multi_backend_proj: nn.Module=None
@@ -1073,7 +1073,7 @@ class TSVADModel(nn.Module):
         # cut audio len to label len
         x = x[:, :, :max_len]  # (B,D,T)
 
-         mix_embeds = x.transpose(1, 2)  # (B,T,D)
+        mix_embeds = x.transpose(1, 2)  # (B,T,D)
 
         # target speech
         ts_embeds = self.rs_dropout(target_speech)  # B, max_num_speaker in current batch, D
