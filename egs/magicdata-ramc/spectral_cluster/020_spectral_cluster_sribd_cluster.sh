@@ -7,7 +7,7 @@ stop_stage=1000
 . utils/parse_options.sh
 #. path_for_nn_vad.sh
 #. path_for_fsq_sptt.sh # hltsz
-. path_for_fsq_speechtext.sh # sribd
+#. path_for_fsq_speechtext.sh # sribd
 # 2024-12-12 maduo note:
 # cluster method sota setting is as follows:
 # vad threshold=0.6, vad model is trained at
@@ -3579,9 +3579,11 @@ if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ];then
 
 # 2025-3-3 compute cssd_testset
  if [ ${stage} -le 100 ] && [ ${stop_stage} -ge 100 ];then
+     . path_for_dia_pt2.4.sh
     echo "clustering ......."
     #vad_threshold="0.3 0.47 0.5 0.6 0.7 0.8 0.9"
-    vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+    vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
     #vad_threshold="0.31 0.32 0.34 0.36 0.38"
     vad_type="transformer_vad"
     chunk_size=3
@@ -3608,21 +3610,233 @@ if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ];then
    done
 fi
 if [ ${stage} -le 101 ] && [ ${stop_stage} -ge 101 ];then
+    . path_for_dia_pt2.4.sh
    echo "CDER score"
    #note:collar of CDER score default set is equal to zero.
    #vad_threshold="0.3 0.47 0.5 0.6 0.7 0.8 0.9"
-   vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+   vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
    vad_type="transformer_vad"
    chunk_size=3
    step_size=3
    skip_chunk_size=0.93
    testset="cssd_testset"
-   . path_for_nn_vad.sh
+   #. path_for_nn_vad.sh
    for sub in $testset;do
     test_set_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/$sub/"
     test_set_dir_groundtruth=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset/rttm_debug_nog0
      for name in $vad_threshold;do
-       python clustering_based/cder/score.py  -r $test_set_dir_groundtruth -s $test_set_dir/rttm_predict_${name}_${vad_type}_chunk_size_${chunk_size}_step_size_${step_size}_skip_chunk_size_${skip_chunk_size}
+       echo "vad_threshold: $name"
+       python cder/score.py  -r $test_set_dir_groundtruth -s $test_set_dir/rttm_predict_${name}_${vad_type}_chunk_size_${chunk_size}_step_size_${step_size}_skip_chunk_size_${skip_chunk_size}
      done
     done
 fi
+
+#grep -r "Avg"  logs/spectral_cluster_020_spectral_cluster_sribd_cluster_stage101.log
+#Avg CDER : 0.185
+#Avg CDER : 0.151
+#Avg CDER : 0.132
+#Avg CDER : 0.120
+#Avg CDER : 0.119
+#Avg CDER : 0.115
+#Avg CDER : 0.114
+#Avg CDER : 0.114
+#Avg CDER : 0.112
+#Avg CDER : 0.113
+#Avg CDER : 0.112
+#Avg CDER : 0.110
+#Avg CDER : 0.111
+#Avg CDER : 0.112
+#Avg CDER : 0.111
+#Avg CDER : 0.110
+#Avg CDER : 0.111
+#Avg CDER : 0.111
+#Avg CDER : 0.111
+#Avg CDER : 0.111
+#Avg CDER : 0.110
+#Avg CDER : 0.109
+#Avg CDER : 0.105 # vad_threshold=0.6
+#Avg CDER : 0.100 # vad_threshold=0.7
+#Avg CDER : 0.093 # vad_threshold=0.8
+#Avg CDER : 0.105 # vad_threshold=0.9
+#Avg CDER : 0.092 # vad_threshold=0.91
+
+
+# using liu tao's vad model(/data/maduo/datasets/voice-activity-detection/voice-activity-detection/results/cssd_tests/vad/cssd/v000/checkpoints/vad-cssd-v000-epoch-005-val-acc-0.91775.checkpoint)
+# runing vad script(stage 8 of speaker_diarization/egs/magicdata-ramc/spectral_cluster/010_generate_vad.sh)
+ if [ ${stage} -le 102 ] && [ ${stop_stage} -ge 102 ];then
+     . path_for_dia_pt2.4.sh
+    echo "clustering ......."
+    #vad_threshold="0.3 0.47 0.5 0.6 0.7 0.8 0.9"
+    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
+    vad_threshold="0.9"
+    vad_type="transformer_vad"
+    chunk_size=3
+    step_size=3
+    skip_chunk_size=0.93
+    pretrain_speaker_model_ckpt=/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt
+    #for sub in dev test;do
+    #testset="dev test"
+    testset="cssd_testset"
+    for sub in $testset;do
+     test_set_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/$sub/"
+     for name in $vad_threshold;do
+      python spectral_cluster/020_spectral_cluster_common.py\
+         --pretrain_speaker_model_ckpt $pretrain_speaker_model_ckpt \
+         --vad_threshold $name\
+         --predict_vad_path_dir $test_set_dir/predict_vad_other_people_$name \
+         --test_set_dir $test_set_dir\
+         --predict_rttm_path $test_set_dir/rttm_predict_${name}_${vad_type}_chunk_size_${chunk_size}_step_size_${step_size}_skip_chunk_size_${skip_chunk_size}_other_people_vad\
+         --chunk_size $chunk_size\
+         --step_size $step_size\
+         --skip_chunk_size $skip_chunk_size\
+         --vad_type $vad_type
+    done
+   done
+fi
+if [ ${stage} -le 103 ] && [ ${stop_stage} -ge 103 ];then
+    . path_for_dia_pt2.4.sh
+   echo "CDER score"
+   #note:collar of CDER score default set is equal to zero.
+   #vad_threshold="0.3 0.47 0.5 0.6 0.7 0.8 0.9"
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
+   vad_threshold="0.9"
+   vad_type="transformer_vad"
+   chunk_size=3
+   step_size=3
+   skip_chunk_size=0.93
+   testset="cssd_testset"
+   #. path_for_nn_vad.sh
+   for sub in $testset;do
+    test_set_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/$sub/"
+    test_set_dir_groundtruth=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset/rttm_debug_nog0
+     for name in $vad_threshold;do
+       echo "vad_threshold: $name"
+       python cder/score.py  -r $test_set_dir_groundtruth -s $test_set_dir/rttm_predict_${name}_${vad_type}_chunk_size_${chunk_size}_step_size_${step_size}_skip_chunk_size_${skip_chunk_size}_other_people_vad
+     done
+    done
+fi
+#vad_threshold: 0.9
+#CTS-CN-F2F-2017-11-14_85 CDER = 0.058
+#CTS-CN-F2F-2017-11-14_87 CDER = 0.074
+#CTS-CN-F2F-2017-11-14_88 CDER = 0.074
+#CTS-CN-F2F-2017-11-29_109 CDER = 0.038
+#CTS-CN-F2F-2017-12-15_412 CDER = 0.060
+#CTS-CN-F2F-2017-12-15_438 CDER = 0.056
+#CTS-CN-F2F-2017-12-15_440 CDER = 0.085
+#CTS-CN-F2F-2017-12-20_70 CDER = 0.081
+#CTS-CN-F2F-2018-04-16_545 CDER = 0.042
+#CTS-CN-F2F-2018-04-16_560 CDER = 0.082
+#CTS-CN-F2F-2018-04-16_563 CDER = 0.075
+#CTS-CN-F2F-2018-04-16_615 CDER = 0.035
+#CTS-CN-F2F-2018-04-16_699 CDER = 0.113
+#CTS-CN-F2F-2018-04-16_700 CDER = 0.072
+#CTS-CN-F2F-2018-04-16_703 CDER = 0.110
+#CTS-CN-F2F-2018-04-16_716 CDER = 0.078
+#CTS-CN-F2F-2018-04-16_723 CDER = 0.070
+#CTS-CN-F2F-2018-04-16_726 CDER = 0.104
+#CTS-CN-F2F-2018-04-16_757 CDER = 0.138
+#CTS-CN-F2F-2018-04-16_763 CDER = 0.077
+#CTS-CN-F2F-2018-04-23_507 CDER = 0.121
+#CTS-CN-F2F-2018-04-23_620 CDER = 0.042
+#CTS-CN-F2F-2018-05-08_110 CDER = 0.047
+#CTS-CN-F2F-2018-05-08_236 CDER = 0.055
+#CTS-CN-F2F-2018-05-08_469 CDER = 0.069
+#CTS-CN-F2F-2018-05-08_470 CDER = 0.058
+#CTS-CN-F2F-2018-05-08_471 CDER = 0.041
+#CTS-CN-F2F-2018-05-08_472 CDER = 0.081
+#CTS-CN-F2F-2018-05-08_712 CDER = 0.117
+#CTS-CN-F2F-2018-05-08_713 CDER = 0.116
+#CTS-CN-F2F-2018-05-08_776 CDER = 0.122
+#CTS-CN-F2F-2018-05-08_777 CDER = 0.112
+#CTS-CN-F2F-2018-05-08_779 CDER = 0.143
+#CTS-CN-F2F-2018-05-08_782 CDER = 0.124
+#CTS-CN-F2F-2018-05-08_799 CDER = 0.596
+#CTS-CN-F2F-2018-05-08_825 CDER = 0.122
+#CTS-CN-F2F-2018-05-08_909 CDER = 0.421
+#CTS-CN-F2F-2018-05-08_948 CDER = 0.122
+#CTS-CN-F2F-2018-05-08_949 CDER = 0.108
+#CTS-CN-F2F-2018-05-08_950 CDER = 0.112
+#Avg CDER : 0.106
+
+
+# using liu tao's vad model(/data/maduo/datasets/voice-activity-detection/voice-activity-detection/results/cssd_tests/vad/cssd/v000/checkpoints/vad-cssd-v000-epoch-005-val-acc-0.91775.checkpoint)
+# runing vad script(stage 9 of speaker_diarization/egs/magicdata-ramc/spectral_cluster/010_generate_vad.sh)
+ if [ ${stage} -le 104 ] && [ ${stop_stage} -ge 104 ];then
+     . path_for_dia_pt2.4.sh
+    echo "clustering ......."
+    #vad_threshold="0.3 0.47 0.5 0.6 0.7 0.8 0.9"
+    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
+    vad_threshold="0.9"
+    vad_type="transformer_vad"
+    chunk_size=3
+    step_size=3
+    skip_chunk_size=0.93
+    pretrain_speaker_model_ckpt=/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt
+    #for sub in dev test;do
+    #testset="dev test"
+    testset="dev"
+    for sub in $testset;do
+     test_set_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/$sub/"
+     for name in $vad_threshold;do
+      python spectral_cluster/020_spectral_cluster_common.py\
+         --pretrain_speaker_model_ckpt $pretrain_speaker_model_ckpt \
+         --vad_threshold $name\
+         --predict_vad_path_dir $test_set_dir/predict_vad_other_people_$name \
+         --test_set_dir $test_set_dir\
+         --predict_rttm_path $test_set_dir/rttm_predict_${name}_${vad_type}_chunk_size_${chunk_size}_step_size_${step_size}_skip_chunk_size_${skip_chunk_size}_other_people_vad\
+         --chunk_size $chunk_size\
+         --step_size $step_size\
+         --skip_chunk_size $skip_chunk_size\
+         --vad_type $vad_type
+    done
+   done
+fi
+if [ ${stage} -le 105 ] && [ ${stop_stage} -ge 105 ];then
+    . path_for_dia_pt2.4.sh
+   echo "CDER score"
+   #note:collar of CDER score default set is equal to zero.
+   #vad_threshold="0.3 0.47 0.5 0.6 0.7 0.8 0.9"
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
+   vad_threshold="0.9"
+   vad_type="transformer_vad"
+   chunk_size=3
+   step_size=3
+   skip_chunk_size=0.93
+   testset="dev"
+   #. path_for_nn_vad.sh
+   for sub in $testset;do
+    test_set_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/$sub/"
+    test_set_dir_groundtruth=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/${sub}/rttm_debug_nog0
+     for name in $vad_threshold;do
+       echo "vad_threshold: $name"
+       python cder/score.py  -r $test_set_dir_groundtruth -s $test_set_dir/rttm_predict_${name}_${vad_type}_chunk_size_${chunk_size}_step_size_${step_size}_skip_chunk_size_${skip_chunk_size}_other_people_vad
+     done
+    done
+fi
+
+#vad_threshold: 0.9
+#CTS-CN-F2F-2019-11-15-1421 CDER = 0.128
+#CTS-CN-F2F-2019-11-15-1422 CDER = 0.362
+#CTS-CN-F2F-2019-11-15-1423 CDER = 0.140
+#CTS-CN-F2F-2019-11-15-1426 CDER = 0.120
+#CTS-CN-F2F-2019-11-15-1428 CDER = 0.174
+#CTS-CN-F2F-2019-11-15-1434 CDER = 0.092
+#CTS-CN-F2F-2019-11-15-1447 CDER = 0.126
+#CTS-CN-F2F-2019-11-15-1448 CDER = 0.152
+#CTS-CN-F2F-2019-11-15-1449 CDER = 0.101
+#CTS-CN-F2F-2019-11-15-1452 CDER = 0.103
+#CTS-CN-F2F-2019-11-15-1458 CDER = 0.136
+#CTS-CN-F2F-2019-11-15-1461 CDER = 0.000
+#CTS-CN-F2F-2019-11-15-1463 CDER = 0.054
+#CTS-CN-F2F-2019-11-15-1468 CDER = 0.082
+#CTS-CN-F2F-2019-11-15-1469 CDER = 0.129
+#CTS-CN-F2F-2019-11-15-1470 CDER = 0.161
+#CTS-CN-F2F-2019-11-15-1473 CDER = 0.062
+#CTS-CN-F2F-2019-11-15-1475 CDER = 0.208
+#CTS-CN-F2F-2019-11-15-1477 CDER = 0.139
+#Avg CDER : 0.130
