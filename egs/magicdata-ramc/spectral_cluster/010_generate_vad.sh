@@ -145,12 +145,76 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ];then
    data=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset
    #output_dir=$data/predict_vad
    #mkdir -p $output_dir
-   vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.9"
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.9"
+   vad_threshold="0.9"
    for name in $vad_threshold;do
     for audio_path in `awk '{print $2}' $data/wav.scp`;do
       audio_name=$(basename $audio_path | sed s:.wav$::)
       echo "audio_path : $audio_path"
       output_dir=$data/predict_vad_${name}
+      mkdir -p $output_dir
+      python  $vad_code/main.py predict \
+            --threshold $name \
+            --output-path $output_dir/${audio_name}.json \
+            $audio_path\
+            $vad_model
+   done
+  done
+ fi
+
+if [ ${stage} -le 8 ] && [ ${stop_stage} -ge 8 ];then
+         .  path_for_speaker_diarization_hltsz.sh
+   echo "generate vad json file using pretrain transformer vad model "
+   #echo "transformer vad model is from https://github.com/voithru/voice-activity-detection/blob/main/tests/checkpoints/vad/sample.checkpoint"
+   echo "I used my pretrain vad model to get testset vad segement of magicdata-RAMC"
+   vad_code=/data/maduo/codebase/voice-activity-detection
+   #vad_model=/data/maduo/codebase/voice-activity-detection/results/tests/vad/magicdata-RAMC-sample/v001/checkpoints/vad-magicdata-RAMC-sample-v001-epoch-019-val-acc-0.92249.checkpoint
+   
+   # liu tao's vad model checkpoint
+   vad_model=/data/maduo/datasets/voice-activity-detection/voice-activity-detection/results/cssd_tests/vad/cssd/v000/checkpoints/vad-cssd-v000-epoch-005-val-acc-0.91775.checkpoint 
+   data=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset
+   #output_dir=$data/predict_vad
+   #mkdir -p $output_dir
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.9"
+   vad_threshold="0.9"
+   for name in $vad_threshold;do
+    for audio_path in `awk '{print $2}' $data/wav.scp`;do
+      audio_name=$(basename $audio_path | sed s:.wav$::)
+      echo "audio_path : $audio_path"
+      output_dir=$data/predict_vad_other_people_${name}
+     
+      mkdir -p $output_dir
+      python  $vad_code/main.py predict \
+            --threshold $name \
+            --output-path $output_dir/${audio_name}.json \
+            $audio_path\
+            $vad_model
+   done
+  done
+ fi
+
+## debug, using other people's vad model to get vad at dev set
+ if [ ${stage} -le 9 ] && [ ${stop_stage} -ge 9 ];then
+         .  path_for_speaker_diarization_hltsz.sh
+   echo "generate vad json file using pretrain transformer vad model "
+   #echo "transformer vad model is from https://github.com/voithru/voice-activity-detection/blob/main/tests/checkpoints/vad/sample.checkpoint"
+   echo "I used my pretrain vad model to get testset vad segement of magicdata-RAMC"
+   vad_code=/data/maduo/codebase/voice-activity-detection
+   #vad_model=/data/maduo/codebase/voice-activity-detection/results/tests/vad/magicdata-RAMC-sample/v001/checkpoints/vad-magicdata-RAMC-sample-v001-epoch-019-val-acc-0.92249.checkpoint
+
+   # liu tao's vad model checkpoint
+   vad_model=/data/maduo/datasets/voice-activity-detection/voice-activity-detection/results/cssd_tests/vad/cssd/v000/checkpoints/vad-cssd-v000-epoch-005-val-acc-0.91775.checkpoint
+   data=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev
+   #output_dir=$data/predict_vad
+   #mkdir -p $output_dir
+   #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.9"
+   vad_threshold="0.9"
+   for name in $vad_threshold;do
+    for audio_path in `awk '{print $2}' $data/wav.scp`;do
+      audio_name=$(basename $audio_path | sed s:.wav$::)
+      echo "audio_path : $audio_path"
+      output_dir=$data/predict_vad_other_people_${name}
+
       mkdir -p $output_dir
       python  $vad_code/main.py predict \
             --threshold $name \
