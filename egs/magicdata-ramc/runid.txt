@@ -1,0 +1,338 @@
+正常cpu集群，每个人限制最多申请24个cpus
+提交解禁申请，最多每人申请可以到64个cpus, 但是其实是你所有任务所申请的cpus 总和，记得也要给自己的GPU任务留cpus
+sbatch  --nodes 1 --ntasks-per-node=32 --cpus-per-task=1 -p p-cpu -A t00120220002 -o logs/get_vads_parallel.log source-md/wav2vec-u2/prepare_audio_for_wav2vec2-u2.sh --stage 2 --stop-stage 2 --nj 32
+
+-w, --nodelist=<node name list>  # 指定申请的节点；
+-x, --exclude=<node name list>   # 排除指定的节点；
+
+srun -n 1 -c 6 --gres=gpu:1 -p p-A800 -A t00120220002 --pty bash
+srun -n 1 -c 6 --gres=gpu:1 -p p-V100 -A t00120220002 --pty bash
+srun -n 1 -c 6 --gres=gpu:2 -p p-V100 -A t00120220002 --pty bash
+tensorboard --host 10.26.6.81 --port 12345 --logdir  exp/blstm_sc_folder/ch0/tensorboard/
+note: A800 pgpu26 is not working.
+pgu17: A100 80GB
+
+huawei diarization project nums.: F00120240032
+
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage161-162_mamba2_rs_len6_lr2e4_bs128_4_layer.log run_ts_vad2.sh --stage 161 --stop-stage 162
+Submitted batch job 221364
+
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/spectral_cluster_020_spectral_cluster_sribd_cluster_stage104-105.log spectral_cluster/020_spectral_cluster_sribd_cluster.sh --stage 104 --stop-stage 105
+
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/spectral_cluster_020_spectral_cluster_sribd_cluster_stage102-103.log spectral_cluster/020_spectral_cluster_sribd_cluster.sh --stage 102 --stop-stage 103
+Submitted batch job 221338
+
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/spectral_cluster_020_spectral_cluster_sribd_cluster_stage101.log spectral_cluster/020_spectral_cluster_sribd_cluster.sh --stage 101 --stop-stage 101
+
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage157-158_mamba2_rs_len6_lr2e4_bs128.log run_ts_vad2.sh --stage 157 --stop-stage 158
+Submitted batch job 221162
+
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/spectral_cluster_020_spectral_cluster_sribd_cluster_stage100.log spectral_cluster/020_spectral_cluster_sribd_cluster.sh --stage 100 --stop-stage 100
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage159-160_mamba2_rs_len6_lr2e4_bs64_4_layer.log run_ts_vad2.sh --stage 159 --stop-stage 160
+Submitted batch job 221028
+
+# running
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage157-158_mamba2_rs_len6_lr2e4_bs128.log run_ts_vad2.sh --stage 157 --stop-stage 158
+Submitted batch job  221140
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage109_dev_and_test_threshold0.9.log run_ts_vad2.sh --stage 109 --stop-stage 109
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage109_cssd_testset.log run_ts_vad2.sh --stage 109 --stop-stage 109
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage14_cam++_zh_200k.log run_extract_speaker_embedding.sh --stage 14  --stop-stage 14
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage154_transformer_rs_len6_lr2e4_B0.log run_ts_vad2.sh --stage 154 --stop-stage 154
+Submitted batch job 220959
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage156_transformer_rs_len6_lr2e4_B1.log run_ts_vad2.sh --stage 156 --stop-stage 156
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage155-156_transformer_rs_len6_lr2e4_B1.log run_ts_vad2.sh --stage 155 --stop-stage 156
+Submitted batch job 220767
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage153-154_transformer_rs_len6_lr2e4_B0.log run_ts_vad2.sh --stage 153 --stop-stage 154
+220764
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage146-147_transformer_rs_len6_lr2e4_M.log run_ts_vad2.sh --stage 146 --stop-stage 147
+Submitted batch job 220523
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage142-143_transformer_rs_len6_lr2e4_S.log run_ts_vad2.sh --stage 142 --stop-stage 143
+Submitted batch job 220520
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage146-147_transformer_rs_len6_lr2e4_b4.log run_ts_vad2.sh --stage 146 --stop-stage 147
+Submitted batch job 220497
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage142-143_transformer_rs_len6_lr2e4_b5.log run_ts_vad2.sh --stage 142 --stop-stage 143
+Submitted batch job 220495
+
+(todo run)
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage144-145_transformer_rs_len6_lr2e4_b2_label_rate100.log run_ts_vad2.sh --stage 144 --stop-stage 145
+Submitted batch job 220459
+
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage142-143_transformer_rs_len6_lr2e4_b6.log run_ts_vad2.sh --stage 142 --stop-stage 143
+Submitted batch job 220456
+
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage144-145_transformer_rs_len6_lr2e4_b2_label_rate100.log run_ts_vad2.sh --stage 144 --stop-stage 145
+Submitted batch job 220453
+
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage11_label_rate100_cam++_zh_200k.log run_extract_speaker_embedding.sh --stage 11  --stop-stage 11
+
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage142-143_transformer_rs_len6_lr2e4_b6.log run_ts_vad2.sh --stage 142 --stop-stage 143
+Submitted batch job 220444
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage140-141_transformer_rs_len6_lr3e4.log run_ts_vad2.sh --stage 140 --stop-stage 141
+Submitted batch job 220443
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage135_infer_mamba2_rs_len6_b3_label_rate25_lr2e-4_cam++_speaker_emb.log run_ts_vad2.sh --stage 135 --stop-stage 135
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage138-139_mamba2_d_stat128_rs_len6.log run_ts_vad2.sh --stage 138 --stop-stage 139
+Submitted batch job 220324
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage151-152_transformer_rs_len8.log run_ts_vad2.sh --stage 151 --stop-stage 152
+Submitted batch job 220312
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage149-150_conformer_rs_len8.log run_ts_vad2.sh --stage 149 --stop-stage 150
+Submitted batch job 220311
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage133_transformer_rs_len6_b3_mamba2_label_rate25_lr1e-4_cam++_speaker_emb_infer.log run_ts_vad2.sh --stage 133 --stop-stage 133
+Submitted batch job 220316
+
+
+
+
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage136-137_mamba2_rs_len6_b3_label_rate25_lr2e-4_cam++_speaker_emb.log run_ts_vad2.sh --stage 134 --stop-stage 135
+Submitted batch job 220274
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage136-137_transformer_rs_len6_b2_label_rate25_lr2e-4_cam++_speaker_emb.log run_ts_vad2.sh --stage 136 --stop-stage 137
+Submitted batch job 220272
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage131_infer_transformer_rs_len6_b3_label_rate25_lr2e-4_cam++_speaker_emb.log run_ts_vad2.sh --stage 131 --stop-stage 131
+Submitted batch job 220271
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage132_transformer_rs_len6_b3_mamba2_label_rate25_lr1e-4_cam++_speaker_emb.log run_ts_vad2.sh --stage 132 --stop-stage 132
+Submitted batch job 220213
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_b3_label_rate25_lr2e-4_cam++_speaker_emb.log run_ts_vad2.sh --stage 129 --stop-stage 129
+Submitted batch job 220203
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage130_transformer_rs_len6_4_lr5e-6_cam++_200k_speaker_emb.log run_ts_vad2.sh --stage 130 --stop-stage 130
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_b3_label_rate25_lr1e-6_cam++_speaker_emb.log run_ts_vad2.sh --stage 129 --stop-stage 129
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_b3_using_fbank_label_rate100_lr1e-6.log run_ts_vad2.sh --stage 129 --stop-stage 129
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_4_using_fbank_norm_lr1e-6.log run_ts_vad2.sh --stage 130 --stop-stage 130
+220133
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_4_using_fbank_norm_lr5e-6.log run_ts_vad2.sh --stage 129 --stop-stage 129
+Submitted batch job 220132
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_4_using_fbank_norm.log run_ts_vad2.sh --stage 129 --stop-stage 129
+Submitted batch job 220131
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage10_label_rate100_redimnet_using_fbank.log run_extract_speaker_embedding.sh --stage 10  --stop-stage 10
+Submitted batch job 220130
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage9_label_rate25_redimnet_using_fbank.log run_extract_speaker_embedding.sh --stage 9  --stop-stage 9
+Submitted batch job 220129
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129_transformer_rs_len6_3_using_fbank_norm.log run_ts_vad2.sh --stage 129 --stop-stage 129
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage8_label_rate25_redimnet_using_fbank_norm.log run_extract_speaker_embedding.sh --stage 8  --stop-stage 8
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage133_mamba2_redimnet_b2_using_fbank_feat.log run_ts_vad2.sh --stage 133 --stop-stage 133
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage135_mamba2_again.log run_ts_vad2.sh --stage 135 --stop-stage 135
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129-130_transformer_rs_len6_3_using_fbank.log run_ts_vad2.sh --stage 129 --stop-stage 130
+Submitted batch job 220118
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage7_label_rate25_redimnet_using_fbank.log run_extract_speaker_embedding.sh --stage 7  --stop-stage 7
+Submitted batch job 220117
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage133-14_mamba2_rs_len6_label_rate25_redimnet_b2_speaker_embedding.log run_ts_vad2.sh --stage 133 --stop-stage 134
+Submitted batch job 220109
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129-130_transformer_rs_len6_2.log run_ts_vad2.sh --stage 129 --stop-stage 130
+Submitted batch job 220086
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage131-132_transformer_rs_len6_label_rate100.log run_ts_vad2.sh --stage 131 --stop-stage 132
+Submitted batch job 220100
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage5-6_label_rate100_redimnet.log run_extract_speaker_embedding.sh --stage 5  --stop-stage 6
+Submitted batch job 220029
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129-130_transformer_rs_len6_1.log run_ts_vad2.sh --stage 129 --stop-stage 130
+Submitted batch job 220027
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129-130_transformer_rs_len6.log run_ts_vad2.sh --stage 129 --stop-stage 130
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage131-132_mamba2_d_state128_rs_len6.log run_ts_vad2.sh --stage 131 --stop-stage 132
+Submitted batch job 219999
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129-130_mamba2_d_state128_rs_len6.log run_ts_vad2.sh --stage 129 --stop-stage 130
+Submitted batch job 219998
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage133-134_mamba2_d_state128_rs_len6.log run_ts_vad2.sh --stage 133 --stop-stage 134
+Submitted batch job 219966
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage131-132_mamba2_d_state128_rs_len6.log run_ts_vad2.sh --stage 131 --stop-stage 132
+Submitted batch job 219964
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage129-130_mamba2_d_state128_rs_len6.log run_ts_vad2.sh --stage 129 --stop-stage 130
+Submitted batch job 219963
+
+sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage4_redimnet.log run_extract_speaker_embedding.sh --stage 4  --stop-stage 4
+Submitted batch job 219700
+
+ sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage3_redimnet.log run_extract_speaker_embedding.sh --stage 3  --stop-stage 3
+Submitted batch job 219699
+
+ sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage2_redimnet.log run_extract_speaker_embedding.sh --stage 2  --stop-stage 2
+ sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_extract_speaker_embedding_stage0-2_redimnet.log run_extract_speaker_embedding.sh --stage 0  --stop-stage 2
+
+ sbatch --exclude=pgpu13 --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage128_mamba2_d_state256_rs_len6_collar0.25_1.log run_ts_vad2.sh --stage 128 --stop-stage 128
+Submitted batch job 219567
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage128_mamba2_d_state256_rs_len6_collar0.25.log run_ts_vad2.sh --stage 128 --stop-stage 128
+Submitted batch job 219563
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage128_mamba2_d_state256_rs_len6.log run_ts_vad2.sh --stage 128 --stop-stage 128
+Submitted batch job 219562
+
+magicdata-ramc
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage127-128_mamba2_d_state256_rs_len6.log run_ts_vad2.sh --stage 127 --stop-stage 128
+Submitted batch job 214783
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage125-126_mamba2_d_state128_rs_len6_again.log run_ts_vad2.sh --stage 125 --stop-stage 126
+Submitted batch job 214534
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage114-115_w2v_bert2_mamba2_d_state128_rs_len6_5e-5.log run_ts_vad2.sh --stage 114 --stop-stage 115
+Submitted batch job 214533
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage121-122_w2v_bert2_mamba2_d_state128_rs_len6_cam++_advance_5e-5.log run_ts_vad2.sh --stage 121 --stop-stage 122
+Submitted batch job 214532
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage1-2.log run_ts_vad2.sh --stage 1 --stop-stage 2
+Submitted batch job 214460
+
+
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage121-122_w2v_bert2_mamba2_d_state128_rs_len6_cam++_advance.log run_ts_vad2.sh --stage 121 --stop-stage 122
+Submitted batch job 214457
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage120-122_w2v_bert2_mamba2_d_state128_rs_len6_cam++_advance.log run_ts_vad2.sh --stage 120 --stop-stage 122
+Submitted batch job 214311
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage114-115_w2v_bert2_mamba2_d_state128_rs_len6.log run_ts_vad2.sh --stage 114 --stop-stage 115
+Submitted batch job 214308
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage109_mamba2_rs_len6_d_state128_c0.0.log run_ts_vad2.sh --stage 109 --stop-stage 109
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage97_mamba2_rs_len8.log run_ts_vad2.sh --stage 97 --stop-stage 97
+Submitted batch job 214286
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage99_mamba2_rs_len10.log run_ts_vad2.sh --stage 99 --stop-stage 99
+Submitted batch job 214285
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage111_transformer_rs_len6.log run_ts_vad2.sh --stage 111 --stop-stage 111
+Submitted batch job 214284
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage113_transformer_rs_len8.log run_ts_vad2.sh --stage 113 --stop-stage 113
+Submitted batch job 214283
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage112-113_transformer_rs_len8.log run_ts_vad2.sh --stage 112 --stop-stage 113
+Submitted batch job 214068
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage110-111_transformer_rs_len6.log run_ts_vad2.sh --stage 110 --stop-stage 111
+Submitted batch job 214067
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage97_mamba2_rs_len8.log run_ts_vad2.sh --stage 97 --stop-stage 97
+Submitted batch job 214066
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage108-109_mamba2_rs_len6_d_state128.log run_ts_vad2.sh --stage 108 --stop-stage 109
+Submitted batch job 213964
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage98-99_mamba2_rs_len10.log run_ts_vad2.sh --stage 98 --stop-stage 99
+Submitted batch job 213963
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage96-97_mamba2_rs_len8.log run_ts_vad2.sh --stage 96 --stop-stage 97
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage91.log run_ts_vad2.sh --stage 91 --stop-stage 91
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage95_mamba2_d_state128.log run_ts_vad2.sh --stage 95 --stop-stage 95
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage92-93_mamba2_d_state16.log run_ts_vad2.sh --stage 92 --stop-stage 93
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage94-95_mamba2_d_state128.log run_ts_vad2.sh --stage 94 --stop-stage 95
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage90-91.log run_ts_vad2.sh --stage 90 --stop-stage 91
+Submitted batch job 213423
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage86-87.log run_ts_vad2.sh --stage 86 --stop-stage 87
+Submitted batch job 213422
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage84-85.log run_ts_vad2.sh --stage 84 --stop-stage 85
+Submitted batch job 213412
+
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage73.log run_ts_vad2.sh --stage 73 --stop-stage 73
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage83.log run_ts_vad2.sh --stage 83 --stop-stage 83
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage82-83.log run_ts_vad2.sh --stage 82 --stop-stage 83
+Submitted batch job 212600
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage63.log run_ts_vad2.sh --stage 63 --stop-stage 63
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage72-73.log run_ts_vad2.sh --stage 72 --stop-stage 73
+Submitted batch job 212343
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage62-63.log run_ts_vad2.sh --stage 62 --stop-stage 63
+Submitted batch job 212278
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage52-53.log run_ts_vad2.sh --stage 52 --stop-stage 53
+Submitted batch job 212262
+
+(stop)
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage15-16_freeze_16000_4.log run_ts_vad2.sh --stage 15 --stop-stage 16
+Submitted batch job 211887
+(stop)
+batch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage35-36_freeze_16000_1.log run_ts_vad2.sh --stage 35 --stop-stage 36
+Submitted batch job 211878
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage15-16_freeze_16000_3.log run_ts_vad2.sh --stage 15 --stop-stage 16
+Submitted batch job 211877
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage35-36_freeze_16000.log run_ts_vad2.sh --stage 35 --stop-stage 36
+Submitted batch job 211859
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage15-16_freeze_16000_2.log run_ts_vad2.sh --stage 15 --stop-stage 16
+Submitted batch job 211854
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage15-16_freeze_16000_1.log run_ts_vad2.sh --stage 15 --stop-stage 16
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage15-16_freeze_16000.log run_ts_vad2.sh --stage 15 --stop-stage 16
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage35-36.log run_ts_vad2.sh --stage 35 --stop-stage 36
+Submitted batch job 211597
+
+(todo)
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage25-26.log run_ts_vad2.sh --stage 25 --stop-stage 26
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage15-16.log run_ts_vad2.sh --stage 15 --stop-stage 16
+Submitted batch job 211360
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage5-6.log run_ts_vad2.sh --stage 5 --stop-stage 6
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A100 -A t00120220002 -o logs/run_ts_vad2_stage0-2.log run_ts_vad2.sh --stage 0 --stop-stage 2

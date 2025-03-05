@@ -1,6 +1,53 @@
 srun -n 1 -c 6 --gres=gpu:1 -p speech --pty bash
+srun -n 1 -c 6 --gres=gpu:2 -p speech --pty bash
+
+
+-w, --nodelist=<node name list>  # 指定申请的节点；
+-x, --exclude=<node name list>   # 排除指定的节点；
+
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage8-9.log run_eend_vc_hltsz.sh --stage 8 --stop-stage 9
+Submitted batch job 15066
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage6-7.log run_eend_vc_hltsz.sh --stage 6 --stop-stage 7
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage4-5.log run_eend_vc_hltsz.sh --stage 4 --stop-stage 5
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage2-3_for_cssd_testset.log run_eend_vc_hltsz.sh --stage 2 --stop-stage 3
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 --exclude=hltsz03 -p speech -o logs/run_eend_vc_hltsz_stage2-3_for_cssd_testset.log run_eend_vc_hltsz.sh --stage 2 --stop-stage 3
+Submitted batch job 15048
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 --exclude=hltsz03 -p speech -o logs/run_eend_vc_hltsz_stage3.log run_eend_vc_hltsz.sh --stage 3 --stop-stage 3
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 --exclude=hltsz03 -p speech -o logs/run_eend_vc_hltsz_stage2.log run_eend_vc_hltsz.sh --stage 2 --stop-stage 2
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 --exclude=hltsz03 -p speech -o logs/run_ts_vad2_hltsz_stage76_wo_nog0.log run_ts_vad2_hltsz.sh --stage 76  --stop-stage 76
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2 --exclude=hltsz03 -p speech -o logs/run_ts_vad2_hltsz_stage75-76_wo_nog0.log run_ts_vad2_hltsz.sh --stage 75  --stop-stage 76
+Submitted batch job 14840
+
+ sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2 --exclude=hltsz03 -p speech -o logs/ tests/test_ddp.sh 
 
 bash run_ts_vad2_hltsz.sh --stage 4  --stop-stage 4
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2 --exclude=hltsz03 -p speech -o logs/run_ts_vad2_hltsz_stage73-74_wo_nog0.log run_ts_vad2_hltsz.sh --stage 73  --stop-stage 74
+Submitted batch job 14711
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage71-72_wo_nog0.log run_ts_vad2_hltsz.sh --stage 71  --stop-stage 72
+Submitted batch job 14708
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage69-70_wo_nog0.log run_ts_vad2_hltsz.sh --stage 69  --stop-stage 70
+Submitted batch job 14703
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage67-68_wo_nog0.log run_ts_vad2_hltsz.sh --stage 67  --stop-stage 68
+Submitted batch job 14392
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1  -p speech -o logs/run_ts_vad2_hltsz_stage66_wo_nog0.log run_ts_vad2_hltsz.sh --stage 66  --stop-stage 66
+Submitted batch job 14388
+
+sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage65-66_wo_nog0.log run_ts_vad2_hltsz.sh --stage 65  --stop-stage 66
+Submitted batch job 14352
 
 sbatch --nodes 1  --gres=gpu:2  --cpus-per-gpu=8  --ntasks-per-node 2  -p speech -o logs/run_ts_vad2_hltsz_stage10-11_wo_nog0.log run_ts_vad2_hltsz.sh --stage 10  --stop-stage 11
 
