@@ -6738,3 +6738,159 @@ fi
 #Eval for threshold 0.7 DER=8.70, miss=5.81, falarm=1.63, confusion=1.26
 #Eval for threshold 0.8 DER=10.58, miss=8.25, falarm=1.35, confusion=0.98
 #Eval for threshold 0.9 DER=15.28, miss=13.68, falarm=1.02, confusion=0.59
+
+
+# compared with stage140-141, stage163-164 use dual optim and use ReDimNetB2 fbank_norm_feature speaker_embedding
+if [ ${stage} -le 163 ] && [ ${stop_stage} -ge 163 ];then
+    # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
+    # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
+    #  oracle target speaker embedding is from cam++ pretrain model
+    # this w2v-bert2.0 is trained Languages: 143+ , Size: 4.5M hours (it is from this paper https://arxiv.org/pdf/2312.05187)
+    # checkpoint is from https://huggingface.co/facebook/w2v-bert-2.0/tree/main
+    # how to look for port ?
+    # netstat -tuln
+    export NCCL_DEBUG=INFO
+    export PYTHONFAULTHANDLER=1
+    musan_path=/mntcephfs/lee_dataset/asr/musan
+    rir_path=/mntcephfs/lee_dataset/asr/RIRS_NOISES
+    dataset_name="magicdata-ramc" # dataset name
+    # for loading pretrain model weigt
+    #speech_encoder_type="ReDimNetB2"
+    #speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b2-vox2-ft_lm.pt"
+    speech_encoder_type="ReDimNetB2"
+    speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b2-vox2-ft_lm.pt"
+
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+    # for loading speaker embedding file
+    spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding # store speaker embedding directory
+    #speaker_embedding_name_dir="redimnet_b2-vox2-ft_lm_feature_dir"
+    speaker_embedding_name_dir="redimnet_b2-vox2-ft_lm_using_fbank_norm_feature_dir"
+    #speaker_embedding_name_dir="redimnet_b3-vox2-ft_label_rate100_lm_using_fbank_feature_dir"
+    #spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+    #speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+    #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
+   #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_fbank_norm
+   #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB3_label_rate100_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_fbank
+   exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_redimnetb2_speaker_emb_lr_small5e6_lr_big_2e4
+   mkdir -p $exp_dir
+   #CUDA_VISIABLE_DEVICES=0,1 accelerate launch --main_process_port 12673 ts_vad2/train_accelerate_ddp2.py \
+  #accelerate launch --debug --multi_gpu --mixed_precision=fp16 --num_processes=2  --main_process_port=12673 ts_vad2/train_accelerate_ddp2.py \
+   #data_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format" # oracle target audio , mix audio and labels path
+   data_dir="/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc"
+   rs_len=6
+   segment_shift=2
+   single_backend_type="transformer"
+   multi_backend_type="transformer"
+   d_state=128
+   label_rate=25
+   #label_rate=100
+   num_transformer_layer=2
+  CUDA_VISIABLE_DEVICES=0,1 \
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15715 \
+  ts_vad2/train_accelerate_ddp_dual_optim.py\
+    --world-size 2 \
+    --num-epochs 20\
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --freeze-updates 0\
+    --grad-clip false\
+    --lr-small 5e-6\
+    --lr-big 2e-4\
+    --musan-path $musan_path \
+    --rir-path $rir_path \
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path\
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --exp-dir $exp_dir\
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state\
+    --label-rate $label_rate
+fi
+
+if [ ${stage} -le 164 ] && [ ${stop_stage} -ge 164 ];then
+ #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB3_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_cam++_200k_speaker_embedding_lr5e-6
+ #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_cam++_200k_speaker_emb_lr3e-4
+ exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_redimnetb2_speaker_emb_lr_small5e6_lr_big_2e4
+ model_file=$exp_dir/best-valid-der.pt
+ rs_len=6
+ segment_shift=1
+ single_backend_type="transformer"
+ multi_backend_type="transformer"
+ d_state=128
+ num_transformer_layer=2
+ label_rate=25
+ min_silence=0.32
+ min_speech=0.0
+ infer_sets="dev test"
+ #infer_sets="Test"
+ rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+ sctk_tool_path="./SCTK-2.4.12"
+ #collar=0.25
+ collar="0.0 0.25"
+
+ dataset_name="magicdata-ramc" # dataset name
+ # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
+# speech_encoder_type="CAM++"
+# speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
+# #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+#
+# # for loading speaker embedding file
+# spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+# speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+#
+# data_dir="/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+
+speech_encoder_type="ReDimNetB2"
+speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b2-vox2-ft_lm.pt"
+    #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
+
+# for loading speaker embedding file
+spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding # store speaker embedding directory
+#speaker_embedding_name_dir="redimnet_b2-vox2-ft_lm_feature_dir"
+speaker_embedding_name_dir="redimnet_b2-vox2-ft_lm_using_fbank_feature_dir"
+
+#spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+#speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
+
+data_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format" # oracle target audio , mix audio and labels path
+
+for c in $collar;do
+  for name in $infer_sets;do
+    results_path=$exp_dir/${dataset_name}_collar${c}
+  python3 ts_vad2/infer.py \
+    --model-file $model_file\
+    --rs-len $rs_len\
+    --segment-shift $segment_shift\
+    --label-rate $label_rate\
+    --min-speech $min_speech\
+    --min-silence $min_silence\
+    --rttm-name ${name}/rttm_debug_nog0\
+    --rttm-dir $rttm_dir\
+    --sctk-tool-path $sctk_tool_path \
+    --collar $c\
+    --results-path $results_path \
+    --split $name\
+    --speech-encoder-type $speech_encoder_type\
+    --speech-encoder-path $speech_encoder_path \
+    --spk-path $spk_path\
+    --speaker-embedding-name-dir $speaker_embedding_name_dir\
+    --wavlm-fuse-feat-post-norm false \
+    --data-dir $data_dir\
+    --dataset-name $dataset_name\
+    --single-backend-type $single_backend_type\
+    --multi-backend-type $multi_backend_type\
+    --num-transformer-layer $num_transformer_layer\
+    --d-state $d_state
+ done
+done
+fi

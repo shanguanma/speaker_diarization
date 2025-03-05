@@ -233,8 +233,8 @@ def get_parser():
         """,
     )
     parser.add_argument("--lr", type=float, default=2e-4, help="adamw init lr rate.")
-    parser.add_argument("--lr_small", type=float, default=2e-5, help="small adamw init lr rate for model.speech_encoder")
-    parser.add_argument("--lr_big", type=float, default=1e-3, help="small adamw init lr rate for model.speech_encoder")
+    parser.add_argument("--lr-small", type=float, default=2e-5, help="small adamw init lr rate for model.speech_encoder")
+    parser.add_argument("--lr-big", type=float, default=1e-3, help="small adamw init lr rate for model.speech_encoder")
     parser.add_argument(
         "--average-period",
         type=int,
@@ -465,7 +465,7 @@ def get_dual_optimizer(params, model):
         eps=1e-08,
         weight_decay=0.01,
     )
-    return optimizer_small,optimizer_big 
+    return optimizer_small,optimizer_big
 
 def get_dual_scheduler(params, optimizer_small, optimizer_big, max_num_updates):
     from polynomial import PolynomialDecayLR
@@ -716,7 +716,8 @@ def train_one_epoch(
         params.batch_idx_train += 1
         batch_size = params.batch_size
 
-        optimizer.zero_grad()
+        optimizer_small.zero_grad()
+        optimizer_big.zero_grad()
         train_batch_nums.append(batch_idx)
         loss, loss_info = compute_loss(
             model=model,

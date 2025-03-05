@@ -881,15 +881,27 @@ class TSVADModel(nn.Module):
             self.wavlmlnorm,
         )
     def non_speech_encoder_parameters(self):
-        return [
-            *self.speech_down_or_up.parameters(),
-            *self.pos_encoder.parameters(),
-            *self.single_backend.parameters(),
-            *self.backend_down.parameters(),
-            *self.multi_backend.parameters(),
-            *self.multi_backend_proj.parameters(), # only for multi_backend=="mamba2"
-            *self.fc.parameters(),
-        ]
+
+        if self.multi_backend_proj is not None:
+
+            return [
+                *self.speech_down_or_up.parameters(),
+                *self.pos_encoder.parameters(),
+                *self.single_backend.parameters(),
+                *self.backend_down.parameters(),
+                *self.multi_backend.parameters(),
+                *self.multi_backend_proj.parameters(),# only for multi_backend=="mamba2"
+                *self.fc.parameters(),
+            ]
+        else:
+            return [
+                *self.speech_down_or_up.parameters(),
+                *self.pos_encoder.parameters(),
+                *self.single_backend.parameters(),
+                *self.backend_down.parameters(),
+                *self.multi_backend.parameters(),
+                *self.fc.parameters(),
+            ]
     def forward_common(
         self,
         ref_speech: torch.Tensor,
