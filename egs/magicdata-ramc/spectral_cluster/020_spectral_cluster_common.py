@@ -23,7 +23,7 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster._kmeans import k_means
 
-from examples.speaker_diarization.ts_vad.models.modules.cam_pplus_wespeaker import (
+from cam_pplus_wespeaker import (
     CAMPPlus,
 )
 
