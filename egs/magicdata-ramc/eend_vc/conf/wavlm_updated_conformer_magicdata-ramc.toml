@@ -1,5 +1,5 @@
 [meta]
-save_dir = "exp"
+save_dir = "/data/maduo/exp/speaker_diarization/eend_vc" # default "$PWD/exp"
 seed = 3407
 
 [finetune]

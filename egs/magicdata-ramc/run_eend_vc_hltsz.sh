@@ -27,7 +27,7 @@ fi
 if [ $stage -le 2 ] && [ ${stop_stage} -ge 2 ]; then
 
 	#recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-	exp_root=exp
+	exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
 	conf_dir=eend_vc/conf
 
 	# training setup
@@ -97,7 +97,7 @@ if [ $stage -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     #dtype="dev test"
     dtype="cssd_testset"
     collar="0 0.25"
-    exp_root=exp
+    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
     conf_dir=eend_vc/conf
 
     # training setup
@@ -157,7 +157,7 @@ fi
 if [ $stage -le 4 ] && [ ${stop_stage} -ge 4 ]; then
 
         #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-        exp_root=exp
+        exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
         conf_dir=eend_vc/conf
 
         # training setup
@@ -227,7 +227,7 @@ if [ $stage -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     #dtype="dev test"
     dtype="dev test cssd_testset"
     collar="0 0.25"
-    exp_root=exp
+    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
     conf_dir=eend_vc/conf
 
     # training setup
@@ -393,7 +393,7 @@ fi
 if [ $stage -le 6 ] && [ ${stop_stage} -ge 6 ]; then
 
         #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-        exp_root=exp
+        exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
         conf_dir=eend_vc/conf
 
         # training setup
@@ -464,7 +464,7 @@ if [ $stage -le 7 ] && [ ${stop_stage} -ge 7 ]; then
     #dtype="dev test"
     dtype="dev test cssd_testset"
     collar="0 0.25"
-    exp_root=exp
+    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
     conf_dir=eend_vc/conf
 
     # training setup
@@ -625,10 +625,10 @@ fi
 #CTS-CN-F2F-2018-05-08_950 CDER = 0.195
 #Avg CDER : 0.186 
 
-if [ $stage -le 8 ] && [ ${stop_stage} -ge 9 ]; then
+if [ $stage -le 8 ] && [ ${stop_stage} -ge 8 ]; then
 
         #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-        exp_root=exp
+        exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
         conf_dir=eend_vc/conf
 
         # training setup
@@ -700,7 +700,7 @@ if [ $stage -le 9 ] && [ ${stop_stage} -ge 9 ]; then
     #dtype="dev test"
     dtype="dev test cssd_testset"
     collar="0 0.25"
-    exp_root=exp
+    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
     conf_dir=eend_vc/conf
 
     # training setup
