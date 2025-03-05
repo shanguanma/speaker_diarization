@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
 """ Res2Net implementation is adapted from https://github.com/wenet-e2e/wespeaker.
-    ERes2Net incorporates both local and global feature fusion techniques to improve the performance. 
+    ERes2Net incorporates both local and global feature fusion techniques to improve the performance.
     The local feature fusion (LFF) fuses the features within one single residual block to extract the local signal.
     The global feature fusion (GFF) takes acoustic features of different scales as input to aggregate global signal.
 """
@@ -12,8 +12,8 @@ import torch
 import math
 import torch.nn as nn
 import torch.nn.functional as F
-import  examples.speaker_diarization.ts_vad.models.modules.pooling_layers2 as pooling_layers
-
+#import  examples.speaker_diarization.ts_vad.models.modules.pooling_layers2 as pooling_layers
+import pooling_layers_3d_speaker as pooling_layers
 class AFF(nn.Module):
 
     def __init__(self, channels=64, r=4):
@@ -65,7 +65,7 @@ class BasicBlockERes2Net(nn.Module):
         self.convs = nn.ModuleList(convs)
         self.bns = nn.ModuleList(bns)
         self.relu = ReLU(inplace=True)
-        
+
         self.conv3 = nn.Conv2d(width*scale, planes*self.expansion, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes*self.expansion)
         self.shortcut = nn.Sequential()
@@ -129,7 +129,7 @@ class BasicBlockERes2Net_diff_AFF(nn.Module):
         self.bns = nn.ModuleList(bns)
         self.fuse_models = nn.ModuleList(fuse_models)
         self.relu = ReLU(inplace=True)
-        
+
         self.conv3 = nn.Conv2d(width*scale, planes*self.expansion, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes*self.expansion)
         self.shortcut = nn.Sequential()
@@ -148,13 +148,13 @@ class BasicBlockERes2Net_diff_AFF(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        spx = torch.split(out,self.width,1)     
+        spx = torch.split(out,self.width,1)
         for i in range(self.nums):
             if i==0:
                 sp = spx[i]
             else:
                 sp = self.fuse_models[i-1](sp, spx[i])
-                
+
             sp = self.convs[i](sp)
             sp = self.relu(self.bns[i](sp))
             if i==0:
@@ -232,7 +232,7 @@ class ERes2Net(nn.Module):
         out1 = self.layer1(out)
         out2 = self.layer2(out1)
         out1_downsample = self.layer1_downsample(out1)
-        fuse_out12 = self.fuse_mode12(out2, out1_downsample)   
+        fuse_out12 = self.fuse_mode12(out2, out1_downsample)
         out3 = self.layer3(out2)
         fuse_out12_downsample = self.layer2_downsample(fuse_out12)
         fuse_out123 = self.fuse_mode123(out3, fuse_out12_downsample)

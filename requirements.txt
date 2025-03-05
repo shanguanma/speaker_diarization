@@ -2,8 +2,10 @@ accelerate # for ddp train
 scipy
 tensorboard
 yamlargparse
-numpy==1.22.0
+#numpy==1.22.0
+numpy==1.23.5
 modescope==1.7.1
+onnxruntime-gpu==1.17 # support cuda11.8,cudnn8.* # you can see https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
 transformers==4.46.2
 tqdm
 librosa==0.10.2
