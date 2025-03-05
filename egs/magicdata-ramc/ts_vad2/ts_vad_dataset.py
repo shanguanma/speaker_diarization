@@ -699,6 +699,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         labels_len = torch.tensor(
             [s["labels"].size(1) for s in samples], dtype=torch.long
         )
+
         num_speakers = torch.tensor([s["num_speaker"] for s in samples], dtype=torch.long)
         if not self.support_mc:
             assert ref_speech.size(1) == 1
@@ -753,6 +754,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         else:
             target_speech,num_speaker = self.load_ts_embed(file, new_speaker_ids)
         #print(f"target_speech shape: {target_speech.shape}, num_speaker : {num_speaker}") # (num_speaker, speaker_embeds), num_speaker: int
+        #print(f"labels shape: {labels.shape} in fn __getitem__")
         samples = {
             "id": index,
             "ref_speech": ref_speech,

@@ -79,6 +79,7 @@ class TSVADDataConfig:
     support_variable_number_speakers: bool = False
     """if true, it will support variable_number_speakers in training stage and infer stage"""
 
+
 cfg = TSVADDataConfig()
 from model import TSVADConfig
 
@@ -90,9 +91,9 @@ def load_dataset(
     cfg,
     split: str,
 ):
-    #spk_path:str=None
-    #json_path:str=None
-    #audio_path:str=None
+    # spk_path:str=None
+    # json_path:str=None
+    # audio_path:str=None
     if cfg.dataset_name == "alimeeting":
         if split == "Test" or split == "Eval":
             spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
@@ -104,9 +105,9 @@ def load_dataset(
             audio_path = f"{cfg.data_dir}/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
 
     elif cfg.dataset_name == "magicdata-ramc":
-        spk_path=f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
-        json_path=f"{cfg.data_dir}/{split}/{split}.json"  ## offer mixer wavform name,
-        audio_path = f"{cfg.data_dir}/{split}/target_audio" ## offer number of speaker, offer mixer wavform name, offer target speaker wav
+        spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
+        json_path = f"{cfg.data_dir}/{split}/{split}.json"  ## offer mixer wavform name,
+        audio_path = f"{cfg.data_dir}/{split}/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav
     else:
         raise Exception(f"The given dataset {cfg.dataset_name} is not supported.")
 
@@ -117,13 +118,21 @@ def load_dataset(
         or cfg.speech_encoder_type == "hubert"
     ):
         fbank_input = False
-        redimnet_input=False
-    elif cfg.speech_encoder_type=="ReDimNetB3" or cfg.speech_encoder_type=="ReDimNetB2" or  cfg.speech_encoder_type=="ReDimNetB1" or  cfg.speech_encoder_type=="ReDimNetB0" or cfg.speech_encoder_type=="ReDimNetM" or cfg.speech_encoder_type=="ReDimNetS":
-        redimnet_input=True
+        redimnet_input = False
+    elif (
+        cfg.speech_encoder_type == "ReDimNetB3"
+        or cfg.speech_encoder_type == "ReDimNetB2"
+        or cfg.speech_encoder_type == "ReDimNetB2_layernorm"
+        or cfg.speech_encoder_type == "ReDimNetB1"
+        or cfg.speech_encoder_type == "ReDimNetB0"
+        or cfg.speech_encoder_type == "ReDimNetM"
+        or cfg.speech_encoder_type == "ReDimNetS"
+    ):
+        redimnet_input = True
         fbank_input = True
     else:
         fbank_input = True
-        redimnet_input=False
+        redimnet_input = False
     datasets = TSVADDataset(
         json_path=json_path,
         audio_path=audio_path,

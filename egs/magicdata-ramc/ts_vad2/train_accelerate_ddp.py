@@ -294,8 +294,10 @@ def add_data_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument("--dataset-name",type=str,default="magicdata-ramc",help="dataset name", )
     parser.add_argument("--max-num-speaker", type=int, default=4, help="support max number of speaker in ts_vad")
-    
+
     parser.add_argument("--support-variable-number-speakers", type=str2bool, default=False, help="if it is false, tsvad only support fixed max_num_speaker, if it is True, tsvad will support variable num_speaker")
+    parser.add_argument("--batch-size", type=int, default=64)
+
     return parser
 
 def add_data_model_common_arguments(parser: argparse.ArgumentParser):
@@ -410,7 +412,7 @@ def get_params() -> AttributeDict:
             "valid_interval": 500,
             # "ignore_id": -1,
             # "label_smoothing": 0.1,
-            "batch_size": 64,
+            #"batch_size": 64,
         }
     )
     return params
@@ -475,12 +477,14 @@ def compute_loss(
         target_speech = batch["net_input"]["target_speech"]
         labels = batch["net_input"]["labels"]
         labels_len = batch["net_input"]["labels_len"]
+        #print(f"labels_len shape: {labels_len.shape}, labels shape: {labels.shape}, target_speech shape: {target_speech.shape}, ref_speech shape: {ref_speech.shape}")
         outs = model(
             ref_speech=ref_speech,
             target_speech=target_speech,
             labels=labels,
             num_updates=batch_idx_train,
         )
+        #print(f"outs: {outs.shape}")
         loss = calculate_loss(outs=outs, labels=labels, labels_len=labels_len)
 
         ## public logger
