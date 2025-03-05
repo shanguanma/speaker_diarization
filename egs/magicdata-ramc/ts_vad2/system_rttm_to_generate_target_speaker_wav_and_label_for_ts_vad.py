@@ -55,14 +55,23 @@ def remove_overlap(aa, bb):
     # Return the new list of intervals
     return result
 
+def load_wav_scp(wav_scp: str):
+    wav2scp={}
+    with open(wav_scp,'r')as f:
+        for line in f:
+            line = line.strip().split()
+            if line[0] not in wav2scp:
+                wav2scp[line[0]] = line[-1]
+    return wav2scp
 
 def main(args):
-    audio_wavforms = glob.glob(args.audio_dir + "/*")
-
+    #audio_wavforms = glob.glob(args.audio_dir + "/*")
+    wav2scp = load_wav_scp(args.wavscp) 
     outs = open(args.out_text, "w")
-    for audio_wavform in tqdm.tqdm(audio_wavforms):
+    #for audio_wavform in tqdm.tqdm(audio_wavforms):
         # audio_wavform is str
-        uttid = os.path.splitext(os.path.basename(audio_wavform))[0]
+        #uttid = os.path.splitext(os.path.basename(audio_wavform))[0]
+    for uttid in wav2scp.keys():
         print(uttid)
         segments = []
         spk = {}
@@ -118,9 +127,10 @@ def main(args):
             new_intervals[key] = new_interval
 
         # read mixture audio
-        wav_file = audio_wavform
+        #wav_file = audio_wavform
+        wav_file =  wav2scp[uttid]
         orig_audio, _ = soundfile.read(wav_file)
-        orig_audio = orig_audio[:, 0]
+        #orig_audio = orig_audio[:, 0]  # magicdata-ramc is mono channel data, so it doesn't choice channel number
         length = len(orig_audio)
 
         # # Cut and save the clean speech part
@@ -165,19 +175,20 @@ def main(args):
 
 def get_args():
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--system_rttm", help="the path for the alimeeting")
-    parser.add_argument("--audio_dir", help="the path for the alimeeting audio_dir")
+    parser.add_argument("--system_rttm", help="the path for the system rttm of magicdata-ramc, i.e. eend_vc model output rttm or cluster method output rttm")
+    parser.add_argument("--wavscp", help="the path for the magicdata-ramc wavscp file path")
     parser.add_argument("--dest_dir", help="the director for output files")
 
     parser.add_argument("--type", help="Eval or Train")
     args = parser.parse_args()
-    if args.type=="Eval" or args.type=="Test":
-        args.path = os.path.join(
-        args.dest_dir, "%s_Ali" % (args.type), "%s_Ali_far" % (args.type)
-
-        )
-    else:
-        args.path = os.path.join(args.dest_dir,"%s_Ali_far" % (args.type))
+    #if args.type=="Eval" or args.type=="Test":
+    #    args.path = os.path.join(
+    #    args.dest_dir, "%s_Ali" % (args.type), "%s_Ali_far" % (args.type)
+    #
+    #    )
+    #else:
+    #    args.path = os.path.join(args.dest_dir,"%s_Ali_far" % (args.type))
+    args.path = os.path.join(args.dest_dir,f"{args.type}")
     os.makedirs(args.path, exist_ok=True)
     args.target_wav = os.path.join(args.path, "target_audio")
     args.out_text = os.path.join(args.path, "%s.json" % (args.type))
