@@ -127,6 +127,7 @@ def load_dataset(
         or cfg.speech_encoder_type == "ReDimNetB0"
         or cfg.speech_encoder_type == "ReDimNetM"
         or cfg.speech_encoder_type == "ReDimNetS"
+        or cfg.speech_encoder_type == "ReDimNetB2_offical"
     ):
         redimnet_input = True
         fbank_input = True

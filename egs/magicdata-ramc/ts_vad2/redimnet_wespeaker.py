@@ -1168,6 +1168,18 @@ if __name__ == "__main__":
     out_frame = model.get_frame_level_feat(x)
     print(f"B2 load pretrain model, out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
 
+    model = ReDimNetB2(feat_dim=72, embed_dim=192, two_emb_layer=False)
+    pretrained_model="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/en/redimnet/b2-vox2-ft_lm.pt"
+    pretrained_state = torch.load(pretrained_model, map_location=torch.device("cpu"), weights_only=False)
+    model.load_state_dict(pretrained_state,strict=False)
+    model.eval()
+    x = torch.randn(32,100,72)
+    out = model(x)
+    print(f"load pretrain model, out[-1].size() shape: {out[-1].size()}, out: {out}")
+    out_frame = model.get_frame_level_feat(x)
+    print(f"B2 load pretrain model, out_frame shape: {out_frame.shape}") # out_frame shape: torch.Size([32, 601, 1152])
+
+    """
     model = ReDimNetB3(feat_dim=72, embed_dim=192, two_emb_layer=False)
     model.eval()
     out = model(x)
@@ -1230,3 +1242,5 @@ if __name__ == "__main__":
         model = model_class()
         num_params = sum(p.numel() for p in model.parameters())
         print("{} M of Model B{}".format(num_params / 1e6, i))
+
+    """

@@ -39,9 +39,15 @@ from redimnet_wespeaker import (
 
 # from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 try:
-    from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
+    from ts_vad2.mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 except ImportError:
     MambaBlockV2, MambaBlock, Mamba2BlockV2 = None, None, None
+
+import os
+sys.path.append(os.path.dirname(__file__))
+print(os.path.dirname(__file__))
+from redimnet.redimnet.model import ReDimNetWrap
+
 
 logger = logging.getLogger(__name__)
 
@@ -487,6 +493,31 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.speaker_embed_dim),
                 nn.ReLU(),
             )
+        # ReDimNetB2_offical
+        elif self.speech_encoder_type == "ReDimNetB2_offical":
+            model_name = f'b2-vox2-ft_lm.pt'
+            url="https://github.com/IDRnD/ReDimNet/releases/download/latest/{model_name}"
+            full_state_dict = torch.hub.load_state_dict_from_url(url, progress=True)
+
+            model_config = full_state_dict['model_config']
+            state_dict = full_state_dict['state_dict']
+            logger.info(f"ReDimNetB2_offical model_config: {model_config}")
+            self.speech_encoder = ReDimNetWrap(**model_config)
+            self.speech_encoder.load_state_dict(state_dict)
+            pretrain_speech_encoder_dim = 1152
+            # no downsample, stride=1, label_rate is 67
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+
         elif self.speech_encoder_type == "ReDimNetB0":
             self.speech_encoder = ReDimNetB0(
                 feat_dim=60, embed_dim=192, pooling_func="ASTP"
@@ -999,6 +1030,7 @@ class TSVADModel(nn.Module):
             or self.speech_encoder_type == "ReDimNetB3"
             or self.speech_encoder_type == "ReDimNetM"
             or self.speech_encoder_type == "ReDimNetS"
+            or self.speech_encoder_type == "ReDimNetB2_offical"
         ):
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input melbank feature(72-dim)

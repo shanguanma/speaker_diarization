@@ -77,9 +77,10 @@ from checkpoint import (
     remove_epochs,
     update_averaged_model,
 )
-from checkpoint import save_checkpoint as save_checkpoint_impl
+from checkpoint import save_checkpoint_with_dual_optim as save_checkpoint_with_dual_optim_impl
 from checkpoint import (
     save_checkpoint_with_global_batch_idx,
+    save_checkpoint_with_global_batch_idx_with_dual_optim,
 )
 from utils import (
     AttributeDict,
@@ -611,11 +612,13 @@ def compute_validation_loss(
     return tot_loss
 
 
-def save_checkpoint(
+def save_checkpoint_with_dual_optim(
     params: AttributeDict,
     model: nn.Module,
-    optimizer: Optional[torch.optim.Optimizer] = None,
-    scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
+    optimizer_small: Optional[torch.optim.Optimizer] = None,
+    optimizer_big: Optional[torch.optim.Optimizer] = None,
+    scheduler_small: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
+    scheduler_big: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
     model_avg: Optional[nn.Module] = None,
     scaler: Optional[GradScaler] = None,
 ) -> None:
@@ -628,12 +631,14 @@ def save_checkpoint(
         The training model.
     """
     filename = params.exp_dir / f"epoch-{params.cur_epoch}.pt"
-    save_checkpoint_impl(
+    save_checkpoint_with_dual_optim_impl(
         filename=filename,
         model=model,
         params=params,
-        optimizer=optimizer,
-        scheduler=scheduler,
+        optimizer_small=optimizer_small,
+        optimizer_big=optimizer_big,
+        scheduler_small=scheduler_small,
+        scheduler_big=scheduler_big,
         scaler=scaler,
         model_avg=model_avg,
     )
@@ -650,18 +655,20 @@ def save_checkpoint(
         copyfile(src=filename, dst=best_valid_der_filename)
 
 
-def do_save_and_remove_once(
-    params, model, model_avg, optimizer, scheduler, train_dl, scaler
+def do_save_and_remove_once_with_dual_optim(
+    params, model, model_avg, optimizer_small,optimizer_big, scheduler_small, scheduler_big, train_dl, scaler
 ):
     # save model
-    save_checkpoint_with_global_batch_idx(
+    save_checkpoint_with_global_batch_idx_with_dual_optim(
         out_dir=params.exp_dir,
         global_batch_idx=params.batch_idx_train,
         model=model,
         model_avg=model_avg,
         params=params,
-        optimizer=optimizer,
-        scheduler=scheduler,
+        optimizer_small=optimizer_small,
+        optimizer_big=optimizer_big,
+        scheduler_small=scheduler_small,
+        scheduler_big=scheduler_big,
         sampler=train_dl.sampler,
         scaler=scaler,
     )
@@ -763,8 +770,8 @@ def train_one_epoch(
             and accelerator.is_main_process
         ):
 
-            do_save_and_remove_once(
-                params, model, model_avg, optimizer, scheduler, train_dl, scaler
+            do_save_and_remove_once_with_dual_optim(
+                params, model, model_avg, optimizer_small,optimizer_big, scheduler_small, scheduler_big, train_dl, scaler
             )
 
         if batch_idx % params.log_interval == 0:
@@ -1140,11 +1147,13 @@ def main(args):
             model_avg=model_avg,
         )
         if accelerator.is_main_process:
-            save_checkpoint(
+            save_checkpoint_with_dual_optim(
                 params=params,
                 model=model,
-                optimizer=optimizer,
-                scheduler=scheduler,
+                optimizer_small=optimizer_small,
+                optimizer_big=optimizer_big,
+                scheduler_small=scheduler_small,
+                scheduler_big=scheduler_big,
             )
         # early stop(TODO) Duo Ma
         # Assume `should_do_breakpoint` is a custom defined function that returns a conditional,

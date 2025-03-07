@@ -96,6 +96,69 @@ def save_checkpoint(
     torch.save(checkpoint, filename)
 
 
+def save_checkpoint_with_dual_optim(
+    filename: Path,
+    model: Union[nn.Module, DDP],
+    model_avg: Optional[nn.Module] = None,
+    params: Optional[Dict[str, Any]] = None,
+    optimizer_small: Optional[Optimizer] = None,
+    optimizer_big: Optional[Optimizer] = None,
+    scheduler_small: Optional[LRSchedulerType] = None,
+    scheduler_big: Optional[LRSchedulerType] = None,
+    scaler: Optional[GradScaler] = None,
+    sampler: Optional[CutSampler] = None,
+    rank: int = 0,
+)->None:
+    """Save training information to a file.
+
+    Args:
+      filename:
+        The checkpoint filename.
+      model:
+        The model to be saved. We only save its `state_dict()`.
+      model_avg:
+        The stored model averaged from the start of training.
+      params:
+        User defined parameters, e.g., epoch, loss.
+      optimizer:
+        The optimizer to be saved. We only save its `state_dict()`.
+      scheduler:
+        The scheduler to be saved. We only save its `state_dict()`.
+      scalar:
+        The GradScaler to be saved. We only save its `state_dict()`.
+      rank:
+        Used in DDP. We save checkpoint only for the node whose rank is 0.
+    Returns:
+      Return None.
+    """
+    if rank != 0:
+        return
+
+    logging.info(f"Saving checkpoint to {filename}")
+
+    if isinstance(model, DDP):
+        model = model.module
+
+    checkpoint = {
+        "model": model.state_dict(),
+        "optimizer_small": optimizer_small.state_dict() if optimizer_small is not None else None,
+        "optimizer_big": optimizer_big.state_dict() if optimizer_big is not None else None,
+        "scheduler_small": scheduler_small.state_dict() if scheduler_small is not None else None,
+        "scheduler_big": scheduler_big.state_dict() if scheduler_big is not None else None,
+        "grad_scaler": scaler.state_dict() if scaler is not None else None,
+        #"sampler": sampler.state_dict() if sampler is not None else None,
+    }
+
+    if model_avg is not None:
+        checkpoint["model_avg"] = model_avg.to(torch.float32).state_dict()
+
+    if params:
+        for k, v in params.items():
+            assert k not in checkpoint
+            checkpoint[k] = v
+
+    torch.save(checkpoint, filename)
+
 def load_checkpoint(
     filename: Path,
     model: nn.Module,
@@ -255,6 +318,69 @@ def save_checkpoint_with_global_batch_idx(
     #    best_valid_der_filename = out_dir / "best-valid-step-der.pt"
     #    copyfile(src=filename, dst=best_valid_der_filename)
     #    logging.info(f" end of step {params.cur_step}, Saved best checkpoint to {best_valid_der_filename} ")
+
+
+def save_checkpoint_with_global_batch_idx_with_dual_optim(
+    out_dir: Path,
+    global_batch_idx: int,
+    model: Union[nn.Module, DDP],
+    model_avg: Optional[nn.Module] = None,
+    params: Optional[Dict[str, Any]] = None,
+    optimizer_small: Optional[Optimizer] = None,
+    optimizer_big: Optional[Optimizer] = None,
+    scheduler_small: Optional[LRSchedulerType] = None,
+    scheduler_big: Optional[LRSchedulerType] = None,
+    scaler: Optional[GradScaler] = None,
+    sampler: Optional[CutSampler] = None,
+    rank: int = 0,
+):
+    """Save training info after processing given number of batches.
+
+    Args:
+      out_dir:
+        The directory to save the checkpoint.
+      global_batch_idx:
+        The number of batches processed so far from the very start of the
+        training. The saved checkpoint will have the following filename:
+
+            f'out_dir / checkpoint-{global_batch_idx}.pt'
+      model:
+        The neural network model whose `state_dict` will be saved in the
+        checkpoint.
+      model_avg:
+        The stored model averaged from the start of training.
+      params:
+        A dict of training configurations to be saved.
+      optimizer:
+        The optimizer used in the training. Its `state_dict` will be saved.
+      scheduler:
+        The learning rate scheduler used in the training. Its `state_dict` will
+        be saved.
+      scaler:
+        The scaler used for mix precision training. Its `state_dict` will
+        be saved.
+      sampler:
+        The sampler used in the training dataset.
+      rank:
+        The rank ID used in DDP training of the current node. Set it to 0
+        if DDP is not used.
+    """
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    filename = out_dir / f"checkpoint-{global_batch_idx}.pt"
+    save_checkpoint_with_dual_optim(
+        filename=filename,
+        model=model,
+        model_avg=model_avg,
+        params=params,
+        optimizer_small=optimizer_small,
+        optimizer_big=optimizer_big,
+        scheduler_small=scheduler_small,
+        scheduler_big=scheduler_big,
+        scaler=scaler,
+        sampler=sampler,
+        rank=rank,
+    )
 
 def find_checkpoints(out_dir: Path, iteration: int = 0) -> List[str]:
     """Find all available checkpoints in a directory.
