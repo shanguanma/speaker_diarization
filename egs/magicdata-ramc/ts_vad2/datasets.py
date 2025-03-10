@@ -116,9 +116,10 @@ def load_dataset(
         or cfg.speech_encoder_type == "WavLM_weight_sum"
         or cfg.speech_encoder_type == "whisper"
         or cfg.speech_encoder_type == "hubert"
+        or cfg.speech_encoder_type == "ReDimNetB2_offical"
     ):
         fbank_input = False
-        redimnet_input = False
+        redimnet_fbank_input = False
     elif (
         cfg.speech_encoder_type == "ReDimNetB3"
         or cfg.speech_encoder_type == "ReDimNetB2"
@@ -127,13 +128,12 @@ def load_dataset(
         or cfg.speech_encoder_type == "ReDimNetB0"
         or cfg.speech_encoder_type == "ReDimNetM"
         or cfg.speech_encoder_type == "ReDimNetS"
-        or cfg.speech_encoder_type == "ReDimNetB2_offical"
     ):
-        redimnet_input = True
+        redimnet_fbank_input = True
         fbank_input = True
     else:
         fbank_input = True
-        redimnet_input = False
+        redimnet_fbank_input = False
     datasets = TSVADDataset(
         json_path=json_path,
         audio_path=audio_path,
@@ -150,7 +150,7 @@ def load_dataset(
         embed_shift=cfg.embed_shift,
         embed_input=cfg.embed_input,
         fbank_input=fbank_input,
-        redimnet_input=redimnet_input,
+        redimnet_fbank_input=redimnet_fbank_input,
         speech_encoder_type=cfg.speech_encoder_type,
         label_rate=cfg.label_rate,
         random_channel=cfg.random_channel,

@@ -496,7 +496,7 @@ class TSVADModel(nn.Module):
         # ReDimNetB2_offical
         elif self.speech_encoder_type == "ReDimNetB2_offical":
             model_name = f'b2-vox2-ft_lm.pt'
-            url="https://github.com/IDRnD/ReDimNet/releases/download/latest/{model_name}"
+            url=f"https://github.com/IDRnD/ReDimNet/releases/download/latest/{model_name}"
             full_state_dict = torch.hub.load_state_dict_from_url(url, progress=True)
 
             model_config = full_state_dict['model_config']
@@ -1034,7 +1034,7 @@ class TSVADModel(nn.Module):
         ):
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input melbank feature(72-dim)
-                # print(f"input shape of speech_encoder: {ref_speech.shape}")
+                #print(f"input shape of speech_encoder: {ref_speech.shape}")
                 x = self.speech_encoder.get_frame_level_feat(ref_speech)  # (B,T,D)
             x = x.transpose(1, 2)  # (B,T,D)->(B,D,T)
             # print(f"output shape of speech_encoder: {x.shape}")
@@ -1051,13 +1051,15 @@ class TSVADModel(nn.Module):
         ## process gap of audio len and label len
         gap = x.size(-1) - max_len
         assert (
-            abs(x.size(-1) - max_len) <= 2
+            abs(x.size(-1) - max_len) <= 3
         ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
         # padding audio len to label len
         if gap == -1:
             x = nn.functional.pad(x, (0, 1))
         elif gap == -2:
             x = nn.functional.pad(x, (0, 2))
+        elif gap == -3:
+            x = nn.functional.pad(x, (0, 3))
         # cut audio len to label len
         x = x[:, :, :max_len]  # (B,D,T)
         # print(f"after padding audio len shape: {x.shape}")

@@ -252,6 +252,7 @@ def get_parser():
     #    default=25,
     #    help="diarization label rate, default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100",
     #)
+    parser.add_argument("--mixed-precision", type=str, default="fp16", help="support train precision, i.e. 'no', 'fp16', 'bf16'")
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)
@@ -940,7 +941,7 @@ def main(args):
     )
     accelerator = Accelerator(
         kwargs_handlers=[ddp_kwargs, scaler_kwargs],
-        mixed_precision="fp16",
+        mixed_precision=params.mixed_precision, # default is fp16
         project_dir=args.exp_dir,
     )
 

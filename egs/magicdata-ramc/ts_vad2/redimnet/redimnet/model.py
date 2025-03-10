@@ -31,14 +31,14 @@ import torch.nn.functional as F
 from collections import OrderedDict
 from typing import Iterable, Optional
 
-import redimnet.layers.features as features
-import redimnet.layers.features_tf as features_tf
-import redimnet.layers.poolings as pooling_layers
-from redimnet.layers.layernorm import LayerNorm
-from redimnet.layers.resblocks import ResBasicBlock
-from redimnet.layers.convnext import ConvNeXtLikeBlock
-from redimnet.layers.attention import TransformerEncoderLayer
-from redimnet.layers.redim_structural import to1d, to2d, to1d_tfopt, to2d_tfopt, weigth1d
+import redimnet.redimnet.layers.features as features
+import redimnet.redimnet.layers.features_tf as features_tf
+import redimnet.redimnet.layers.poolings as pooling_layers
+from redimnet.redimnet.layers.layernorm import LayerNorm
+from redimnet.redimnet.layers.resblocks import ResBasicBlock
+from redimnet.redimnet.layers.convnext import ConvNeXtLikeBlock
+from redimnet.redimnet.layers.attention import TransformerEncoderLayer
+from redimnet.redimnet.layers.redim_structural import to1d, to2d, to1d_tfopt, to2d_tfopt, weigth1d
 
 #------------------------------------------
 #              Main blocks
@@ -421,7 +421,7 @@ class ReDimNetWrap(nn.Module):
     def _get_frame_level_feat(self, x):
         # x is audio shape(batchsize, samples), for example: (1,16000)
         x = self.spec(x)
-        print(f"after self.spec(), x shape: {x.shape}")
+        #print(f"after self.spec(), x shape: {x.shape}")
         if self.tf_optimized_arch:
             x = x.permute(0,2,1)
 

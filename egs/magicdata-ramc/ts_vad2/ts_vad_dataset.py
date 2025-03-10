@@ -10,9 +10,12 @@ import numpy as np
 import soundfile as sf
 
 import torch
+import torch.nn as nn
 import librosa
 import torchaudio.compliance.kaldi as kaldi
 from typing import Any,Dict
+
+from redimnet.redimnet.layers.features import MelBanks
 logger = logging.getLogger(__name__)
 
 
@@ -45,65 +48,6 @@ class FBank(object):
             feat = feat - feat.mean(0, keepdim=True)
         return feat
 
-# this codes from offical redimnet, it is only used for speech_encoder_type=="RedimNetB2_offical"
-class MelBanks(nn.Module):
-    def __init__(self,
-        sample_rate=16000,
-        n_fft=512,
-        win_length=400,
-        hop_length=160,
-        f_min = 20,
-        f_max = 7600,
-        n_mels=80,
-        do_spec_aug=False,
-        norm_signal=False,
-        do_preemph=True,
-        spec_norm='mn',
-        freq_start_bin = 0,
-        num_apply_spec_aug = 1,
-        freq_mask_width = (0, 8),
-        time_mask_width = (0, 10),
-    ):
-        super(MelBanks, self).__init__()
-        self.num_apply_spec_aug = num_apply_spec_aug
-        self.torchfbank = torch.nn.Sequential(
-            NormalizeAudio() if norm_signal else nn.Identity(),
-            PreEmphasis() if do_preemph else nn.Identity(),
-            torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate, n_fft=n_fft, win_length=win_length, hop_length=hop_length, \
-                                                 f_min = f_min, f_max = f_max, n_mels=n_mels, window_fn=torch.hamming_window),
-            )
-        self.spec_norm = spec_norm
-        if spec_norm == 'mn':
-            self.spec_norm = lambda x : x - torch.mean(x, dim=-1, keepdim=True)
-        elif spec_norm == 'mvn':
-            self.spec_norm = lambda x : (x - torch.mean(x, dim=-1, keepdim=True)) / (torch.std(x, dim=-1, keepdim=True)+1e-8)
-        elif spec_norm == 'bn':
-            self.spec_norm = nn.BatchNorm1d(n_mels)
-        else:
-            pass
-        if do_spec_aug:
-            self.specaug = FbankAug(
-                freq_start_bin=freq_start_bin,
-                freq_mask_width=freq_mask_width,
-                time_mask_width=time_mask_width) # Spec augmentation
-        else:
-            self.specaug = nn.Identity()
-
-
-    def forward(self, x):
-        xdtype = x.dtype
-        x = x.float()
-        with torch.no_grad():
-            with torch.cuda.amp.autocast(enabled=False):
-                x = self.torchfbank(x)+1e-6
-                x = x.log()
-                print(f"spec : {x.size()}")
-                # x = x - torch.mean(x, dim=-1, keepdim=True)
-                x = self.spec_norm(x)
-                if self.training:
-                    for _ in range(self.num_apply_spec_aug):
-                        x = self.specaug(x)
-        return x.to(xdtype)
 
 def _collate_data(
     frames,
@@ -163,7 +107,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         embed_shift: float = 0.4,
         embed_input: bool = False,
         fbank_input: bool = False,
-        redimnet_input: bool=False,
+        redimnet_fbank_input: bool=False,
         speech_encoder_type: bool="CAM++",
         label_rate: int = 25,
         random_channel: bool = False,
@@ -209,13 +153,13 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.embed_input = embed_input
         self.label_rate = label_rate
         self.fbank_input = fbank_input
-        self.redimnet_input = redimnet_input
+        self.redimnet_fbank_input = redimnet_fbank_input
         self.random_channel = random_channel
         self.support_mc = support_mc
         self.update_num = 0
 
         if fbank_input:
-            if not  redimnet_input:
+            if not  redimnet_fbank_input:
                 logger.info(f"speech_encoder_type is exclude ReDimNet series, it expected fbank as input , fbank_input should be {fbank_input}, redimnet_input should be {redimnet_input} !!!")
                 self.feature_extractor = FBank(
                     80, sample_rate=self.sample_rate, mean_nor=True
@@ -228,13 +172,13 @@ class TSVADDataset(torch.utils.data.Dataset):
                         60, sample_rate=self.sample_rate, mean_nor=True
                     )
                 else:
-                    if speech_encoder_type=="ReDimNetB2_offical":
-                        logger.info(f"speech_encoder_type is ReDimNetB2_offical, it expected offical ReDimNetB2 MelBanks as input, redimnet_input should be {redimnet_input}")
-                        self.feature_extractor = MelBanks(n_mels=72, hop_length=240) # its frame rate is 67.
-                    else:
-                        logger.info(f"speech_encoder_type is not ReDimNetB0, But it is other version ReDimNet, it expect FBank feature is 72, redimnet_input should be {redimnet_input}")
-                        self.feature_extractor = FBank(72, sample_rate=self.sample_rate, mean_nor=True)
+                    #if speech_encoder_type=="ReDimNetB2_offical":
+                    #    logger.info(f"speech_encoder_type is ReDimNetB2_offical, it expected offical ReDimNetB2 MelBanks as input, redimnet_input should be {redimnet_input}")
+                    #    self.feature_extractor = MelBanks(n_mels=72, hop_length=240) # its frame rate is 67.
+                    logger.info(f"speech_encoder_type is not ReDimNetB0, But it is other version ReDimNet, it expect FBank feature is 72, redimnet_input should be {redimnet_input}")
+                    self.feature_extractor = FBank(72, sample_rate=self.sample_rate, mean_nor=True)
         else:
+
             logger.info(f"speech encoder may be self supervise pretrain model, its input is wavform.")
             self.feature_extractor = None
 
