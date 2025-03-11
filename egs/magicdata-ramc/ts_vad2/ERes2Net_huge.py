@@ -15,7 +15,7 @@ import math
 import torch.nn as nn
 import torch.nn.functional as F
 #import  examples.speaker_diarization.ts_vad.models.modules.pooling_layers2 as pooling_layers
-import pooling_layers_3d_speaker as pooling_layers
+import ts_vad2.pooling_layers_3d_speaker as pooling_layers
 
 class AFF(nn.Module):
 

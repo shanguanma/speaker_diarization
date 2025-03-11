@@ -232,6 +232,43 @@ class ERes2NetV2(nn.Module):
             layers.append(block(self.in_planes, planes, stride, baseWidth=self.baseWidth, scale=self.scale, expansion=self.expansion))
             self.in_planes = planes * self.expansion
         return nn.Sequential(*layers)
+    # (MADUO) add frame level feat to adapt it as speech encoder of tsvad
+    def _get_frame_level_feat(self, x):
+        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
+        x = x.unsqueeze_(1)
+        out = F.relu(self.bn1(self.conv1(x)))
+        out1 = self.layer1(out)
+        print(f"out1 shape: {out1.shape}") # torch.Size([1, 128, 80, 100])
+        out2 = self.layer2(out1)
+        print(f"out2 shape: {out2.shape}") # torch.Size([1, 256, 40, 50])
+        out3 = self.layer3(out2)
+        print(f"out3 shape: {out3.shape}") # torch.Size([1, 512, 20, 25])
+        out4 = self.layer4(out3)
+        print(f"out4 shape: {out4.shape}") # torch.Size([1, 1024, 10, 13])
+        out3_ds = self.layer3_ds(out3)
+        print(f"out3_ds shape: {out3_ds.shape}")
+        fuse_out34 = self.fuse34(out4, out3_ds)
+        return fuse_out34 #(B,w,c,T)(y_frame shape: torch.Size([1, 1024, 10, 38]))
+    def get_frame_level_feat(self,x):
+        out = self._get_frame_level_feat(x)
+        out = out.transpose(1, 3)
+        out = torch.flatten(out, 2, -1)
+        out = out.permute(0,2,1) # (B,T,D) -> (B,D,T)
+        return out
+    def get_frame_level_feat_frame_rate25(self,x):
+        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
+        x = x.unsqueeze_(1)
+        out = F.relu(self.bn1(self.conv1(x)))
+        out1 = self.layer1(out)
+        print(f"out1 shape: {out1.shape}") # torch.Size([1, 128, 80, 100])
+        out2 = self.layer2(out1)
+        print(f"out2 shape: {out2.shape}") # torch.Size([1, 256, 40, 50])
+        out3 = self.layer3(out2)
+        print(f"out3 shape: {out3.shape}") # torch.Size([1, 512, 20, 25])
+        out = out3.transpose(1, 3)
+        out = torch.flatten(out, 2, -1)
+        out = out.permute(0,2,1) # (B,T,D) -> (B,D,T)
+        return out
 
     def forward(self, x):
         x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
@@ -256,11 +293,26 @@ class ERes2NetV2(nn.Module):
 
 if __name__ == '__main__':
 
-    x = torch.randn(1, 300, 80)
+    x = torch.randn(1, 100, 80) # 1s audio, frame_rate is 13, 6s audio, frame rate is 75 not 78
     model = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=26, scale=2, expansion=2)
     model.eval()
     y = model(x)
-    print(y.size())
+    y_frame = model.get_frame_level_feat(x)
+    print(f"y shape: {y.shape}")
+    print(f"y_frame shape: {y_frame.shape}")
+
+    y_frame_25 = model.get_frame_level_feat_frame_rate25(x)
+    print(f"y_frame_25 shape: {y_frame_25.shape}")
+    model_w24 = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=24, scale=4, expansion=4)
+    model_w24.eval()
+    y_w24 = model_w24(x)
+    y_w24_frame = model_w24.get_frame_level_feat(x)
+    print(f"y_w24 shape: {y_w24.shape}")
+    print(f"y_w24_frame shape: {y_w24_frame.shape}")
+
+
+    # pip install --upgrade git+https://github.com/ultralytics/thop.git
+    from thop import profile
     macs, num_params = profile(model, inputs=(x, ))
     print("Params: {} M".format(num_params / 1e6)) # 17.86 M
     print("MACs: {} G".format(macs / 1e9)) # 12.69 G

@@ -402,7 +402,6 @@ fi
 # 2025-3-7, I check offical redimnet repo and wespeaker redimnet, their input feature shape are differenct,
 # for example, 1s audio, wespeaker fbank shape is (1,100,72) when num_mels=72, however offical redimnet repo melbank shape is (1, 72, 67),
 # because its hop_lenght is 240, not 160 in wespeaker
-
 if [ ${stage} -le 15 ] && [ ${stop_stage} -ge 15 ];then
    echo "generate speaker embedding"
    dest_dir=/mntcephfs/lab_data/maduo/model_hub
@@ -517,4 +516,145 @@ if [ ${stage} -le 18 ] && [ ${stop_stage} -ge 18 ];then
    done
 fi
 
+# for eres2netV2 last layer of befor pool layer ,frame rate is 13
+if [ ${stage} -le 19 ] && [ ${stop_stage} -ge 19 ];then
+  echo "get target audio and json label file from rttm file, label_rate is 13"
+  datasets="dev test train"
+  #datasets="dev"
+  source_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+  for name in $datasets;do
+    oracle_rttm=$source_dir/$name/rttm_debug_nog0
+    wavscp=$source_dir/$name/wav.scp
+    dest_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate13
+    mkdir -p $dest_dir
+    python3 ts_vad2/oracle_rttm_to_generate_target_speaker_wav_and_label_for_ts_vad_label_rate.py\
+         --oracle_rttm $oracle_rttm\
+         --wavscp $wavscp\
+         --dest_dir $dest_dir\
+         --label_rate 13\
+         --type $name
+  done
+fi
 
+if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
+   echo "generate oracle vad speaker embedding"
+   dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   feature_name=eres2netv2_sv_zh-cn_16k-common_200k_feature_dir
+   #dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   #model_id=iic/speech_campplus_sv_zh-cn_16k-common
+   model_id=iic/speech_eres2netv2_sv_zh-cn_16k-common
+   subsets="dev test train cssd_testset"
+   for name in $subsets;do
+    #if [ $name = "Train" ];then
+     #echo "extract Train settrain target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/datasets/alimeeting/${name}_Ali_far/target_audio/
+     #wav_path=$input_dir/wavs.txt
+     #else
+     echo "extract $name target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc/${name}/target_audio/
+     #wav_path=/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc/${name}/wavs.txt
+     input_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate13/${name}/target_audio
+     wav_path=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate13/${name}/wavs.txt
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
+     save_dir=$dest_dir/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding/$name/$feature_name
+     python3 ts_vad2/generate_chunk_speaker_embedding_from_modelscope_for_diarization.py\
+           --model_id $model_id\
+           --wavs $wav_path\
+           --save_dir $save_dir\
+           --batch_size 32
+   done
+fi
+
+
+
+
+
+# for eres2netV2  The second to last layer of befor pool layer ,frame rate is 25
+if [ ${stage} -le 25 ] && [ ${stop_stage} -ge 25 ];then
+  echo "get target audio and json label file from rttm file, label_rate is 25"
+  datasets="dev test train"
+  #datasets="dev"
+  source_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+  for name in $datasets;do
+    oracle_rttm=$source_dir/$name/rttm_debug_nog0
+    wavscp=$source_dir/$name/wav.scp
+    dest_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25
+    mkdir -p $dest_dir
+    python3 ts_vad2/oracle_rttm_to_generate_target_speaker_wav_and_label_for_ts_vad_label_rate.py\
+         --oracle_rttm $oracle_rttm\
+         --wavscp $wavscp\
+         --dest_dir $dest_dir\
+         --label_rate 25\
+         --type $name
+  done
+fi
+
+if [ ${stage} -le 26 ] && [ ${stop_stage} -ge 26 ];then
+   echo "generate oracle vad speaker embedding"
+   dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   feature_name=eres2netv2_sv_zh-cn_16k-common_200k_feature_dir
+   #dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   #model_id=iic/speech_campplus_sv_zh-cn_16k-common
+   model_id=iic/speech_eres2netv2_sv_zh-cn_16k-common
+   subsets="dev test train cssd_testset"
+   for name in $subsets;do
+    #if [ $name = "Train" ];then
+     #echo "extract Train settrain target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/datasets/alimeeting/${name}_Ali_far/target_audio/
+     #wav_path=$input_dir/wavs.txt
+     #else
+     echo "extract $name target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc/${name}/target_audio/
+     #wav_path=/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc/${name}/wavs.txt
+     input_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25/${name}/target_audio
+     wav_path=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25/${name}/wavs.txt
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
+     save_dir=$dest_dir/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding/$name/$feature_name
+     python3 ts_vad2/generate_chunk_speaker_embedding_from_modelscope_for_diarization.py\
+           --model_id $model_id\
+           --wavs $wav_path\
+           --save_dir $save_dir\
+           --batch_size 32
+   done
+fi
+
+
+
+if [ ${stage} -le 1000 ] && [ ${stop_stage} -ge 1000 ];then
+   echo "generate oracle vad speaker embedding"
+   dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   feature_name=eres2netv2w24s4ep4_sv_zh-cn_16k-common_200k_feature_dir
+   #dest_dir=/mntcephfs/lab_data/maduo/model_hub
+   #model_id=iic/speech_campplus_sv_zh-cn_16k-common
+   #model_id=iic/speech_eres2netv2_sv_zh-cn_16k-common
+   model_id=iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common
+   subsets="dev test train cssd_testset"
+   for name in $subsets;do
+    #if [ $name = "Train" ];then
+     #echo "extract Train settrain target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/datasets/alimeeting/${name}_Ali_far/target_audio/
+     #wav_path=$input_dir/wavs.txt
+     #else
+     echo "extract $name target speaker embedding"
+     # 提取embedding
+     #input_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc/${name}/target_audio/
+     #wav_path=/mntcephfs/lab_data/maduo/exp/speaker_diarization/magicdata_ramc/ts_vad2/data/magicdata-ramc/${name}/wavs.txt
+     input_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25/${name}/target_audio
+     wav_path=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25/${name}/wavs.txt
+     find $input_dir -name "*.wav" | grep -v "all.wav" >$wav_path
+     head $wav_path
+     save_dir=$dest_dir/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding/$name/$feature_name
+     python3 ts_vad2/generate_chunk_speaker_embedding_from_modelscope_for_diarization.py\
+           --model_id $model_id\
+           --wavs $wav_path\
+           --save_dir $save_dir\
+           --batch_size 32
+   done
+fi

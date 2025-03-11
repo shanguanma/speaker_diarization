@@ -48,7 +48,7 @@ def get_args():
     return args
 
 
-
+# reference from https://github.com/modelscope/3D-Speaker/blob/main/speakerlab/bin/infer_sv.py
 CAMPPLUS_VOX = {
     'obj': 'ts_vad2.cam_pplus_wespeaker.CAMPPlus',
     'args': {
@@ -64,12 +64,34 @@ CAMPPLUS_COMMON = {
         'embedding_size': 192,
     },
 }
+EPACA_CNCeleb = {
+    'obj': 'ts_vad2.ECAPA_TDNN.ECAPA_TDNN',
+    'args': {
+        'input_size': 80,
+        'lin_neurons': 192,
+        'channels': [1024, 1024, 1024, 1024, 3072],
+    },
+}
 
-ERes2Net_VOX = {
-    'obj': 'ts_vad2.ERes2Net.ERes2Net',
+ERes2NetV2_COMMON = {
+    'obj': 'ts_vad2.ERes2NetV2.ERes2NetV2',
     'args': {
         'feat_dim': 80,
         'embedding_size': 192,
+        'baseWidth': 26,
+        'scale': 2,
+        'expansion': 2,
+    },
+}
+
+ERes2NetV2_w24s4ep4_COMMON = {
+    'obj': 'ts_vad2.ERes2NetV2.ERes2NetV2',
+    'args': {
+        'feat_dim': 80,
+        'embedding_size': 192,
+        'baseWidth': 24,
+        'scale': 4,
+        'expansion': 4,
     },
 }
 
@@ -107,52 +129,17 @@ ERes2Net_Large_3D_Speaker = {
         'm_channels': 64,
     },
 }
-ERes2Netv2w24s4ep4_Large_3D_Speaker={
-    'obj': "ts_vad2.ERes2NetV2.ERes2NetV2",
-    'args':{
-    # it is modified from https://modelscope.cn/models/iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common/file/view/master?fileName=configuration.json&status=1
-        #"sample_rate": 16000,
-        "embedding_size": 192,
-        "baseWidth": 24,
-        "scale":4,
-        "expansion": 4
-    },
-}
-EPACA_CNCeleb = {
-    'obj': 'ts_vad2.ECAPA_TDNN.ECAPA_TDNN',
-    'args': {
-        'input_size': 80,
-        'lin_neurons': 192,
-        'channels': [1024, 1024, 1024, 1024, 3072],
-    },
-}
+
+
 
 supports = {
-    # eres2netv2w24s4ep4 trained on 200k labeled speakers
-    'iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common':{
-       'revision': 'v1.0.1',
-       'model': ERes2Netv2w24s4ep4_Large_3D_Speaker,
-       'model_pt': "pretrained_eres2netv2w24s4ep4.ckpt",
-    },
-
     # CAM++ trained on 200k labeled speakers
     'iic/speech_campplus_sv_zh-cn_16k-common': {
         'revision': 'v1.0.0',
         'model': CAMPPLUS_COMMON,
         'model_pt': 'campplus_cn_common.bin',
     },
-    # ERes2Net trained on 200k labeled speakers
-    'iic/speech_eres2net_sv_zh-cn_16k-common': {
-        'revision': 'v1.0.5',
-        'model': ERes2Net_COMMON,
-        'model_pt': 'pretrained_eres2net_aug.ckpt',
-    },
-    # ERes2Net_Base trained on 200k labeled speakers
-    'iic/speech_eres2net_base_200k_sv_zh-cn_16k-common': {
-        'revision': 'v1.0.0',
-        'model': ERes2Net_base_COMMON,
-        'model_pt': 'pretrained_eres2net.pt',
-    },
+
     # CAM++ trained on a large-scale Chinese-English corpus
     'iic/speech_campplus_sv_zh_en_16k-common_advanced': {
         'revision': 'v1.0.0',
@@ -164,24 +151,6 @@ supports = {
         'revision': 'v1.0.2',
         'model': CAMPPLUS_VOX,
         'model_pt': 'campplus_voxceleb.bin',
-    },
-    # ERes2Net trained on VoxCeleb
-    'iic/speech_eres2net_sv_en_voxceleb_16k': {
-        'revision': 'v1.0.2',
-        'model': ERes2Net_VOX,
-        'model_pt': 'pretrained_eres2net.ckpt',
-    },
-    # ERes2Net_Base trained on 3dspeaker
-    'iic/speech_eres2net_base_sv_zh-cn_3dspeaker_16k': {
-        'revision': 'v1.0.1',
-        'model': ERes2Net_Base_3D_Speaker,
-        'model_pt': 'eres2net_base_model.ckpt',
-    },
-    # ERes2Net_large trained on 3dspeaker
-    'iic/speech_eres2net_large_sv_zh-cn_3dspeaker_16k': {
-        'revision': 'v1.0.0',
-        'model': ERes2Net_Large_3D_Speaker,
-        'model_pt': 'eres2net_large_model.ckpt',
     },
     # ECAPA-TDNN trained on CNCeleb
     'iic/speech_ecapa-tdnn_sv_zh-cn_cnceleb_16k': {
@@ -200,6 +169,50 @@ supports = {
         'revision': 'v1.0.1',
         'model': EPACA_CNCeleb,
         'model_pt': 'ecapa_tdnn.bin',
+    },
+
+    # ERes2Net trained on 200k labeled speakers
+    'iic/speech_eres2net_sv_zh-cn_16k-common': {
+        'revision': 'v1.0.5',
+        'model': ERes2Net_COMMON,
+        'model_pt': 'pretrained_eres2net_aug.ckpt',
+    },
+    # ERes2NetV2 trained on 200k labeled speakers
+    'iic/speech_eres2netv2_sv_zh-cn_16k-common': {
+        'revision': 'v1.0.1',
+        'model': ERes2NetV2_COMMON,
+        'model_pt': 'pretrained_eres2netv2.ckpt',
+    },
+    # ERes2NetV2_w24s4ep4 trained on 200k labeled speakers
+    'iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common': {
+        'revision': 'v1.0.1',
+        'model': ERes2NetV2_w24s4ep4_COMMON,
+        'model_pt': 'pretrained_eres2netv2w24s4ep4.ckpt',
+    },
+    # ERes2Net_Base trained on 200k labeled speakers
+    'iic/speech_eres2net_base_200k_sv_zh-cn_16k-common': {
+        'revision': 'v1.0.0',
+        'model': ERes2Net_base_COMMON,
+        'model_pt': 'pretrained_eres2net.pt',
+    },
+
+    # ERes2Net trained on VoxCeleb
+    'iic/speech_eres2net_sv_en_voxceleb_16k': {
+        'revision': 'v1.0.2',
+        'model': ERes2Net_VOX,
+        'model_pt': 'pretrained_eres2net.ckpt',
+    },
+    # ERes2Net_Base trained on 3dspeaker
+    'iic/speech_eres2net_base_sv_zh-cn_3dspeaker_16k': {
+        'revision': 'v1.0.1',
+        'model': ERes2Net_Base_3D_Speaker,
+        'model_pt': 'eres2net_base_model.ckpt',
+    },
+    # ERes2Net_large trained on 3dspeaker
+    'iic/speech_eres2net_large_sv_zh-cn_3dspeaker_16k': {
+        'revision': 'v1.0.0',
+        'model': ERes2Net_Large_3D_Speaker,
+        'model_pt': 'eres2net_large_model.ckpt',
     },
 }
 

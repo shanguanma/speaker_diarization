@@ -36,7 +36,7 @@ from redimnet_wespeaker import (
     ReDimNetM,
     ReDimNetS,
 )
-
+from ERes2NetV2 import ERes2NetV2
 # from mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
 try:
     from ts_vad2.mamba import MambaBlockV2, MambaBlock, Mamba2BlockV2
@@ -488,6 +488,45 @@ class TSVADModel(nn.Module):
                     cfg.speaker_embed_dim,
                     5,
                     stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+        elif self.speech_encoder_type == "ERes2NetV2_COMMON":
+            self.speech_encoder = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=26, scale=2, expansion=2)
+            self.speech_encoder.train()
+            self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+            )
+            pretrain_speech_encoder_dim=10240
+            #no downsample, stride=1, label_rate is 13, means that 1s audio has 13 frames
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+
+        elif self.speech_encoder_type == "ERes2NetV2_w24s4ep4_COMMON":
+            self.speech_encoder = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=24, scale=4, expansion=4)
+            self.speech_encoder.train()
+            self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+            )
+            pretrain_speech_encoder_dim=20480
+            # # no downsample, stride=1, label_rate is 13, means that 1s audio has 13 frames
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=1,
                     padding=2,
                 ),
                 BatchNorm1D(num_features=cfg.speaker_embed_dim),
@@ -1040,6 +1079,18 @@ class TSVADModel(nn.Module):
             # print(f"output shape of speech_encoder: {x.shape}")
             x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
             # print(f"output shape of self.speech_down_or_up(x): {x.shape}")
+        elif self.speech_encoder_type == "ERes2NetV2_COMMON" or self.speech_encoder_type=="ERes2NetV2_w24s4ep4_COMMON" and self.label_rate==13:
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # its input fbank feature(80-dim)
+                x = self.speech_encoder.get_frame_level_feat(ref_speech) # (B,D,T)
+             # no downsample, its frame rate is 13.
+             x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
+        elif self.speech_encoder_type == "ERes2NetV2_COMMON" or self.speech_encoder_type=="ERes2NetV2_w24s4ep4_COMMON" and self.label_rate==25:
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # its input fbank feature(80-dim)
+                x = self.speech_encoder.get_frame_level_feat_frame_rate25(ref_speech) # (B,D,T)
+             # no downsample, its frame rate is 13.
+             x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
         else:
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)

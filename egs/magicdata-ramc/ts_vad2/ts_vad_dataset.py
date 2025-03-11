@@ -132,6 +132,9 @@ class TSVADDataset(torch.utils.data.Dataset):
         ## load data and label,
         ## it will prepare chunk segment information for mixture audio
         self.label_rate = label_rate
+        if speech_encoder_type=="ReDimNetB2_offical":
+            assert self.label_rate==67, f"ReDimNetB2_offical's label_rate must be 67, but {self.label_rate} now"
+
         self.sample_rate = sample_rate
         self.segment_shift = segment_shift
         self.rs_len = rs_len  # Number of second for reference speech
