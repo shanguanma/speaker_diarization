@@ -65,6 +65,7 @@ def extract_embeddings(args, batch):
     #model=ECAPA_TDNN_GLOB_c1024(feat_dim=80,embed_dim=192,pooling_func="ASTP")
     model: Optional[nn.Module] = None
 
+    #(NOTE maduo) ReDimNetB4,ReDimNetB5,ReDimNetB6 are oom in tsvad in SRIBD, ReDimNetB0,ReDimNetB1, ReDimNetB are not better than ReDimNetB2.
     if args.model_name=="ReDimNetB2":
         model=torch.hub.load(args.redimnet_hubconfig_file_dir, 'ReDimNet',model_name="b2",train_type="ft_lm",dataset='vox2',source="local")
     model.to(device)

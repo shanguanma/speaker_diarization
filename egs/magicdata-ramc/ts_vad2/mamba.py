@@ -154,7 +154,11 @@ class Mamba2BlockV2(nn.Module):
     # note: 2024-12-18, Block class api required offer mlp_cls
     it required nvcc ,if you haven't it, you can install it via conda , i.e. you install pytorch on cuda11.8, you can `conda install nvidia/label/cuda-11.8.0::cuda-nvcc`
     you install other version via url `https://anaconda.org/nvidia/cuda-nvcc`
+   
     you need to install mamba-ssm via `pip install mamba-ssm  --no-build-isolation`
+    if you occur the errors:ImportError: /home/maduo/.conda/envs/speaker_diarization/lib/python3.11/site-packages/selective_scan_cuda.cpython-311-x86_64-linux-gnu.so: undefined symbol: _ZN3c104cuda9SetDeviceEi
+    you need to uninstall it via `pip uninstall mamba-ssm` and install it again via `pip install mamba-ssm --no-cache-dir --no-build-isolation`
+
     you need to install causal-conv1d via ` pip install 'causal-conv1d==1.2.1' --no-cache-dir --no-build-isolation`
 
     It requires that the input of forward() feature dimension is a multiple of 8. In fact, this requirement comes from causal_conv1d
