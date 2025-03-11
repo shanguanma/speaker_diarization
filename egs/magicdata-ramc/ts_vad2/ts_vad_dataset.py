@@ -307,9 +307,12 @@ class TSVADDataset(torch.utils.data.Dataset):
         return speaker_ids
 
     def load_rs_fix_num_speaker(self, file, speaker_ids, start, stop):
-        #logger.info(f"self.label_rate: {self.label_rate} in fn load_rs")
-        audio_start = self.sample_rate // self.label_rate * start
-        audio_stop = self.sample_rate // self.label_rate * stop
+        #logger.info(f"self.label_rate: {self.label_rate}, speaker_ids: {speaker_ids}, start: {start}, stop: {stop} in fn load_rs_fix_num_speaker")
+        #audio_start = self.sample_rate // self.label_rate * start
+        #audio_stop = self.sample_rate // self.label_rate * stop
+        audio_start = int(self.sample_rate / self.label_rate * start)
+        audio_stop = int(self.sample_rate / self.label_rate * stop)
+
         if self.dataset_name == "alimeeting" or self.dataset_name == "magicdata-ramc":
             audio_path = os.path.join(self.audio_path, file + "/all.wav")  ## This audio_path is single channel mixer audio,
                                                                            ## now it is used in alimeeting dataset,and is stored at target_audio directory.
