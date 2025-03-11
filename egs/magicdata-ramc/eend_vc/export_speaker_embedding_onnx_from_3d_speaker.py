@@ -26,12 +26,22 @@ python export_speaker_embedding_onnx_from_3d_speaker.py \
 
 
 for example:
-    # cam++ zh and en
+# cam++ zh and en
      python eend_vc/export_speaker_embedding_onnx_from_3d_speaker.py --experiment_path /data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/  --target_onnx_file  /data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.onnx --model_id iic/speech_campplus_sv_zh_en_16k-common_advanced
 
-      # cam++ zh 200k
+# cam++ zh 200k
    python eend_vc/export_speaker_embedding_onnx_from_3d_speaker.py --experiment_path   /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common  --target_onnx_file   /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.onnx --model_id iic/speech_campplus_sv_zh-cn_16k-common
+
+# ERes2NetV2 trained on 200k labeled speakers
+   python eend_vc/export_speaker_embedding_onnx_from_3d_speaker.py --experiment_path /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common  --target_onnx_file /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx --model_id iic/speech_eres2netv2_sv_zh-cn_16k-common
+
+
+# ERes2NetV2 trained on 200k labeled speakers (w24s4ep4)
+ python eend_vc/export_speaker_embedding_onnx_from_3d_speaker.py --experiment_path /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common --target_onnx_file /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common/pretrained_eres2netv2w24s4ep4.onnx --model_id  iic/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common
+
+
 """
+
 
 logger = get_logger()
 
@@ -60,6 +70,7 @@ def get_args():
 # TODO: Load file to get these informations
 # TODO: Support more models
 # Please note you can export your own model which could not in this dict.
+# reference from https://github.com/modelscope/3D-Speaker/blob/main/speakerlab/bin/infer_sv.py
 onnx_supports_dict = {
     
     # CAM++ trained on 200k labeled speakers

@@ -861,3 +861,241 @@ fi
 #CTS-CN-F2F-2018-05-08_949 CDER = 0.068
 #CTS-CN-F2F-2018-05-08_950 CDER = 0.217
 #Avg CDER : 0.161
+
+
+
+if [ $stage -le 10 ] && [ ${stop_stage} -ge 10 ]; then
+
+        #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
+        #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml  
+	exp_root=exp
+	conf_dir=eend_vc/conf
+        # training setup
+        #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
+        train_conf=$conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        # train_conf=$conf_dir/wavlm_frozen_conformer.toml
+        # train_conf=$conf_dir/fbank_conformer.toml
+        # train_conf=$conf_dir/pyannote_baseline.toml
+
+        conf_name=`ls $train_conf | awk -F '/' '{print $NF}' | awk -F '.' '{print $1}'`
+
+        # inference setup
+        #dtype="dev test"
+        dtype="dev test cssd_testset"
+        data_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+
+        pyan_merge_closer=0.5
+        pyan_max_length_merged=50
+        pyan_inf_max_batch=32
+
+        cluster_threshold=0.70
+        segmentation_step=0.1
+        min_cluster_size=30
+        infer_affix=_constrained_AHC_segmentation_step_${segmentation_step}_min_cluster_size_${min_cluster_size}_AHC_thres_${cluster_threshold}_pyan_max_length_merged${pyan_max_length_merged}_eres2netv2_sv_zh-cn_16k-common_200k
+
+        avg_ckpt_num=5
+        val_metric=DER   # Loss or DER
+        #val_mode=prev   # [prev, best, center]
+
+        val_mode=best
+        # scoring setup
+        #collar="0 0.25"
+        REF_DIR=$data_dir
+        dscore_dir=eend_vc/dscore/
+        diarization_dir=$exp_root/$conf_name    # can be replaced by our pre-trained models, e.g. diarization_dir=/YOUR_PATH/checkpoints/wavlm_updated_conformer
+        #config_dir=`ls $diarization_dir/*.toml | sort -r | head -n 1`
+        config_dir=$conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        #embedding_model=/data/maduo/model_hub/speaker_pretrain_model/en/wespeaker/resnet34-lm/pytorch_model.bin     # it's necessary to have "pyannote" in your directory path
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/en/wespeaker/wespeaker-voxceleb-resnet34-LM/pytorch_model.bin"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/en/wespeaker/voxceleb_resnet34_LM.onnx"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.onnx"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.onnx"
+        embedding_model="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx"        
+	echo "stage2: model inference..."
+    export CUDA_VISIBLE_DEVICES=0
+
+    train_log=`du -h $diarization_dir/*.log | sort -rh | head -n 1 | awk '{print $NF}'`
+    cat $train_log | grep 'Loss/DER' | awk -F ']:' '{print $NF}' > $diarization_dir/val_metric_summary.lst
+    for dset in $dtype; do
+      CUDA_VISIBLE_DEVICES=0\
+       python eend_vc/infer_avg.py -C $config_dir \
+            -i ${data_dir}/${dset}/wav.scp \
+            -o ${diarization_dir}/infer$infer_affix/metric_${val_metric}_${val_mode}/avg_ckpt${avg_ckpt_num}/${dset} \
+            -u ${data_dir}/${dset}/all.uem \
+            --avg_ckpt_num $avg_ckpt_num \
+            --val_metric $val_metric \
+            --val_mode $val_mode \
+            --val_metric_summary $diarization_dir/val_metric_summary.lst \
+            --segmentation_step $segmentation_step \
+            --min_cluster_size $min_cluster_size \
+            --cluster_threshold $cluster_threshold \
+            --embedding_model $embedding_model \
+            --merge_closer $pyan_merge_closer \
+            --max_length_merged $pyan_max_length_merged \
+            --batch_size $pyan_inf_max_batch
+     done
+fi
+
+if [ $stage -le 11 ] && [ ${stop_stage} -ge 11 ]; then
+    #dtype="dev test"
+    dtype="dev test cssd_testset"
+    collar="0 0.25"
+    #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    exp_root=exp
+    conf_dir=eend_vc/conf
+
+    # training setup
+    #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
+    train_conf=$conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        # train_conf=$conf_dir/wavlm_frozen_conformer.toml
+        # train_conf=$conf_dir/fbank_conformer.toml
+        # train_conf=$conf_dir/pyannote_baseline.toml
+
+    conf_name=`ls $train_conf | awk -F '/' '{print $NF}' | awk -F '.' '{print $1}'`
+    pyan_merge_closer=0.5
+    pyan_max_length_merged=50
+    pyan_inf_max_batch=32
+
+    cluster_threshold=0.70
+    segmentation_step=0.1
+    min_cluster_size=30
+    infer_affix=_constrained_AHC_segmentation_step_${segmentation_step}_min_cluster_size_${min_cluster_size}_AHC_thres_${cluster_threshold}_pyan_max_length_merged${pyan_max_length_merged}_eres2netv2_sv_zh-cn_16k-common_200k
+
+    avg_ckpt_num=5
+    val_metric=DER   # Loss or DER
+    val_mode=best  # [prev, best, center]
+    data_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+    REF_DIR=$data_dir
+    dscore_dir=eend_vc/dscore/
+    diarization_dir=$exp_root/$conf_name
+    for c in $collar;do
+     for dset in $dtype;do
+      echo " scoring..."
+      SYS_DIR=${diarization_dir}/infer$infer_affix/metric_${val_metric}_${val_mode}/avg_ckpt${avg_ckpt_num}
+      OUT_DIR=${SYS_DIR}/${dset}
+       python3 ${dscore_dir}/score.py \
+            -r ${REF_DIR}/${dset}/rttm_debug_nog0 \
+            -s $OUT_DIR/*.rttm --collar ${c} \
+            > $OUT_DIR/result_collar${c}
+    done
+   done
+fi
+
+if [ $stage -le 12 ] && [ ${stop_stage} -ge 12 ]; then
+
+        #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
+        #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml 
+        
+        exp_root=exp
+        conf_dir=eend_vc/conf
+	# training setup
+        #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
+        train_conf=$conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        # train_conf=$conf_dir/wavlm_frozen_conformer.toml
+        # train_conf=$conf_dir/fbank_conformer.toml
+        # train_conf=$conf_dir/pyannote_baseline.toml
+
+        conf_name=`ls $train_conf | awk -F '/' '{print $NF}' | awk -F '.' '{print $1}'`
+
+        # inference setup
+        #dtype="dev test"
+        dtype="dev test cssd_testset"
+        data_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+
+        pyan_merge_closer=0.5
+        pyan_max_length_merged=50
+        pyan_inf_max_batch=32
+
+        cluster_threshold=0.70
+        segmentation_step=0.1
+        min_cluster_size=30
+        infer_affix=_constrained_AHC_segmentation_step_${segmentation_step}_min_cluster_size_${min_cluster_size}_AHC_thres_${cluster_threshold}_pyan_max_length_merged${pyan_max_length_merged}_eres2netv2w24s4ep4_sv_zh-cn_16k-common_200k
+
+        avg_ckpt_num=5
+        val_metric=DER   # Loss or DER
+        #val_mode=prev   # [prev, best, center]
+
+        val_mode=best
+        # scoring setup
+        #collar="0 0.25"
+        REF_DIR=$data_dir
+        dscore_dir=eend_vc/dscore/
+        diarization_dir=$exp_root/$conf_name    # can be replaced by our pre-trained models, e.g. diarization_dir=/YOUR_PATH/checkpoints/wavlm_updated_conformer
+        #config_dir=`ls $diarization_dir/*.toml | sort -r | head -n 1`
+        config_dir=$conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        #embedding_model=/data/maduo/model_hub/speaker_pretrain_model/en/wespeaker/resnet34-lm/pytorch_model.bin     # it's necessary to have "pyannote" in your directory path
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/en/wespeaker/wespeaker-voxceleb-resnet34-LM/pytorch_model.bin"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/en/wespeaker/voxceleb_resnet34_LM.onnx"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.onnx"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.onnx"
+        #embedding_model="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx"
+        embedding_model="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common/pretrained_eres2netv2w24s4ep4.onnx"
+	echo "stage2: model inference..."
+    export CUDA_VISIBLE_DEVICES=0
+
+    train_log=`du -h $diarization_dir/*.log | sort -rh | head -n 1 | awk '{print $NF}'`
+    cat $train_log | grep 'Loss/DER' | awk -F ']:' '{print $NF}' > $diarization_dir/val_metric_summary.lst
+    for dset in $dtype; do
+      CUDA_VISIBLE_DEVICES=0\
+       python eend_vc/infer_avg.py -C $config_dir \
+            -i ${data_dir}/${dset}/wav.scp \
+            -o ${diarization_dir}/infer$infer_affix/metric_${val_metric}_${val_mode}/avg_ckpt${avg_ckpt_num}/${dset} \
+            -u ${data_dir}/${dset}/all.uem \
+            --avg_ckpt_num $avg_ckpt_num \
+            --val_metric $val_metric \
+            --val_mode $val_mode \
+            --val_metric_summary $diarization_dir/val_metric_summary.lst \
+            --segmentation_step $segmentation_step \
+            --min_cluster_size $min_cluster_size \
+            --cluster_threshold $cluster_threshold \
+            --embedding_model $embedding_model \
+            --merge_closer $pyan_merge_closer \
+            --max_length_merged $pyan_max_length_merged \
+            --batch_size $pyan_inf_max_batch
+     done
+fi
+
+if [ $stage -le 13 ] && [ ${stop_stage} -ge 13 ]; then
+    #dtype="dev test"
+    dtype="dev test cssd_testset"
+    collar="0 0.25"
+    #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    exp_root=exp
+    conf_dir=eend_vc/conf
+
+    # training setup
+    #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
+    train_conf=$conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        # train_conf=$conf_dir/wavlm_frozen_conformer.toml
+        # train_conf=$conf_dir/fbank_conformer.toml
+        # train_conf=$conf_dir/pyannote_baseline.toml
+
+    conf_name=`ls $train_conf | awk -F '/' '{print $NF}' | awk -F '.' '{print $1}'`
+    pyan_merge_closer=0.5
+    pyan_max_length_merged=50
+    pyan_inf_max_batch=32
+
+    cluster_threshold=0.70
+    segmentation_step=0.1
+    min_cluster_size=30
+    infer_affix=_constrained_AHC_segmentation_step_${segmentation_step}_min_cluster_size_${min_cluster_size}_AHC_thres_${cluster_threshold}_pyan_max_length_merged${pyan_max_length_merged}_eres2netv2w24s4ep4_sv_zh-cn_16k-common_200k
+
+    avg_ckpt_num=5
+    val_metric=DER   # Loss or DER
+    val_mode=best  # [prev, best, center]
+    data_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
+    REF_DIR=$data_dir
+    dscore_dir=eend_vc/dscore/
+    diarization_dir=$exp_root/$conf_name
+    for c in $collar;do
+     for dset in $dtype;do
+      echo " scoring..."
+      SYS_DIR=${diarization_dir}/infer$infer_affix/metric_${val_metric}_${val_mode}/avg_ckpt${avg_ckpt_num}
+      OUT_DIR=${SYS_DIR}/${dset}
+       python3 ${dscore_dir}/score.py \
+            -r ${REF_DIR}/${dset}/rttm_debug_nog0 \
+            -s $OUT_DIR/*.rttm --collar ${c} \
+            > $OUT_DIR/result_collar${c}
+    done
+   done
+fi

@@ -15,8 +15,8 @@ import torch
 import math
 import torch.nn as nn
 import torch.nn.functional as F
-import pooling_layers_3d_speaker as pooling_layers
-from fusion import AFF
+import ts_vad2.pooling_layers_3d_speaker as pooling_layers
+from ts_vad2.fusion import AFF
 
 class ReLU(nn.Hardtanh):
 
