@@ -94,7 +94,7 @@ class Trainer:
 
         # wavlm
         self.freeze_wavlm = self.trainer_config.get("freeze_wavlm", False)
-        # wavlm 
+        # wavlm
         if self.freeze_wavlm:
             logger.info("Freeze WavLM...")
             self.unwrap_model.freeze_by_name('wavlm_model')
@@ -477,8 +477,8 @@ class Trainer:
                             self.lr_scheduler_step()
 
                         if self.use_one_cycle_lr:
-                            self.lr_one_cycle_scheduler_small.step() 
-                            self.lr_one_cycle_scheduler_big.step() 
+                            self.lr_one_cycle_scheduler_small.step()
+                            self.lr_one_cycle_scheduler_big.step()
 
                 self.state.steps_trained += 1
             self.state.epochs_trained += 1
@@ -487,7 +487,7 @@ class Trainer:
             # Should save, evaluate, and early stop?
             if self.accelerator.is_local_main_process and epoch % self.save_ckpt_interval == 0:
                 self._save_checkpoint(epoch, is_best_epoch=False)
-    
+
             if epoch % self.validation_interval == 0:
                 with torch.no_grad():
                     logger.info("Training finished, begin validation...")
@@ -502,7 +502,7 @@ class Trainer:
                         should_stop = self._run_early_stop_check(score)
                         if should_stop:
                             early_stop_mark += 1
-                    
+
                     logger.info("Validation finished.")
 
             self.accelerator.wait_for_everyone()
@@ -514,7 +514,7 @@ class Trainer:
             # If any process triggers early stopping, stop training
             if reduced_early_stop_mark != 0:
                 break
-        
+
 
     @torch.no_grad()
     def validate(self, dataloader):

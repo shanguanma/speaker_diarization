@@ -2,7 +2,7 @@
 # Adopted from https://github.com/espnet/espnet/blob/master/egs2/chime8_task1/diar_asr1/local/pyannote_diarize.py
 # Copyright 2024 Brno University of Technology (author: Jiangyu Han, ihan@fit.vut.cz)
 
-import toml 
+import toml
 
 import argparse
 import os.path
@@ -129,7 +129,7 @@ def diarize_session(
         min_clusters=2,  # 4 for NSF
         max_clusters=max_n_speakers,  # max-speakers are ok
         file={
-            "waveform": waveform, 
+            "waveform": waveform,
             "sample_rate": sample_rate
         },  # <== for oracle clustering
         frames=pipeline._segmentation.model._receptive_field,  # <== for oracle clustering
@@ -339,14 +339,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     logger.info(args)
-    
+
     config_path = Path(args.configuration).expanduser().absolute()
     logger.info(f"Path(args.configuration).expanduser(): {Path(args.configuration).expanduser()}")
 
     logger.info(f"config_path: {config_path}")
     config = toml.load(config_path.as_posix())
     logger.info(f"config: {config}")
-    #config = toml.load(args.configuration) 
+    #config = toml.load(args.configuration)
     PIPELINE_PARAMS = {
         "clustering": {
             "method": "centroid",
@@ -357,7 +357,7 @@ if __name__ == "__main__":
             "min_duration_off": 0.0    # 0.5817029604921046,
         },
     }
-    # 
+    #
     ckpt_path = Path.cwd()/'exp/wavlm_updated_conformer_magicdata-ramc/checkpoints'
     if args.val_metric_summary:
         val_metric_lst = load_metric_summary(args.val_metric_summary, ckpt_path)
@@ -378,7 +378,7 @@ if __name__ == "__main__":
                 best_val_metric_idx - args.avg_ckpt_num // 2 :
                 best_val_metric_idx + args.avg_ckpt_num // 2 + 1
             ]
-        
+
         assert len(segmentation) == args.avg_ckpt_num, f"len(segmentation): {len(segmentation)}, args.avg_ckpt_num: {args.avg_ckpt_num}"
     else:
         segmentation = args.segmentation_model
@@ -386,7 +386,7 @@ if __name__ == "__main__":
     # create, instantiate and apply the pipeline
     logger.info(f"config: {config}")
     diarization_pipeline = SpeakerDiarizationPipeline(
-        config=config,      # model configurations 
+        config=config,      # model configurations
         segmentation=segmentation,
         segmentation_step=args.segmentation_step,
         embedding=args.embedding_model,
