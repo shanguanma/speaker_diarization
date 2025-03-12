@@ -31,14 +31,14 @@ import torch.nn.functional as F
 from collections import OrderedDict
 from typing import Iterable, Optional
 
-import redimnet.redimnet.layers.features as features
-import redimnet.redimnet.layers.features_tf as features_tf
-import redimnet.redimnet.layers.poolings as pooling_layers
-from redimnet.redimnet.layers.layernorm import LayerNorm
-from redimnet.redimnet.layers.resblocks import ResBasicBlock
-from redimnet.redimnet.layers.convnext import ConvNeXtLikeBlock
-from redimnet.redimnet.layers.attention import TransformerEncoderLayer
-from redimnet.redimnet.layers.redim_structural import to1d, to2d, to1d_tfopt, to2d_tfopt, weigth1d
+import ts_vad2.redimnet.redimnet.layers.features as features
+import ts_vad2.redimnet.redimnet.layers.features_tf as features_tf
+import ts_vad2.redimnet.redimnet.layers.poolings as pooling_layers
+from ts_vad2.redimnet.redimnet.layers.layernorm import LayerNorm
+from ts_vad2.redimnet.redimnet.layers.resblocks import ResBasicBlock
+from ts_vad2.redimnet.redimnet.layers.convnext import ConvNeXtLikeBlock
+from ts_vad2.redimnet.redimnet.layers.attention import TransformerEncoderLayer
+from ts_vad2.redimnet.redimnet.layers.redim_structural import to1d, to2d, to1d_tfopt, to2d_tfopt, weigth1d
 
 #------------------------------------------
 #              Main blocks

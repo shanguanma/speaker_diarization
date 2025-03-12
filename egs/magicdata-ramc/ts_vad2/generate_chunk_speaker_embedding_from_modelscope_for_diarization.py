@@ -72,6 +72,13 @@ EPACA_CNCeleb = {
         'channels': [1024, 1024, 1024, 1024, 3072],
     },
 }
+ERes2Net_VOX = {
+    'obj': 'ts_vad2.ERes2Net.ERes2Net',
+    'args': {
+        'feat_dim': 80,
+        'embedding_size': 192,
+    },
+}
 
 ERes2NetV2_COMMON = {
     'obj': 'ts_vad2.ERes2NetV2.ERes2NetV2',
