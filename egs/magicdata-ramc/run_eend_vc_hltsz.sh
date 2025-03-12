@@ -27,7 +27,8 @@ fi
 if [ $stage -le 2 ] && [ ${stop_stage} -ge 2 ]; then
 
 	#recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-	exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+	#exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+	exp_root=exp
 	conf_dir=eend_vc/conf
 
 	# training setup
@@ -97,7 +98,8 @@ if [ $stage -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     #dtype="dev test"
     dtype="cssd_testset"
     collar="0 0.25"
-    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    exp_root=exp
     conf_dir=eend_vc/conf
 
     # training setup
@@ -157,8 +159,9 @@ fi
 if [ $stage -le 4 ] && [ ${stop_stage} -ge 4 ]; then
 
         #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-        exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
-        conf_dir=eend_vc/conf
+        #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        exp_root=exp
+	conf_dir=eend_vc/conf
 
         # training setup
         #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
@@ -227,7 +230,8 @@ if [ $stage -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     #dtype="dev test"
     dtype="dev test cssd_testset"
     collar="0 0.25"
-    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    exp_root=exp
     conf_dir=eend_vc/conf
 
     # training setup
@@ -393,8 +397,9 @@ fi
 if [ $stage -le 6 ] && [ ${stop_stage} -ge 6 ]; then
 
         #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-        exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
-        conf_dir=eend_vc/conf
+        #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        exp_root=exp
+	conf_dir=eend_vc/conf
 
         # training setup
         #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
@@ -464,7 +469,8 @@ if [ $stage -le 7 ] && [ ${stop_stage} -ge 7 ]; then
     #dtype="dev test"
     dtype="dev test cssd_testset"
     collar="0 0.25"
-    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    exp_root=exp
     conf_dir=eend_vc/conf
 
     # training setup
@@ -628,8 +634,9 @@ fi
 if [ $stage -le 8 ] && [ ${stop_stage} -ge 8 ]; then
 
         #recipe_root=/YOUR_PATH/DiariZen/recipes/diar_ssl
-        exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
-        conf_dir=eend_vc/conf
+        #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+        exp_root=exp
+	conf_dir=eend_vc/conf
 
         # training setup
         #use_dual_opt=true  # true for wavlm_updated_conformer.toml; false for the others
@@ -700,7 +707,8 @@ if [ $stage -le 9 ] && [ ${stop_stage} -ge 9 ]; then
     #dtype="dev test"
     dtype="dev test cssd_testset"
     collar="0 0.25"
-    exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    #exp_root=/data/maduo/exp/speaker_diarization/eend_vc/ # it is seted by [meta] save_dir in  $conf_dir/wavlm_updated_conformer_magicdata-ramc.toml
+    exp_root=exp
     conf_dir=eend_vc/conf
 
     # training setup
@@ -980,6 +988,129 @@ if [ $stage -le 11 ] && [ ${stop_stage} -ge 11 ]; then
     done
    done
 fi
+# DER
+# dev of magicdata-ramc
+# 5.15(11.37)
+# test of magicdata-ramc
+# 5.52(11.66)
+# cssd_testset of magicdata-ramc
+# 5.18(18.32)
+
+
+# dev of magicdata-ramc, CDER
+# python3 cder/score.py -r /data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0 -s exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/dev/all.rttm
+#CTS-CN-F2F-2019-11-15-1421 CDER = 0.481
+#CTS-CN-F2F-2019-11-15-1422 CDER = 0.404
+#CTS-CN-F2F-2019-11-15-1423 CDER = 0.158
+#CTS-CN-F2F-2019-11-15-1426 CDER = 0.512
+#CTS-CN-F2F-2019-11-15-1428 CDER = 0.157
+#CTS-CN-F2F-2019-11-15-1434 CDER = 0.226
+#CTS-CN-F2F-2019-11-15-1447 CDER = 0.146
+#CTS-CN-F2F-2019-11-15-1448 CDER = 0.147
+#CTS-CN-F2F-2019-11-15-1449 CDER = 0.311
+#CTS-CN-F2F-2019-11-15-1452 CDER = 0.117
+#CTS-CN-F2F-2019-11-15-1458 CDER = 0.333
+#CTS-CN-F2F-2019-11-15-1461 CDER = 0.316
+#CTS-CN-F2F-2019-11-15-1463 CDER = 0.135
+#CTS-CN-F2F-2019-11-15-1468 CDER = 0.082
+#CTS-CN-F2F-2019-11-15-1469 CDER = 0.138
+#CTS-CN-F2F-2019-11-15-1470 CDER = 0.482
+#CTS-CN-F2F-2019-11-15-1473 CDER = 0.404
+#CTS-CN-F2F-2019-11-15-1475 CDER = 0.371
+#CTS-CN-F2F-2019-11-15-1477 CDER = 0.105
+#Avg CDER : 0.265
+
+# test of magicdata-ramc, CDER
+# python3 cder/score.py -r /data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/rttm_debug_nog0 -s exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/test/all.rttm 
+#CTS-CN-F2F-2019-11-04-387 CDER = 0.555
+#CTS-CN-F2F-2019-11-11-193 CDER = 0.246
+#CTS-CN-F2F-2019-11-11-198 CDER = 0.289
+#CTS-CN-F2F-2019-11-11-390 CDER = 0.307
+#CTS-CN-F2F-2019-11-11-423 CDER = 0.059
+#CTS-CN-F2F-2019-11-11-431 CDER = 0.312
+#CTS-CN-F2F-2019-11-11-716 CDER = 0.154
+#CTS-CN-F2F-2019-11-15-3 CDER = 0.094
+#CTS-CN-F2F-2019-11-15-8 CDER = 0.164
+#CTS-CN-F2F-2019-11-15-9 CDER = 0.218
+#CTS-CN-F2F-2019-11-15-17 CDER = 0.333
+#CTS-CN-F2F-2019-11-15-26 CDER = 0.151
+#CTS-CN-F2F-2019-11-15-27 CDER = 0.134
+#CTS-CN-F2F-2019-11-15-37 CDER = 0.111
+#CTS-CN-F2F-2019-11-15-39 CDER = 0.040
+#CTS-CN-F2F-2019-11-15-45 CDER = 0.199
+#CTS-CN-F2F-2019-11-15-52 CDER = 0.098
+#CTS-CN-F2F-2019-11-15-53 CDER = 0.127
+#CTS-CN-F2F-2019-11-15-56 CDER = 0.304
+#CTS-CN-F2F-2019-11-15-65 CDER = 0.197
+#CTS-CN-F2F-2019-11-15-68 CDER = 0.148
+#CTS-CN-F2F-2019-11-15-73 CDER = 0.026
+#CTS-CN-F2F-2019-11-15-75 CDER = 0.160
+#CTS-CN-F2F-2019-11-15-77 CDER = 0.105
+#CTS-CN-F2F-2019-11-15-81 CDER = 0.327
+#CTS-CN-F2F-2019-11-15-82 CDER = 0.125
+#CTS-CN-F2F-2019-11-15-88 CDER = 0.142
+#CTS-CN-F2F-2019-11-15-91 CDER = 0.231
+#CTS-CN-F2F-2019-11-15-94 CDER = 0.210
+#CTS-CN-F2F-2019-11-15-100 CDER = 0.053
+#CTS-CN-F2F-2019-11-15-101 CDER = 0.235
+#CTS-CN-F2F-2019-11-15-105 CDER = 0.000
+#CTS-CN-F2F-2019-11-15-121 CDER = 0.023
+#CTS-CN-F2F-2019-11-15-123 CDER = 0.925
+#CTS-CN-F2F-2019-11-15-126 CDER = 0.046
+#CTS-CN-F2F-2019-11-15-128 CDER = 0.194
+#CTS-CN-F2F-2019-11-15-135 CDER = 0.207
+#CTS-CN-F2F-2019-11-15-138 CDER = 0.285
+#CTS-CN-F2F-2019-11-15-142 CDER = 0.229
+#CTS-CN-F2F-2019-11-15-144 CDER = 0.645
+#CTS-CN-F2F-2019-11-15-150 CDER = 0.182
+#CTS-CN-F2F-2019-11-15-151 CDER = 0.191
+#CTS-CN-F2F-2019-11-15-153 CDER = 0.223
+#Avg CDER : 0.209
+
+
+# # cssd_testset(CSSD_Eval) of magicdata-ramc, CDER
+##python3 cder/score.py -r /data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset/rttm_debug_nog0 -s exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/cssd_testset/all.rttm
+#CTS-CN-F2F-2017-11-14_85 CDER = 0.119
+#CTS-CN-F2F-2017-11-14_87 CDER = 0.101
+#CTS-CN-F2F-2017-11-14_88 CDER = 0.111
+#CTS-CN-F2F-2017-11-29_109 CDER = 0.119
+#CTS-CN-F2F-2017-12-15_412 CDER = 0.144
+#CTS-CN-F2F-2017-12-15_438 CDER = 0.237
+#CTS-CN-F2F-2017-12-15_440 CDER = 0.115
+#CTS-CN-F2F-2017-12-20_70 CDER = 0.131
+#CTS-CN-F2F-2018-04-16_545 CDER = 0.150
+#CTS-CN-F2F-2018-04-16_560 CDER = 0.133
+#CTS-CN-F2F-2018-04-16_563 CDER = 0.217
+#CTS-CN-F2F-2018-04-16_615 CDER = 0.264
+#CTS-CN-F2F-2018-04-16_699 CDER = 0.274
+#CTS-CN-F2F-2018-04-16_700 CDER = 0.294
+#CTS-CN-F2F-2018-04-16_703 CDER = 0.205
+#CTS-CN-F2F-2018-04-16_716 CDER = 0.188
+#CTS-CN-F2F-2018-04-16_723 CDER = 0.158
+#CTS-CN-F2F-2018-04-16_726 CDER = 0.248
+#CTS-CN-F2F-2018-04-16_757 CDER = 0.215
+#CTS-CN-F2F-2018-04-16_763 CDER = 0.130
+#CTS-CN-F2F-2018-04-23_507 CDER = 0.172
+#CTS-CN-F2F-2018-04-23_620 CDER = 0.276
+#CTS-CN-F2F-2018-05-08_110 CDER = 0.046
+#CTS-CN-F2F-2018-05-08_236 CDER = 0.111
+#CTS-CN-F2F-2018-05-08_469 CDER = 0.129
+#CTS-CN-F2F-2018-05-08_470 CDER = 0.109
+#CTS-CN-F2F-2018-05-08_471 CDER = 0.133
+#CTS-CN-F2F-2018-05-08_472 CDER = 0.146
+#CTS-CN-F2F-2018-05-08_712 CDER = 0.176
+#CTS-CN-F2F-2018-05-08_713 CDER = 0.206
+#CTS-CN-F2F-2018-05-08_776 CDER = 0.086
+#CTS-CN-F2F-2018-05-08_777 CDER = 0.116
+#CTS-CN-F2F-2018-05-08_779 CDER = 0.153
+#CTS-CN-F2F-2018-05-08_782 CDER = 0.076
+#CTS-CN-F2F-2018-05-08_799 CDER = 0.228
+#CTS-CN-F2F-2018-05-08_825 CDER = 0.216
+#CTS-CN-F2F-2018-05-08_909 CDER = 0.167
+#CTS-CN-F2F-2018-05-08_948 CDER = 0.140
+#CTS-CN-F2F-2018-05-08_949 CDER = 0.123
+#CTS-CN-F2F-2018-05-08_950 CDER = 0.105
+#Avg CDER : 0.162
 
 if [ $stage -le 12 ] && [ ${stop_stage} -ge 12 ]; then
 
@@ -1099,3 +1230,125 @@ if [ $stage -le 13 ] && [ ${stop_stage} -ge 13 ]; then
     done
    done
 fi
+
+# DER
+# dev of magicdta-ramc
+# 5.16(11.35)
+# test of magicdta-ramc
+# 5.50(11.64)
+# cssd_testset of magicdata-ramc
+# 5.11(18.48)
+
+# dev of magicdata-ramc, CDER
+#  python3 cder/score.py -r /data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0 -s exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2w24s4ep4_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/dev/all.rttm
+#CTS-CN-F2F-2019-11-15-1421 CDER = 0.504
+#CTS-CN-F2F-2019-11-15-1422 CDER = 0.404
+#CTS-CN-F2F-2019-11-15-1423 CDER = 0.158
+#CTS-CN-F2F-2019-11-15-1426 CDER = 0.512
+#CTS-CN-F2F-2019-11-15-1428 CDER = 0.057
+#CTS-CN-F2F-2019-11-15-1434 CDER = 0.247
+#CTS-CN-F2F-2019-11-15-1447 CDER = 0.139
+#CTS-CN-F2F-2019-11-15-1448 CDER = 0.150
+#CTS-CN-F2F-2019-11-15-1449 CDER = 0.311
+#CTS-CN-F2F-2019-11-15-1452 CDER = 0.123
+#CTS-CN-F2F-2019-11-15-1458 CDER = 0.322
+#CTS-CN-F2F-2019-11-15-1461 CDER = 0.526
+#CTS-CN-F2F-2019-11-15-1463 CDER = 0.135
+#CTS-CN-F2F-2019-11-15-1468 CDER = 0.078
+#CTS-CN-F2F-2019-11-15-1469 CDER = 0.138
+#CTS-CN-F2F-2019-11-15-1470 CDER = 0.482
+#CTS-CN-F2F-2019-11-15-1473 CDER = 0.428
+#CTS-CN-F2F-2019-11-15-1475 CDER = 0.376
+#CTS-CN-F2F-2019-11-15-1477 CDER = 0.105
+#Avg CDER : 0.273
+
+# test of magicdata-ramc, CDER
+# python3 cder/score.py -r /data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/rttm_debug_nog0 -s exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2w24s4ep4_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/test/all.rttm
+#CTS-CN-F2F-2019-11-04-387 CDER = 0.642
+#CTS-CN-F2F-2019-11-11-193 CDER = 0.246
+#CTS-CN-F2F-2019-11-11-198 CDER = 0.289
+#CTS-CN-F2F-2019-11-11-390 CDER = 0.287
+#CTS-CN-F2F-2019-11-11-423 CDER = 0.074
+#CTS-CN-F2F-2019-11-11-431 CDER = 0.312
+#CTS-CN-F2F-2019-11-11-716 CDER = 0.154
+#CTS-CN-F2F-2019-11-15-3 CDER = 0.097
+#CTS-CN-F2F-2019-11-15-8 CDER = 0.164
+#CTS-CN-F2F-2019-11-15-9 CDER = 0.224
+#CTS-CN-F2F-2019-11-15-17 CDER = 0.326
+#CTS-CN-F2F-2019-11-15-26 CDER = 0.148
+#CTS-CN-F2F-2019-11-15-27 CDER = 0.134
+#CTS-CN-F2F-2019-11-15-37 CDER = 0.111
+#CTS-CN-F2F-2019-11-15-39 CDER = 0.048
+#CTS-CN-F2F-2019-11-15-45 CDER = 0.199
+#CTS-CN-F2F-2019-11-15-52 CDER = 0.098
+#CTS-CN-F2F-2019-11-15-53 CDER = 0.133
+#CTS-CN-F2F-2019-11-15-56 CDER = 0.175
+#CTS-CN-F2F-2019-11-15-65 CDER = 0.197
+#CTS-CN-F2F-2019-11-15-68 CDER = 0.148
+#CTS-CN-F2F-2019-11-15-73 CDER = 0.065
+#CTS-CN-F2F-2019-11-15-75 CDER = 0.160
+#CTS-CN-F2F-2019-11-15-77 CDER = 0.105
+#CTS-CN-F2F-2019-11-15-81 CDER = 0.283
+#CTS-CN-F2F-2019-11-15-82 CDER = 0.125
+#CTS-CN-F2F-2019-11-15-88 CDER = 0.278
+#CTS-CN-F2F-2019-11-15-91 CDER = 0.231
+#CTS-CN-F2F-2019-11-15-94 CDER = 0.217
+#CTS-CN-F2F-2019-11-15-100 CDER = 0.053
+#CTS-CN-F2F-2019-11-15-101 CDER = 0.235
+#CTS-CN-F2F-2019-11-15-105 CDER = 0.000
+#CTS-CN-F2F-2019-11-15-121 CDER = 0.023
+#CTS-CN-F2F-2019-11-15-123 CDER = 0.803
+#CTS-CN-F2F-2019-11-15-126 CDER = 0.046
+#CTS-CN-F2F-2019-11-15-128 CDER = 0.236
+#CTS-CN-F2F-2019-11-15-135 CDER = 0.207
+#CTS-CN-F2F-2019-11-15-138 CDER = 0.285
+#CTS-CN-F2F-2019-11-15-142 CDER = 0.229
+#CTS-CN-F2F-2019-11-15-144 CDER = 0.638
+#CTS-CN-F2F-2019-11-15-150 CDER = 0.182
+#CTS-CN-F2F-2019-11-15-151 CDER = 0.186
+#CTS-CN-F2F-2019-11-15-153 CDER = 0.223
+#Avg CDER : 0.210
+
+# cssd_testset of magicdata-ramc, CDER
+#python3 cder/score.py -r /data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset/rttm_debug_nog0 -s exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2w24s4ep4_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/cssd_testset/all.rttm
+#CTS-CN-F2F-2017-11-14_85 CDER = 0.119
+#CTS-CN-F2F-2017-11-14_87 CDER = 0.100
+#CTS-CN-F2F-2017-11-14_88 CDER = 0.111
+#CTS-CN-F2F-2017-11-29_109 CDER = 0.122
+#CTS-CN-F2F-2017-12-15_412 CDER = 0.144
+#CTS-CN-F2F-2017-12-15_438 CDER = 0.119
+#CTS-CN-F2F-2017-12-15_440 CDER = 0.115
+#CTS-CN-F2F-2017-12-20_70 CDER = 0.138
+#CTS-CN-F2F-2018-04-16_545 CDER = 0.129
+#CTS-CN-F2F-2018-04-16_560 CDER = 0.220
+#CTS-CN-F2F-2018-04-16_563 CDER = 0.209
+#CTS-CN-F2F-2018-04-16_615 CDER = 0.266
+#CTS-CN-F2F-2018-04-16_699 CDER = 0.214
+#CTS-CN-F2F-2018-04-16_700 CDER = 0.214
+#CTS-CN-F2F-2018-04-16_703 CDER = 0.210
+#CTS-CN-F2F-2018-04-16_716 CDER = 0.194
+#CTS-CN-F2F-2018-04-16_723 CDER = 0.366
+#CTS-CN-F2F-2018-04-16_726 CDER = 0.289
+#CTS-CN-F2F-2018-04-16_757 CDER = 0.199
+#CTS-CN-F2F-2018-04-16_763 CDER = 0.142
+#CTS-CN-F2F-2018-04-23_507 CDER = 0.172
+#CTS-CN-F2F-2018-04-23_620 CDER = 0.326
+#CTS-CN-F2F-2018-05-08_110 CDER = 0.046
+#CTS-CN-F2F-2018-05-08_236 CDER = 0.111
+#CTS-CN-F2F-2018-05-08_469 CDER = 0.204
+#CTS-CN-F2F-2018-05-08_470 CDER = 0.109
+#CTS-CN-F2F-2018-05-08_471 CDER = 0.257
+#CTS-CN-F2F-2018-05-08_472 CDER = 0.142
+#CTS-CN-F2F-2018-05-08_712 CDER = 0.189
+#CTS-CN-F2F-2018-05-08_713 CDER = 0.204
+#CTS-CN-F2F-2018-05-08_776 CDER = 0.086
+#CTS-CN-F2F-2018-05-08_777 CDER = 0.104
+#CTS-CN-F2F-2018-05-08_779 CDER = 0.267
+#CTS-CN-F2F-2018-05-08_782 CDER = 0.074
+#CTS-CN-F2F-2018-05-08_799 CDER = 0.228
+#CTS-CN-F2F-2018-05-08_825 CDER = 0.260
+#CTS-CN-F2F-2018-05-08_909 CDER = 0.167
+#CTS-CN-F2F-2018-05-08_948 CDER = 0.093
+#CTS-CN-F2F-2018-05-08_949 CDER = 0.068
+#CTS-CN-F2F-2018-05-08_950 CDER = 0.105
+#Avg CDER : 0.171
