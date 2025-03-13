@@ -972,7 +972,7 @@ def main(args):
     #model.speech_encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
-    logging.info(f"Number of model parameters: {num_param}")
+    logging.info(f"Number of model parameters: {num_param/1e6} M !")
 
     assert params.save_every_n >= params.average_period
     model_avg: Optional[nn.Module] = None

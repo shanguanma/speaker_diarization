@@ -25,9 +25,11 @@ class FBank(object):
         n_mels,
         sample_rate,
         mean_nor: bool = False,
+        use_energy: bool = False,
     ):
         self.n_mels = n_mels
         self.mean_nor = mean_nor
+        self.use_energy = use_energy
 
     def __call__(self, wav, dither=1.0):
         sr = 16000
@@ -41,7 +43,7 @@ class FBank(object):
             sample_frequency=sr,
             dither=dither,
             window_type="hamming",
-            use_energy=False,
+            use_energy=self.use_energy,
         )
         # feat: [T, N]
         if self.mean_nor:
@@ -163,14 +165,14 @@ class TSVADDataset(torch.utils.data.Dataset):
 
         if fbank_input:
             if not  redimnet_fbank_input:
-                logger.info(f"speech_encoder_type is exclude ReDimNet series, it expected fbank as input , fbank_input should be {fbank_input}, redimnet_input should be {redimnet_input} !!!")
+                logger.info(f"speech_encoder_type is exclude ReDimNet series, it expected fbank as input , fbank_input should be {fbank_input}, redimnet_fbank_input should be {redimnet_fbank_input} !!!")
                 self.feature_extractor = FBank(
                     80, sample_rate=self.sample_rate, mean_nor=True
                 )
             else:
                 # because expect feat dim is 72 in ReDimNetB1,ReDimNetB2,ReDimNetB3,ReDimNetB0,ReDimNetS and ReDimNetM
                 if speech_encoder_type=="ReDimNetB0":
-                    logger.info(f"speech_encoder_type is ReDimNetB0, it expect FBank feature is 60, redimnet_input should be {redimnet_input}")
+                    logger.info(f"speech_encoder_type is ReDimNetB0, it expect FBank feature is 60, redimnet_fbank_input should be {redimnet_fbank_input}")
                     self.feature_extractor = FBank(
                         60, sample_rate=self.sample_rate, mean_nor=True
                     )
@@ -178,7 +180,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                     #if speech_encoder_type=="ReDimNetB2_offical":
                     #    logger.info(f"speech_encoder_type is ReDimNetB2_offical, it expected offical ReDimNetB2 MelBanks as input, redimnet_input should be {redimnet_input}")
                     #    self.feature_extractor = MelBanks(n_mels=72, hop_length=240) # its frame rate is 67.
-                    logger.info(f"speech_encoder_type is not ReDimNetB0, But it is other version ReDimNet, it expect FBank feature is 72, redimnet_input should be {redimnet_input}")
+                    logger.info(f"speech_encoder_type is not ReDimNetB0, But it is other version ReDimNet, it expect FBank feature is 72, redimnet_fbank_input should be {redimnet_fbank_input}")
                     self.feature_extractor = FBank(72, sample_rate=self.sample_rate, mean_nor=True)
         else:
 
@@ -840,11 +842,13 @@ class TSVADDataset(torch.utils.data.Dataset):
         return audio, rc
 
 if __name__ == "__main__":
-    x = torch.randn(1,96000)
-    feature_extract = FBank(n_mels=72,sample_rate=16000,mean_nor=True)
+    x = torch.randn(1,16000)
+    #feature_extract = FBank(n_mels=80,sample_rate=16000,mean_nor=True)
+    feature_extract = FBank(n_mels=80,sample_rate=16000,mean_nor=True,use_energy=False)
     y = feature_extract(x)
-    print(f"fbank output shape: {y.shape}")
-    from features import MelBanks
-    feature_extract = MelBanks(n_mels=72)
+    print(f"fbank output shape: {y.shape}") # 6s audio: torch.Size([598, 80]), 1s audio: torch.Size([98, 80])
+    #from features import MelBanks
+    from redimnet.redimnet.layers.features import MelBanks
+    feature_extract = MelBanks(n_mels=72,hop_length=240)
     y = feature_extract(x)
-    print(f"melbank output shape: {y.shape}")
+    print(f"melbank output shape: {y.shape}") # 6s audio: torch.Size([1, 72, 401]), 1s audio: torch.Size([1, 72, 67])
