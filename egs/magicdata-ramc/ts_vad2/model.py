@@ -500,7 +500,7 @@ class TSVADModel(nn.Module):
                 cfg.speech_encoder_path, device=device, module_name="speech_encoder"
             )
             pretrain_speech_encoder_dim=10240
-            #no downsample, stride=1, label_rate is 13, means that 1s audio has 13 frames
+            #no downsample, stride=1, label_rate of last layer of pool layer is 13, means that 1s audio has 13 frames
             self.speech_down_or_up = nn.Sequential(
                 nn.Conv1d(
                     pretrain_speech_encoder_dim,
@@ -1079,18 +1079,16 @@ class TSVADModel(nn.Module):
             # print(f"output shape of speech_encoder: {x.shape}")
             x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
             # print(f"output shape of self.speech_down_or_up(x): {x.shape}")
-        elif self.speech_encoder_type == "ERes2NetV2_COMMON" or self.speech_encoder_type=="ERes2NetV2_w24s4ep4_COMMON" and int(self.label_rate)==13:
+        elif self.speech_encoder_type == "ERes2NetV2_COMMON" or self.speech_encoder_type=="ERes2NetV2_w24s4ep4_COMMON":
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                # its input fbank feature(80-dim)
-                #print(f"input shape of speech_encoder: {ref_speech.shape}")
-                x = self.speech_encoder.get_frame_level_feat(ref_speech) # (B,D,T)
-            # no downsample, its frame rate is 13.
-            x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
-        elif self.speech_encoder_type == "ERes2NetV2_COMMON" or self.speech_encoder_type=="ERes2NetV2_w24s4ep4_COMMON" and int(self.label_rate)==25:
-            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
-                # its input fbank feature(80-dim)
-                x = self.speech_encoder.get_frame_level_feat_frame_rate25(ref_speech) # (B,D,T)
-            # no downsample, its frame rate is 25.
+                if int(self.label_rate)==13:
+                    # its input fbank feature(80-dim)
+                    #print(f"input shape of speech_encoder: {ref_speech.shape}in label_rate = 13 case")
+                    x = self.speech_encoder.get_frame_level_feat(ref_speech) # (B,D,T)
+                elif int(self.label_rate)==25:
+                    #print(f"input shape of speech_encoder: {ref_speech.shape} in label_rate = 25 case")
+                    x = self.speech_encoder.get_frame_level_feat_frame_rate25(ref_speech) # (B,D,T)
+            # no downsample, its frame rate is 13 or 25
             x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
         else:
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
@@ -1104,7 +1102,7 @@ class TSVADModel(nn.Module):
         gap = x.size(-1) - max_len
         assert (
             abs(x.size(-1) - max_len) <= 3
-        ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
+            ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}, label len: {max_len}, ref_speech len: {x.size(-1)}"
         # padding audio len to label len
         if gap == -1:
             x = nn.functional.pad(x, (0, 1))

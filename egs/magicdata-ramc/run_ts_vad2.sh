@@ -7284,7 +7284,84 @@ for c in $collar;do
  done
 done
 fi
+#grep -r Eval logs/run_ts_vad2_stage168_mamba2_rs_len6_offical_redimnetb2_label_rate67_lr1e4_fp32.log
+# dev of magicdata-ramc, collar=0
+#Eval for threshold 0.2 DER=15.13, miss=0.23, falarm=12.25, confusion=2.66
+#Eval for threshold 0.3 DER=12.39, miss=0.44, falarm=8.54, confusion=3.41
+#Eval for threshold 0.35 DER=11.56, miss=0.59, falarm=7.37, confusion=3.60
+#Eval for threshold 0.4 DER=10.99, miss=0.81, falarm=6.47, confusion=3.71
+#Eval for threshold 0.45 DER=10.64, miss=1.10, falarm=5.78, confusion=3.75
+#Eval for threshold 0.5 DER=10.46, miss=1.50, falarm=5.25, confusion=3.71
+#Eval for threshold 0.55 DER=10.43, miss=2.05, falarm=4.80, confusion=3.58
+#Eval for threshold 0.6 DER=10.54, miss=2.70, falarm=4.39, confusion=3.45
+#Eval for threshold 0.7 DER=11.23, miss=4.53, falarm=3.56, confusion=3.14
+#Eval for threshold 0.8 DER=13.21, miss=8.06, falarm=2.76, confusion=2.38
+#Eval for threshold 0.9 DER=17.42, miss=14.00, falarm=1.85, confusion=1.57
 
+# test of magicdata-ramc, collar=0
+#Eval for threshold 0.2 DER=16.55, miss=0.31, falarm=14.42, confusion=1.82
+#Eval for threshold 0.3 DER=14.26, miss=0.66, falarm=11.41, confusion=2.18
+#Eval for threshold 0.35 DER=13.46, miss=0.93, falarm=10.22, confusion=2.31
+#Eval for threshold 0.4 DER=12.72, miss=1.31, falarm=8.93, confusion=2.49
+#Eval for threshold 0.45 DER=11.70, miss=1.82, falarm=6.70, confusion=3.18
+#Eval for threshold 0.5 DER=11.22, miss=2.56, falarm=5.34, confusion=3.32
+#Eval for threshold 0.55 DER=11.81, miss=4.17, falarm=4.80, confusion=2.83
+#Eval for threshold 0.6 DER=12.68, miss=6.21, falarm=4.35, confusion=2.11
+#Eval for threshold 0.7 DER=14.06, miss=8.88, falarm=3.55, confusion=1.63
+#Eval for threshold 0.8 DER=16.58, miss=12.59, falarm=2.73, confusion=1.26
+#Eval for threshold 0.9 DER=21.97, miss=19.28, falarm=1.86, confusion=0.82
+
+# cssd_testset of magicdata-ramc, collar=0
+#Eval for threshold 0.2 DER=28.07, miss=3.25, falarm=23.06, confusion=1.76
+#Eval for threshold 0.3 DER=23.18, miss=4.68, falarm=15.58, confusion=2.92
+#Eval for threshold 0.35 DER=21.60, miss=5.51, falarm=12.61, confusion=3.48
+#Eval for threshold 0.4 DER=20.38, miss=6.50, falarm=10.04, confusion=3.83
+#Eval for threshold 0.45 DER=19.80, miss=7.82, falarm=8.00, confusion=3.98
+#Eval for threshold 0.5 DER=19.98, miss=9.66, falarm=6.61, confusion=3.71
+#Eval for threshold 0.55 DER=20.84, miss=12.04, falarm=5.73, confusion=3.08
+#Eval for threshold 0.6 DER=21.84, miss=14.47, falarm=4.94, confusion=2.43
+#Eval for threshold 0.7 DER=24.46, miss=19.55, falarm=3.49, confusion=1.42
+#Eval for threshold 0.8 DER=28.60, miss=25.75, falarm=2.14, confusion=0.71
+#Eval for threshold 0.9 DER=36.84, miss=35.64, falarm=0.92, confusion=0.28
+
+# dev of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=7.83, miss=0.06, falarm=5.34, confusion=2.42
+#Eval for threshold 0.3 DER=6.09, miss=0.14, falarm=2.82, confusion=3.13
+#Eval for threshold 0.35 DER=5.65, miss=0.20, falarm=2.17, confusion=3.28
+#Eval for threshold 0.4 DER=5.38, miss=0.28, falarm=1.72, confusion=3.37
+#Eval for threshold 0.45 DER=5.29, miss=0.41, falarm=1.48, confusion=3.40
+#Eval for threshold 0.5 DER=5.29, miss=0.57, falarm=1.33, confusion=3.39
+#Eval for threshold 0.55 DER=5.40, miss=0.82, falarm=1.25, confusion=3.34
+#Eval for threshold 0.6 DER=5.58, miss=1.13, falarm=1.18, confusion=3.27
+#Eval for threshold 0.7 DER=6.31, miss=2.19, falarm=1.04, confusion=3.09
+#Eval for threshold 0.8 DER=8.15, miss=4.86, falarm=0.92, confusion=2.38
+#Eval for threshold 0.9 DER=12.00, miss=9.62, falarm=0.77, confusion=1.61
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=9.18, miss=0.12, falarm=7.60, confusion=1.46
+#Eval for threshold 0.3 DER=8.10, miss=0.29, falarm=6.12, confusion=1.69
+#Eval for threshold 0.35 DER=7.77, miss=0.41, falarm=5.58, confusion=1.78
+#Eval for threshold 0.4 DER=7.43, miss=0.60, falarm=4.91, confusion=1.92
+#Eval for threshold 0.45 DER=6.69, miss=0.85, falarm=3.21, confusion=2.63
+#Eval for threshold 0.5 DER=6.30, miss=1.24, falarm=2.19, confusion=2.87
+#Eval for threshold 0.55 DER=6.92, miss=2.46, falarm=2.00, confusion=2.46
+#Eval for threshold 0.6 DER=7.80, miss=4.13, falarm=1.87, confusion=1.80
+#Eval for threshold 0.7 DER=8.95, miss=5.88, falarm=1.63, confusion=1.44
+#Eval for threshold 0.8 DER=10.99, miss=8.43, falarm=1.39, confusion=1.18
+#Eval for threshold 0.9 DER=15.60, miss=13.69, falarm=1.08, confusion=0.83
+
+# cssd_testset of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=11.02, miss=1.20, falarm=8.94, confusion=0.88
+#Eval for threshold 0.3 DER=8.37, miss=1.88, falarm=4.77, confusion=1.72
+#Eval for threshold 0.35 DER=7.62, miss=2.29, falarm=3.17, confusion=2.16
+#Eval for threshold 0.4 DER=7.07, miss=2.78, falarm=1.84, confusion=2.45
+#Eval for threshold 0.45 DER=6.94, miss=3.49, falarm=0.83, confusion=2.63
+#Eval for threshold 0.5 DER=7.41, miss=4.59, falarm=0.31, confusion=2.51
+#Eval for threshold 0.55 DER=8.46, miss=6.16, falarm=0.20, confusion=2.10
+#Eval for threshold 0.6 DER=9.60, miss=7.78, falarm=0.15, confusion=1.66
+#Eval for threshold 0.7 DER=12.34, miss=11.31, falarm=0.09, confusion=0.94
+#Eval for threshold 0.8 DER=16.42, miss=15.93, falarm=0.05, confusion=0.44
+#Eval for threshold 0.9 DER=24.26, miss=24.05, falarm=0.03, confusion=0.19
 
 # compared with stage165-166,stage169-170 increase lr rate from 1e4 to 2e4
 if [ ${stage} -le 169 ] && [ ${stop_stage} -ge 169 ];then
@@ -7546,7 +7623,73 @@ for c in $collar;do
  done
 done
 fi
-
+# grep -r Eval  logs/run_ts_vad2_stage171-172_transformer_rs_len6_offical_eres2netv2_common_label_rate13_lr2e4_fp32.log
+#Eval for threshold 0.2 DER=24.06, miss=0.84, falarm=19.34, confusion=3.88
+#Eval for threshold 0.3 DER=21.28, miss=1.21, falarm=15.49, confusion=4.59
+#Eval for threshold 0.35 DER=20.25, miss=1.41, falarm=13.95, confusion=4.88
+#Eval for threshold 0.4 DER=19.42, miss=1.68, falarm=12.54, confusion=5.20
+#Eval for threshold 0.45 DER=18.67, miss=2.04, falarm=11.12, confusion=5.51
+#Eval for threshold 0.5 DER=18.39, miss=2.73, falarm=10.11, confusion=5.55
+#Eval for threshold 0.55 DER=18.79, miss=4.03, falarm=9.69, confusion=5.08
+#Eval for threshold 0.6 DER=19.34, miss=5.41, falarm=9.32, confusion=4.60
+#Eval for threshold 0.7 DER=20.65, miss=8.19, falarm=8.55, confusion=3.91
+#Eval for threshold 0.8 DER=22.64, miss=11.76, falarm=7.65, confusion=3.23
+#Eval for threshold 0.9 DER=27.09, miss=18.70, falarm=6.27, confusion=2.12
+#Eval for threshold 0.2 DER=29.34, miss=0.85, falarm=25.31, confusion=3.18
+#Eval for threshold 0.3 DER=25.59, miss=1.26, falarm=20.08, confusion=4.25
+#Eval for threshold 0.35 DER=23.91, miss=1.52, falarm=17.46, confusion=4.93
+#Eval for threshold 0.4 DER=22.29, miss=1.83, falarm=14.72, confusion=5.74
+#Eval for threshold 0.45 DER=20.85, miss=2.28, falarm=12.18, confusion=6.39
+#Eval for threshold 0.5 DER=20.16, miss=2.99, falarm=10.53, confusion=6.63
+#Eval for threshold 0.55 DER=20.50, miss=4.76, falarm=9.65, confusion=6.09
+#Eval for threshold 0.6 DER=21.48, miss=7.23, falarm=9.08, confusion=5.16
+#Eval for threshold 0.7 DER=23.62, miss=12.08, falarm=8.07, confusion=3.47
+#Eval for threshold 0.8 DER=26.17, miss=16.86, falarm=6.96, confusion=2.35
+#Eval for threshold 0.9 DER=30.95, miss=24.01, falarm=5.63, confusion=1.31
+#Eval for threshold 0.2 DER=44.09, miss=5.18, falarm=29.18, confusion=9.73
+#Eval for threshold 0.3 DER=39.73, miss=6.50, falarm=22.27, confusion=10.96
+#Eval for threshold 0.35 DER=38.16, miss=7.28, falarm=19.38, confusion=11.51
+#Eval for threshold 0.4 DER=37.07, miss=8.22, falarm=16.97, confusion=11.88
+#Eval for threshold 0.45 DER=36.29, miss=9.42, falarm=14.80, confusion=12.07
+#Eval for threshold 0.5 DER=36.12, miss=11.13, falarm=13.16, confusion=11.83
+#Eval for threshold 0.55 DER=36.85, miss=13.65, falarm=12.30, confusion=10.90
+#Eval for threshold 0.6 DER=37.83, miss=16.30, falarm=11.55, confusion=9.99
+#Eval for threshold 0.7 DER=40.46, miss=22.26, falarm=9.96, confusion=8.24
+#Eval for threshold 0.8 DER=44.50, miss=29.99, falarm=8.08, confusion=6.43
+#Eval for threshold 0.9 DER=52.31, miss=42.74, falarm=5.55, confusion=4.02
+#Eval for threshold 0.2 DER=12.91, miss=0.12, falarm=9.78, confusion=3.01
+#Eval for threshold 0.3 DER=10.63, miss=0.21, falarm=6.81, confusion=3.62
+#Eval for threshold 0.35 DER=9.74, miss=0.27, falarm=5.58, confusion=3.89
+#Eval for threshold 0.4 DER=9.05, miss=0.36, falarm=4.49, confusion=4.20
+#Eval for threshold 0.45 DER=8.42, miss=0.52, falarm=3.34, confusion=4.56
+#Eval for threshold 0.5 DER=8.20, miss=0.95, falarm=2.57, confusion=4.68
+#Eval for threshold 0.55 DER=8.70, miss=2.02, falarm=2.41, confusion=4.26
+#Eval for threshold 0.6 DER=9.32, miss=3.17, falarm=2.27, confusion=3.87
+#Eval for threshold 0.7 DER=10.73, miss=5.40, falarm=2.01, confusion=3.32
+#Eval for threshold 0.8 DER=12.87, miss=8.33, falarm=1.74, confusion=2.81
+#Eval for threshold 0.9 DER=17.49, miss=14.32, falarm=1.33, confusion=1.83
+#Eval for threshold 0.2 DER=17.78, miss=0.14, falarm=15.58, confusion=2.06
+#Eval for threshold 0.3 DER=14.67, miss=0.26, falarm=11.45, confusion=2.95
+#Eval for threshold 0.35 DER=13.24, miss=0.36, falarm=9.28, confusion=3.60
+#Eval for threshold 0.4 DER=11.93, miss=0.48, falarm=7.06, confusion=4.39
+#Eval for threshold 0.45 DER=10.70, miss=0.71, falarm=4.95, confusion=5.05
+#Eval for threshold 0.5 DER=10.09, miss=1.13, falarm=3.57, confusion=5.39
+#Eval for threshold 0.55 DER=10.54, miss=2.58, falarm=2.98, confusion=4.98
+#Eval for threshold 0.6 DER=11.68, miss=4.81, falarm=2.76, confusion=4.11
+#Eval for threshold 0.7 DER=14.06, miss=9.08, falarm=2.39, confusion=2.60
+#Eval for threshold 0.8 DER=16.76, miss=13.08, falarm=1.96, confusion=1.71
+#Eval for threshold 0.9 DER=21.73, miss=19.35, falarm=1.51, confusion=0.87
+#Eval for threshold 0.2 DER=23.18, miss=1.35, falarm=15.57, confusion=6.26
+#Eval for threshold 0.3 DER=19.37, miss=1.82, falarm=9.99, confusion=7.56
+#Eval for threshold 0.35 DER=18.01, miss=2.14, falarm=7.67, confusion=8.20
+#Eval for threshold 0.4 DER=17.03, miss=2.60, falarm=5.63, confusion=8.80
+#Eval for threshold 0.45 DER=16.40, miss=3.27, falarm=3.88, confusion=9.25
+#Eval for threshold 0.5 DER=16.42, miss=4.48, falarm=2.70, confusion=9.24
+#Eval for threshold 0.55 DER=17.39, miss=6.59, falarm=2.36, confusion=8.44
+#Eval for threshold 0.6 DER=18.62, miss=8.82, falarm=2.14, confusion=7.66
+#Eval for threshold 0.7 DER=21.93, miss=13.96, falarm=1.74, confusion=6.23
+#Eval for threshold 0.8 DER=27.00, miss=20.77, falarm=1.32, confusion=4.91
+#Eval for threshold 0.9 DER=36.45, miss=32.63, falarm=0.78, confusion=3.04
 
 if [ ${stage} -le 173 ] && [ ${stop_stage} -ge 173 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
@@ -7567,13 +7710,13 @@ if [ ${stage} -le 173 ] && [ ${stop_stage} -ge 173 ];then
     # for loading speaker embedding file
     spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding # store speaker embedding directory
     #speaker_embedding_name_dir="redimnet_b2-vox2-ft_lm_feature_dir"
-    speaker_embedding_name_dir="eres2netv2_sv_zh-cn_16k-common_200k_label_rate13_feature_dir"
+    speaker_embedding_name_dir="eres2netv2_sv_zh-cn_16k-common_200k_label_rate25_feature_dir"
     #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr2e4
     #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr1e4
     #exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr2e4_fp32
     exp_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_eres2netv2_COMMON_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_eres2netv2_zh_200k_speaker_emb_label_rate25_lr2e4_fp32
     mkdir -p $exp_dir
-   data_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate13" # oracle target audio , mix audio and labels path
+   data_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25" # oracle target audio , mix audio and labels path
    rs_len=6
    segment_shift=2
    single_backend_type="transformer"
@@ -7642,9 +7785,9 @@ if [ ${stage} -le 174 ] && [ ${stop_stage} -ge 174 ];then
  speech_encoder_path=/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.ckpt
  # for loading speaker embedding file
  spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/magicdata_ramc/SpeakerEmbedding # store speaker embedding directory
- speaker_embedding_name_dir="eres2netv2_sv_zh-cn_16k-common_200k_label_rate13_feature_dir"
+ speaker_embedding_name_dir="eres2netv2_sv_zh-cn_16k-common_200k_label_rate25_feature_dir"
 
- data_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate13" # oracle target audio , mix audio and labels path
+ data_dir="/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/label_rate25" # oracle target audio , mix audio and labels path
 
 
 for c in $collar;do
