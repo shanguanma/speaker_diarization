@@ -23,7 +23,7 @@ def get_args():
         "--redimnet_hubconfig_file_dir", default="ts_vad2/redimnet/", type=str, help="hubconfig.py path  in offical redimnet repo"
     )
     parser.add_argument(
-        "--model_name", default="ReDimNetB3", type=str, help="Model name  in wespeaker"
+        "--model_name", default="ReDimNetB2", type=str, help="Model name  in offical redimnet repo"
     )
     parser.add_argument("--wavs", nargs="+", type=str, help="Wavs")
     # parser.add_argument('--local_model_dir', default='pretrained', type=str, help='Local model dir')
