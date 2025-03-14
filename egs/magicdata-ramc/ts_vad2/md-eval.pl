@@ -6,8 +6,10 @@ my $version = "22";
 
 #################################
 # History:
-# this file is from https://github.com/usnistgov/SCTK/blob/master/src/md-eval/md-eval.pl
-# Maduo add 
+# This file is from https://github.com/usnistgov/SCTK/blob/master/src/md-eval/md-eval.pl
+# Maduo(maduo@cuhk.edu.cn) 
+# Add relevant codes to output the length information of the specific error segment of each sentence error type
+# via `perl md-eval.pl -af -c 0.25 -r ref_rttm -s sys_rttm`
 #
 # version 22:  * JGF: added an option '-m FILE' to hold a CSV speaker map file.
 #
@@ -1963,7 +1965,7 @@ sub score_speaker_segments {
     my ($stats, $score_segs, $ref_wds, $spkr_map, $spkr_info, $file) = @_;
     my ($ref_spkr, $ref_type, $sys_spkr, $sys_type, %type_stats);
     my (@ref_wds, $wrd, $seg, $seg_dur, $nref, $nsys);
-    my (@my_miss_list,@my_falarm_list);
+    my (@my_miss_list,@my_falarm_list, @my_speaker_error_list);
 
     @ref_wds = @$ref_wds;
     $wrd = shift @ref_wds;
@@ -1984,7 +1986,12 @@ sub score_speaker_segments {
     #print "size=$stats->{MISSED_SPEAKER_SEG_num}, \@my_miss_list=@my_miss_list file=$file\n" if @my_miss_list;
     
     push(@my_miss_list,$seg_dur*max($nref-$nsys,0)) if $seg_dur*max($nref-$nsys,0);
-    @{$stats->{miss_SPEAKER_seg}} = @my_miss_list;
+    @{$stats->{miss_speaker_segs}} = @my_miss_list;
+
+    push(@my_falarm_list, $seg_dur*max($nsys-$nref,0)) if $seg_dur*max($nsys-$nref,0);
+    @{$stats->{falarm_speaker_segs}} =@my_falarm_list;
+    
+
     #print "file=$file\n";
 	
     my $scored_wrds = my $missed_wrds = my $error_wrds = 0;
@@ -2008,6 +2015,11 @@ sub score_speaker_segments {
 	    $nmap++ if defined $sys_spkr and defined $seg->{SYS}{$sys_spkr};
 	}
 	$stats->{SPEAKER_ERROR} += $seg_dur*(min($nref,$nsys) - $nmap);
+
+    
+    push(@my_speaker_error_list, $seg_dur*(min($nref,$nsys) - $nmap)) if $seg_dur*(min($nref,$nsys) - $nmap);
+    @{$stats->{speaker_error_segs}} = @my_speaker_error_list;
+
 
 	foreach $sys_spkr (keys %{$seg->{SYS}}) {
 	    $sys_type = $spkr_info->{SYS}{$sys_spkr}{TYPE};
@@ -2347,7 +2359,9 @@ sub sd_performance_analysis {
 		next if $ref_type eq "TYPE";
 		$count = $xscores->{$ref_type};
         #if ref_type eq "miss_SPEAKER_seg"
-        print "ref_type=$ref_type, count=@$count ,file=$file in fn sd_performance_analysis\n"if $ref_type eq "miss_SPEAKER_seg";
+        print "file=$file, ref_type=$ref_type, segments=@$count, in fn sd_performance_analysis\n"if $ref_type eq "miss_speaker_segs";
+        print "file=$file, ref_type=$ref_type, segments=@$count, in fn sd_performance_analysis\n"if $ref_type eq "falarm_speaker_segs";
+        print "file=$file, ref_type=$ref_type, segments=@$count, in fn sd_performance_analysis\n"if $ref_type eq "speaker_error_segs";
         $cum_scores{ALL}{$ref_type} += $count;
 		$cum_scores{"c=$chnl f=$file"}{$ref_type} += $xscores->{$ref_type} if $opt_a =~ /c/i and $opt_a =~ /f/i;
 		$cum_scores{"c=$chnl"}{$ref_type} += $xscores->{$ref_type} if $opt_a =~ /c/i and not $opt_a =~ /f/i;
