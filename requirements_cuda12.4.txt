@@ -1,0 +1,23 @@
+accelerate # for ddp train
+scipy
+tensorboard
+yamlargparse
+#numpy==1.22.0
+numpy==1.23.5
+modescope==1.7.1
+onnxruntime-gpu==1.17 # support cuda11.8,cudnn8.* # you can see https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
+transformers==4.46.2
+tqdm
+librosa==0.10.2
+h5py     # for infer file
+textgrid #  for prepared ground truth rttm
+onnxruntime # for umap_cluster
+kaldiio # for umap_cluster
+hdbscan==0.8.37 # for umap_cluster
+umap-learn==0.5.6 # for umap_cluster
+silero-vad # for umap_cluster and spectral_clustering
+openai-whisper # for whisper encoder of tsvad
+ #-f https://download.pytorch.org/whl/cu118 torch==2.3.0
+ #-f https://download.pytorch.org/whl/cu118 torchaudio==2.3.0
+# install lhotse (todo) remove it.
+pip install git+https://github.com/lhotse-speech/lhotse
