@@ -6950,6 +6950,58 @@ fi
 #Eval for threshold 0.7 DER=11.86, miss=10.06, falarm=0.22, confusion=1.58
 #Eval for threshold 0.8 DER=15.76, miss=14.86, falarm=0.10, confusion=0.79
 #Eval for threshold 0.9 DER=22.01, miss=21.64, falarm=0.04, confusion=0.33
+
+#if [ ${stage} -le 165 ] && [ ${stop_stage} -ge 165 ];then
+#   echo "compute CDER for magicdata-ramc"
+#   threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
+#   predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr_small1e5_lr_big_2e4_fp32/magicdata-ramc_collar0.0
+#   oracle_rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/
+#   infer_sets="dev test cssd_testset"
+#   for name in $infer_sets;do
+#    for thres in $threshold;do
+#     echo "currently, compute $name set in $thres threshold mode"
+#     python3 cder/score.py -s $predict_rttm_dir/$name/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+#    done
+#   done
+#fi
+#bash run_ts_vad2.sh --stage 165 --stop-stage 165 | tee logs/run_ts_vad2_stage165_cder.log ^C
+#(base) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad2_stage165_cder.log
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 0.868
+#Avg CDER : 0.614
+#Avg CDER : 0.530
+#Avg CDER : 0.428
+#Avg CDER : 0.352
+#Avg CDER : 0.278
+#Avg CDER : 0.222
+#Avg CDER : 0.186
+#Avg CDER : 0.152
+#Avg CDER : 0.131
+#Avg CDER : 0.117
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.479
+#Avg CDER : 0.384
+#Avg CDER : 0.336
+#Avg CDER : 0.283
+#Avg CDER : 0.251
+#Avg CDER : 0.189
+#Avg CDER : 0.149
+#Avg CDER : 0.138
+#Avg CDER : 0.124
+#Avg CDER : Error!
+#Avg CDER : Error!
+# cssd_testset of magicdata-ramc, collar=0.0
+#Avg CDER : 0.349
+#Avg CDER : 0.279
+#Avg CDER : 0.244
+#Avg CDER : 0.206
+#Avg CDER : 0.170
+#Avg CDER : 0.128
+#Avg CDER : 0.106
+#Avg CDER : 0.100
+#Avg CDER : 0.103
+#Avg CDER : 0.124
+#Avg CDER : 0.162
 # compared with stage163-164,stage165-166 use single optim and use offical ReDimNetB2 as speech encoder and use offical melbanks as input to extract target speaker embedding
 if [ ${stage} -le 165 ] && [ ${stop_stage} -ge 165 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
@@ -7158,6 +7210,60 @@ fi
 #Eval for threshold 0.8 DER=16.12, miss=15.82, falarm=0.06, confusion=0.24
 #Eval for threshold 0.9 DER=21.86, miss=21.69, falarm=0.03, confusion=0.14
 
+
+#if [ ${stage} -le 167 ] && [ ${stop_stage} -ge 167 ];then
+#   echo "compute CDER for magicdata-ramc"
+#   threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
+#   predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr1e4_fp32/magicdata-ramc_collar0.0
+#   oracle_rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/
+#   infer_sets="dev test cssd_testset"
+#   for name in $infer_sets;do
+#    for thres in $threshold;do
+#     echo "currently, compute $name set in $thres threshold mode"
+#     python3 cder/score.py -s $predict_rttm_dir/$name/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+#    done
+#   done
+#fi
+#
+#bash run_ts_vad2.sh --stage 167 --stop-stage 167 | tee logs/run_ts_vad2_stage167_cder.log ^C
+#(base) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad2_stage167_cder.log
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 0.703
+#Avg CDER : 0.499
+#Avg CDER : 0.405
+#Avg CDER : 0.348
+#Avg CDER : 0.268
+#Avg CDER : 0.210
+#Avg CDER : 0.180
+#Avg CDER : 0.161
+#Avg CDER : 0.141
+#Avg CDER : 0.122
+#Avg CDER : 0.118
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.436
+#Avg CDER : 0.345
+#Avg CDER : 0.312
+#Avg CDER : 0.271
+#Avg CDER : 0.243
+#Avg CDER : 0.157
+#Avg CDER : 0.144
+#Avg CDER : Error!
+#Avg CDER : Error!
+#Avg CDER : Error!
+#Avg CDER : Error!
+# cssd_testset of magicdata-ramc, collar=0.0
+#Avg CDER : 0.346
+#Avg CDER : 0.281
+#Avg CDER : 0.244
+#Avg CDER : 0.199
+#Avg CDER : 0.152
+#Avg CDER : 0.116
+#Avg CDER : 0.104
+#Avg CDER : 0.097
+#Avg CDER : 0.101
+#Avg CDER : 0.108
+#Avg CDER : 0.185
+
 if [ ${stage} -le 167 ] && [ ${stop_stage} -ge 167 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
@@ -7363,6 +7469,63 @@ fi
 #Eval for threshold 0.8 DER=16.42, miss=15.93, falarm=0.05, confusion=0.44
 #Eval for threshold 0.9 DER=24.26, miss=24.05, falarm=0.03, confusion=0.19
 
+
+
+#if [ ${stage} -le 169 ] && [ ${stop_stage} -ge 169 ];then
+#   echo "compute CDER for magicdata-ramc"
+#   threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
+#   predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_mamba2_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr1e4_fp32/magicdata-ramc_collar0.0
+#   oracle_rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/
+#   infer_sets="dev test cssd_testset"
+#   for name in $infer_sets;do
+#    for thres in $threshold;do
+#     echo "currently, compute $name set in $thres threshold mode"
+#     python3 cder/score.py -s $predict_rttm_dir/$name/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+#    done
+#   done
+#fi
+#bash run_ts_vad2.sh --stage 169 --stop-stage 169 | tee logs/run_ts_vad2_stage169_cder.log ^C
+#(base) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad2_stage169_cder.log
+
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 0.831
+#Avg CDER : 0.612
+#Avg CDER : 0.494
+#Avg CDER : 0.407
+#Avg CDER : 0.315
+#Avg CDER : 0.224
+#Avg CDER : 0.190
+#Avg CDER : 0.174
+#Avg CDER : 0.155
+#Avg CDER : 0.125
+#Avg CDER : 0.116
+
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.561
+#Avg CDER : 0.434
+#Avg CDER : 0.374
+#Avg CDER : 0.321
+#Avg CDER : 0.258
+#Avg CDER : 0.176
+#Avg CDER : 0.152
+#Avg CDER : 0.150
+#Avg CDER : Error!
+#Avg CDER : Error!
+#Avg CDER : Error!
+
+# cssd_testset of magicdata-ramc, collar=0.0
+#Avg CDER : 0.351
+#Avg CDER : 0.264
+#Avg CDER : 0.226
+#Avg CDER : 0.185
+#Avg CDER : 0.147
+#Avg CDER : 0.129
+#Avg CDER : 0.117
+#Avg CDER : 0.111
+#Avg CDER : 0.105
+#Avg CDER : 0.129
+#Avg CDER : 0.144
+
 # compared with stage165-166,stage169-170 increase lr rate from 1e4 to 2e4
 if [ ${stage} -le 169 ] && [ ${stop_stage} -ge 169 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
@@ -7490,7 +7653,139 @@ for c in $collar;do
  done
 done
 fi
+# grep -r Eval logs/run_ts_vad2_stage169-170_transformer_rs_len6_offical_redimnetb2_label_rate67_lr2e4_fp32.log
+# dev of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=16.12, miss=0.31, falarm=13.34, confusion=2.47
+#Eval for threshold 0.3 DER=13.11, miss=0.55, falarm=9.66, confusion=2.89
+#Eval for threshold 0.35 DER=12.16, miss=0.73, falarm=8.32, confusion=3.11
+#Eval for threshold 0.4 DER=11.40, miss=0.96, falarm=7.17, confusion=3.26
+#Eval for threshold 0.45 DER=10.79, miss=1.24, falarm=6.10, confusion=3.44
+#Eval for threshold 0.5 DER=10.43, miss=1.62, falarm=5.22, confusion=3.60
+#Eval for threshold 0.55 DER=10.35, miss=2.25, falarm=4.51, confusion=3.59
+#Eval for threshold 0.6 DER=10.63, miss=3.22, falarm=4.11, confusion=3.31
+#Eval for threshold 0.7 DER=11.73, miss=5.60, falarm=3.35, confusion=2.79
+#Eval for threshold 0.8 DER=13.85, miss=8.95, falarm=2.59, confusion=2.31
+#Eval for threshold 0.9 DER=18.53, miss=15.18, falarm=1.72, confusion=1.63
 
+# test of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=16.60, miss=0.35, falarm=14.60, confusion=1.65
+#Eval for threshold 0.3 DER=14.36, miss=0.71, falarm=11.62, confusion=2.03
+#Eval for threshold 0.35 DER=13.64, miss=0.97, falarm=10.50, confusion=2.16
+#Eval for threshold 0.4 DER=13.09, miss=1.30, falarm=9.54, confusion=2.25
+#Eval for threshold 0.45 DER=12.65, miss=1.72, falarm=8.59, confusion=2.34
+#Eval for threshold 0.5 DER=11.36, miss=2.28, falarm=6.05, confusion=3.04
+#Eval for threshold 0.55 DER=11.92, miss=4.79, falarm=4.72, confusion=2.41
+#Eval for threshold 0.6 DER=12.59, miss=6.19, falarm=4.33, confusion=2.07
+#Eval for threshold 0.7 DER=13.58, miss=8.28, falarm=3.59, confusion=1.71
+#Eval for threshold 0.8 DER=15.64, miss=11.45, falarm=2.84, confusion=1.35
+#Eval for threshold 0.9 DER=20.38, miss=17.45, falarm=2.00, confusion=0.93
+
+# cssd_testset of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=30.23, miss=3.32, falarm=25.35, confusion=1.56
+#Eval for threshold 0.3 DER=24.88, miss=4.57, falarm=17.63, confusion=2.68
+#Eval for threshold 0.35 DER=23.06, miss=5.29, falarm=14.48, confusion=3.30
+#Eval for threshold 0.4 DER=21.66, miss=6.10, falarm=11.63, confusion=3.93
+#Eval for threshold 0.45 DER=20.48, miss=7.08, falarm=9.02, confusion=4.37
+#Eval for threshold 0.5 DER=19.87, miss=8.47, falarm=6.86, confusion=4.54
+#Eval for threshold 0.55 DER=20.39, miss=10.81, falarm=5.68, confusion=3.90
+#Eval for threshold 0.6 DER=21.34, miss=13.44, falarm=4.85, confusion=3.04
+#Eval for threshold 0.7 DER=23.90, miss=19.01, falarm=3.33, confusion=1.56
+#Eval for threshold 0.8 DER=27.93, miss=25.27, falarm=1.96, confusion=0.70
+#Eval for threshold 0.9 DER=35.62, miss=34.54, falarm=0.83, confusion=0.26
+
+# dev of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=9.21, miss=0.09, falarm=6.79, confusion=2.32
+#Eval for threshold 0.3 DER=7.25, miss=0.17, falarm=4.42, confusion=2.67
+#Eval for threshold 0.35 DER=6.67, miss=0.25, falarm=3.57, confusion=2.86
+#Eval for threshold 0.4 DER=6.23, miss=0.35, falarm=2.89, confusion=3.00
+#Eval for threshold 0.45 DER=5.86, miss=0.46, falarm=2.22, confusion=3.18
+#Eval for threshold 0.5 DER=5.66, miss=0.62, falarm=1.67, confusion=3.37
+#Eval for threshold 0.55 DER=5.65, miss=0.95, falarm=1.26, confusion=3.44
+#Eval for threshold 0.6 DER=6.00, miss=1.63, falarm=1.16, confusion=3.20
+#Eval for threshold 0.7 DER=7.09, miss=3.29, falarm=1.04, confusion=2.76
+#Eval for threshold 0.8 DER=9.03, miss=5.76, falarm=0.92, confusion=2.35
+#Eval for threshold 0.9 DER=13.32, miss=10.83, falarm=0.78, confusion=1.71
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=9.65, miss=0.13, falarm=8.20, confusion=1.32
+#Eval for threshold 0.3 DER=8.47, miss=0.29, falarm=6.61, confusion=1.57
+#Eval for threshold 0.35 DER=8.14, miss=0.41, falarm=6.06, confusion=1.67
+#Eval for threshold 0.4 DER=7.90, miss=0.56, falarm=5.60, confusion=1.74
+#Eval for threshold 0.45 DER=7.73, miss=0.74, falarm=5.17, confusion=1.82
+#Eval for threshold 0.5 DER=6.68, miss=1.01, falarm=3.14, confusion=2.53
+#Eval for threshold 0.55 DER=7.25, miss=3.16, falarm=2.10, confusion=2.00
+#Eval for threshold 0.6 DER=7.91, miss=4.22, falarm=1.98, confusion=1.71
+#Eval for threshold 0.7 DER=8.67, miss=5.42, falarm=1.76, confusion=1.48
+#Eval for threshold 0.8 DER=10.24, miss=7.49, falarm=1.52, confusion=1.23
+#Eval for threshold 0.9 DER=14.11, miss=11.96, falarm=1.24, confusion=0.92
+
+# cssd_testset of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=12.82, miss=1.25, falarm=10.90, confusion=0.68
+#Eval for threshold 0.3 DER=9.80, miss=1.77, falarm=6.52, confusion=1.50
+#Eval for threshold 0.35 DER=8.93, miss=2.09, falarm=4.86, confusion=1.98
+#Eval for threshold 0.4 DER=8.25, miss=2.41, falarm=3.30, confusion=2.54
+#Eval for threshold 0.45 DER=7.66, miss=2.84, falarm=1.85, confusion=2.97
+#Eval for threshold 0.5 DER=7.46, miss=3.52, falarm=0.67, confusion=3.27
+#Eval for threshold 0.55 DER=8.17, miss=4.99, falarm=0.28, confusion=2.91
+#Eval for threshold 0.6 DER=9.25, miss=6.78, falarm=0.20, confusion=2.27
+#Eval for threshold 0.7 DER=11.96, miss=10.72, falarm=0.12, confusion=1.13
+#Eval for threshold 0.8 DER=15.84, miss=15.29, falarm=0.06, confusion=0.49
+#Eval for threshold 0.9 DER=23.08, miss=22.87, falarm=0.03, confusion=0.18
+
+#if [ ${stage} -le 171 ] && [ ${stop_stage} -ge 171 ];then
+#   echo "compute CDER for magicdata-ramc"
+#   threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
+#   #predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_speech_encoder_cam++_speaker_encoder_cam++_per_fusion_type_fusion_att_per_speaker_wo_utt_emb_fusion_case_fusion_embed_as_mix_embed_w_utt_embed/magicdata-ramc_collar0.0
+#   predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_ReDimNetB2_offical_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_redimnetb2_speaker_emb_label_rate67_lr2e4_fp32/magicdata-ramc_collar0.0
+#   oracle_rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/
+#   infer_sets="dev test cssd_testset"
+#   for name in $infer_sets;do
+#    for thres in $threshold;do
+#     echo "currently, compute $name set in $thres threshold mode"
+#     python3 cder/score.py -s $predict_rttm_dir/$name/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+#    done
+#   done
+#fi
+
+# bash run_ts_vad2.sh --stage 171 --stop-stage 171 | tee logs/run_ts_vad2_stage171_cder.log ^C
+#(base) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad2_stage171_cder.log
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 1.151
+#Avg CDER : 1.008
+#Avg CDER : 0.915
+#Avg CDER : 0.800
+#Avg CDER : 0.679
+#Avg CDER : 0.527
+#Avg CDER : 0.328
+#Avg CDER : 0.241
+#Avg CDER : 0.169
+#Avg CDER : 0.145
+#Avg CDER : 0.137
+
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.499
+#Avg CDER : 0.400
+#Avg CDER : 0.353
+#Avg CDER : 0.306
+#Avg CDER : 0.277
+#Avg CDER : 0.228
+#Avg CDER : 0.159
+#Avg CDER : 0.144
+#Avg CDER : Error!
+#Avg CDER : Error!
+#Avg CDER : Error!
+# cssd_testset of magicdata-ramc, collar=0.0
+#Avg CDER : 0.350
+#Avg CDER : 0.275
+#Avg CDER : 0.235
+#Avg CDER : 0.201
+#Avg CDER : 0.165
+#Avg CDER : 0.130
+#Avg CDER : 0.107
+#Avg CDER : 0.102
+#Avg CDER : 0.102
+#Avg CDER : 0.122
+#Avg CDER : 0.170
 
 if [ ${stage} -le 171 ] && [ ${stop_stage} -ge 171 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
@@ -7624,6 +7919,7 @@ for c in $collar;do
 done
 fi
 # grep -r Eval  logs/run_ts_vad2_stage171-172_transformer_rs_len6_offical_eres2netv2_common_label_rate13_lr2e4_fp32.log
+# dev of magicdata-ramc, collar=0.0
 #Eval for threshold 0.2 DER=24.06, miss=0.84, falarm=19.34, confusion=3.88
 #Eval for threshold 0.3 DER=21.28, miss=1.21, falarm=15.49, confusion=4.59
 #Eval for threshold 0.35 DER=20.25, miss=1.41, falarm=13.95, confusion=4.88
@@ -7635,6 +7931,8 @@ fi
 #Eval for threshold 0.7 DER=20.65, miss=8.19, falarm=8.55, confusion=3.91
 #Eval for threshold 0.8 DER=22.64, miss=11.76, falarm=7.65, confusion=3.23
 #Eval for threshold 0.9 DER=27.09, miss=18.70, falarm=6.27, confusion=2.12
+
+# test of magicdata-ramc, collar=0.0
 #Eval for threshold 0.2 DER=29.34, miss=0.85, falarm=25.31, confusion=3.18
 #Eval for threshold 0.3 DER=25.59, miss=1.26, falarm=20.08, confusion=4.25
 #Eval for threshold 0.35 DER=23.91, miss=1.52, falarm=17.46, confusion=4.93
@@ -7646,6 +7944,8 @@ fi
 #Eval for threshold 0.7 DER=23.62, miss=12.08, falarm=8.07, confusion=3.47
 #Eval for threshold 0.8 DER=26.17, miss=16.86, falarm=6.96, confusion=2.35
 #Eval for threshold 0.9 DER=30.95, miss=24.01, falarm=5.63, confusion=1.31
+
+# cssd_testset of magicdata-ramc, collar=0.0
 #Eval for threshold 0.2 DER=44.09, miss=5.18, falarm=29.18, confusion=9.73
 #Eval for threshold 0.3 DER=39.73, miss=6.50, falarm=22.27, confusion=10.96
 #Eval for threshold 0.35 DER=38.16, miss=7.28, falarm=19.38, confusion=11.51
@@ -7657,6 +7957,8 @@ fi
 #Eval for threshold 0.7 DER=40.46, miss=22.26, falarm=9.96, confusion=8.24
 #Eval for threshold 0.8 DER=44.50, miss=29.99, falarm=8.08, confusion=6.43
 #Eval for threshold 0.9 DER=52.31, miss=42.74, falarm=5.55, confusion=4.02
+
+# dev of magicdata-ramc, collar=0.25
 #Eval for threshold 0.2 DER=12.91, miss=0.12, falarm=9.78, confusion=3.01
 #Eval for threshold 0.3 DER=10.63, miss=0.21, falarm=6.81, confusion=3.62
 #Eval for threshold 0.35 DER=9.74, miss=0.27, falarm=5.58, confusion=3.89
@@ -7668,6 +7970,8 @@ fi
 #Eval for threshold 0.7 DER=10.73, miss=5.40, falarm=2.01, confusion=3.32
 #Eval for threshold 0.8 DER=12.87, miss=8.33, falarm=1.74, confusion=2.81
 #Eval for threshold 0.9 DER=17.49, miss=14.32, falarm=1.33, confusion=1.83
+
+# test of magicdata-ramc, collar=0.25
 #Eval for threshold 0.2 DER=17.78, miss=0.14, falarm=15.58, confusion=2.06
 #Eval for threshold 0.3 DER=14.67, miss=0.26, falarm=11.45, confusion=2.95
 #Eval for threshold 0.35 DER=13.24, miss=0.36, falarm=9.28, confusion=3.60
@@ -7679,6 +7983,8 @@ fi
 #Eval for threshold 0.7 DER=14.06, miss=9.08, falarm=2.39, confusion=2.60
 #Eval for threshold 0.8 DER=16.76, miss=13.08, falarm=1.96, confusion=1.71
 #Eval for threshold 0.9 DER=21.73, miss=19.35, falarm=1.51, confusion=0.87
+
+# cssd_testset of magicdata-ramc, collar=0.25
 #Eval for threshold 0.2 DER=23.18, miss=1.35, falarm=15.57, confusion=6.26
 #Eval for threshold 0.3 DER=19.37, miss=1.82, falarm=9.99, confusion=7.56
 #Eval for threshold 0.35 DER=18.01, miss=2.14, falarm=7.67, confusion=8.20
@@ -7691,6 +7997,61 @@ fi
 #Eval for threshold 0.8 DER=27.00, miss=20.77, falarm=1.32, confusion=4.91
 #Eval for threshold 0.9 DER=36.45, miss=32.63, falarm=0.78, confusion=3.04
 
+#if [ ${stage} -le 173 ] && [ ${stop_stage} -ge 173 ];then
+#   echo "compute CDER for magicdata-ramc"
+#   threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
+#   #predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_speech_encoder_cam++_speaker_encoder_cam++_per_fusion_type_fusion_att_per_speaker_wo_utt_emb_fusion_case_fusion_embed_as_mix_embed_w_utt_embed/magicdata-ramc_collar0.0
+#
+#   predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_eres2netv2_COMMON_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_eres2netv2_zh_200k_speaker_emb_label_rate13_lr2e4_fp32/magicdata-ramc_collar0.0
+#   oracle_rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/
+#   infer_sets="dev test cssd_testset"
+#   for name in $infer_sets;do
+#    for thres in $threshold;do
+#     echo "currently, compute $name set in $thres threshold mode"
+#     python3 cder/score.py -s $predict_rttm_dir/$name/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+#    done
+#   done
+#fi
+#
+#bash run_ts_vad2.sh --stage 173 --stop-stage 173 | tee logs/run_ts_vad2_stage173_cder.log ^C
+#(dia_pt2.4) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad2_stage173_cder.log
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 0.356
+#Avg CDER : 0.284
+#Avg CDER : 0.259
+#Avg CDER : 0.227
+#Avg CDER : 0.203
+#Avg CDER : 0.172
+#Avg CDER : 0.142
+#Avg CDER : 0.128
+#Avg CDER : 0.110
+#Avg CDER : 0.099
+#Avg CDER : 0.151
+
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.327
+#Avg CDER : 0.293
+#Avg CDER : 0.276
+#Avg CDER : 0.268
+#Avg CDER : 0.230
+#Avg CDER : 0.200
+#Avg CDER : 0.187
+#Avg CDER : 0.175
+#Avg CDER : 0.151
+#Avg CDER : Error!
+#Avg CDER : Error!
+# cssd_test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.205
+#Avg CDER : 0.183
+#Avg CDER : 0.163
+#Avg CDER : 0.146
+#Avg CDER : 0.156
+#Avg CDER : 0.143
+#Avg CDER : 0.156
+#Avg CDER : 0.136
+#Avg CDER : 0.161
+#Avg CDER : 0.191
+#Avg CDER : 0.242
 if [ ${stage} -le 173 ] && [ ${stop_stage} -ge 173 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is wav-bert2.0 (only using position embedding and first 6 layers conformer) ,
@@ -7819,4 +8180,136 @@ for c in $collar;do
     --d-state $d_state
  done
 done
-fi                                                                                                                                                        i
+fi
+# grep -r Eval logs/run_ts_vad2_stage174_transformer_rs_len6_offical_eres2netv2_common_label_rate25_lr2e4_fp32.log
+# dev of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=29.08, miss=0.46, falarm=25.34, confusion=3.28
+#Eval for threshold 0.3 DER=24.80, miss=0.74, falarm=18.66, confusion=5.39
+#Eval for threshold 0.35 DER=22.49, miss=0.94, falarm=15.09, confusion=6.47
+#Eval for threshold 0.4 DER=20.12, miss=1.23, falarm=11.43, confusion=7.46
+#Eval for threshold 0.45 DER=18.23, miss=1.66, falarm=8.19, confusion=8.38
+#Eval for threshold 0.5 DER=17.47, miss=2.72, falarm=6.04, confusion=8.71
+#Eval for threshold 0.55 DER=18.57, miss=5.47, falarm=5.48, confusion=7.62
+#Eval for threshold 0.6 DER=20.29, miss=8.71, falarm=5.01, confusion=6.57
+#Eval for threshold 0.7 DER=23.53, miss=15.16, falarm=4.15, confusion=4.22
+#Eval for threshold 0.8 DER=26.76, miss=21.15, falarm=3.23, confusion=2.38
+#Eval for threshold 0.9 DER=31.68, miss=28.68, falarm=2.10, confusion=0.89
+
+# test of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=27.30, miss=0.47, falarm=24.56, confusion=2.27
+#Eval for threshold 0.3 DER=22.87, miss=0.84, falarm=18.59, confusion=3.43
+#Eval for threshold 0.35 DER=20.92, miss=1.08, falarm=15.73, confusion=4.11
+#Eval for threshold 0.4 DER=19.12, miss=1.43, falarm=12.72, confusion=4.96
+#Eval for threshold 0.45 DER=17.07, miss=1.95, falarm=8.99, confusion=6.13
+#Eval for threshold 0.5 DER=16.10, miss=3.03, falarm=6.46, confusion=6.61
+#Eval for threshold 0.55 DER=17.23, miss=6.03, falarm=5.73, confusion=5.46
+#Eval for threshold 0.6 DER=18.74, miss=9.39, falarm=5.22, confusion=4.12
+#Eval for threshold 0.7 DER=21.52, miss=14.58, falarm=4.32, confusion=2.62
+#Eval for threshold 0.8 DER=25.08, miss=20.14, falarm=3.38, confusion=1.56
+#Eval for threshold 0.9 DER=31.03, miss=28.00, falarm=2.34, confusion=0.69
+
+# cssd_testset of magicata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=40.22, miss=3.87, falarm=28.34, confusion=8.01
+#Eval for threshold 0.3 DER=34.78, miss=5.25, falarm=20.27, confusion=9.27
+#Eval for threshold 0.35 DER=32.86, miss=6.07, falarm=16.95, confusion=9.84
+#Eval for threshold 0.4 DER=31.24, miss=6.99, falarm=13.81, confusion=10.43
+#Eval for threshold 0.45 DER=29.99, miss=8.06, falarm=10.98, confusion=10.95
+#Eval for threshold 0.5 DER=29.28, miss=9.53, falarm=8.44, confusion=11.32
+#Eval for threshold 0.55 DER=30.12, miss=12.47, falarm=7.33, confusion=10.33
+#Eval for threshold 0.6 DER=31.46, miss=15.78, falarm=6.54, confusion=9.13
+#Eval for threshold 0.7 DER=35.01, miss=23.03, falarm=4.93, confusion=7.05
+#Eval for threshold 0.8 DER=40.42, miss=32.23, falarm=3.19, confusion=5.00
+#Eval for threshold 0.9 DER=51.02, miss=46.98, falarm=1.45, confusion=2.60
+
+# dev of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=20.92, miss=0.08, falarm=18.14, confusion=2.70
+#Eval for threshold 0.3 DER=17.47, miss=0.13, falarm=12.54, confusion=4.79
+#Eval for threshold 0.35 DER=15.40, miss=0.20, falarm=9.42, confusion=5.79
+#Eval for threshold 0.4 DER=13.30, miss=0.30, falarm=6.20, confusion=6.80
+#Eval for threshold 0.45 DER=11.60, miss=0.46, falarm=3.31, confusion=7.83
+#Eval for threshold 0.5 DER=10.89, miss=1.13, falarm=1.43, confusion=8.34
+#Eval for threshold 0.55 DER=12.13, miss=3.57, falarm=1.23, confusion=7.33
+#Eval for threshold 0.6 DER=14.05, miss=6.55, falarm=1.14, confusion=6.36
+#Eval for threshold 0.7 DER=17.63, miss=12.57, falarm=0.98, confusion=4.08
+#Eval for threshold 0.8 DER=20.99, miss=17.90, falarm=0.82, confusion=2.27
+#Eval for threshold 0.9 DER=25.81, miss=24.35, falarm=0.65, confusion=0.80
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=18.90, miss=0.08, falarm=17.19, confusion=1.63
+#Eval for threshold 0.3 DER=15.40, miss=0.19, falarm=12.61, confusion=2.60
+#Eval for threshold 0.35 DER=13.81, miss=0.27, falarm=10.30, confusion=3.24
+#Eval for threshold 0.4 DER=12.36, miss=0.41, falarm=7.90, confusion=4.05
+#Eval for threshold 0.45 DER=10.56, miss=0.64, falarm=4.65, confusion=5.28
+#Eval for threshold 0.5 DER=9.65, miss=1.28, falarm=2.42, confusion=5.94
+#Eval for threshold 0.55 DER=10.86, miss=3.90, falarm=2.04, confusion=4.92
+#Eval for threshold 0.6 DER=12.51, miss=7.02, falarm=1.88, confusion=3.62
+#Eval for threshold 0.7 DER=15.40, miss=11.52, falarm=1.64, confusion=2.24
+#Eval for threshold 0.8 DER=18.86, miss=16.15, falarm=1.38, confusion=1.33
+#Eval for threshold 0.9 DER=24.46, miss=22.77, falarm=1.11, confusion=0.58
+
+# cssd_testset of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=23.09, miss=1.17, falarm=16.47, confusion=5.44
+#Eval for threshold 0.3 DER=18.66, miss=1.61, falarm=10.46, confusion=6.59
+#Eval for threshold 0.35 DER=17.02, miss=1.87, falarm=7.88, confusion=7.27
+#Eval for threshold 0.4 DER=15.64, miss=2.19, falarm=5.36, confusion=8.10
+#Eval for threshold 0.45 DER=14.55, miss=2.61, falarm=3.03, confusion=8.90
+#Eval for threshold 0.5 DER=13.82, miss=3.29, falarm=0.87, confusion=9.66
+#Eval for threshold 0.55 DER=14.98, miss=5.73, falarm=0.35, confusion=8.89
+#Eval for threshold 0.6 DER=16.70, miss=8.56, falarm=0.28, confusion=7.85
+#Eval for threshold 0.7 DER=21.02, miss=14.81, falarm=0.15, confusion=6.06
+#Eval for threshold 0.8 DER=27.47, miss=22.88, falarm=0.07, confusion=4.52
+#Eval for threshold 0.9 DER=39.35, miss=36.85, falarm=0.03, confusion=2.48
+
+#if [ ${stage} -le 175 ] && [ ${stop_stage} -ge 175 ];then
+#   echo "compute CDER for magicdata-ramc"
+#   threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
+#   predict_rttm_dir=/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/ts_vad/magicdata_ramc/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_eres2netv2_COMMON_epoch20_front_fix_seed_single_backend_2layer_transformer_multi_backend_transformer_rs_len6_using_offical_eres2netv2_zh_200k_speaker_emb_label_rate25_lr2e4_fp32/magicdata-ramc_collar0.0
+#   oracle_rttm_dir=/mntcephfs/lab_data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/
+#   infer_sets="dev test cssd_testset"
+#   for name in $infer_sets;do
+#    for thres in $threshold;do
+#     echo "currently, compute $name set in $thres threshold mode"
+#     python3 cder/score.py -s $predict_rttm_dir/$name/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+#    done
+#   done
+#fi
+#bash run_ts_vad2.sh --stage 175 --stop-stage 175 | tee logs/run_ts_vad2_stage175_cder.log^C
+#(dia_pt2.4) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad2_stage175_cder.log
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 1.169
+#Avg CDER : 0.975
+#Avg CDER : 0.912
+#Avg CDER : 0.841
+#Avg CDER : 0.733
+#Avg CDER : 0.524
+#Avg CDER : 0.365
+#Avg CDER : 0.290
+#Avg CDER : 0.204
+#Avg CDER : 0.226
+#Avg CDER : 0.264
+
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.865
+#Avg CDER : 0.754
+#Avg CDER : 0.712
+#Avg CDER : 0.643
+#Avg CDER : 0.540
+#Avg CDER : 0.379
+#Avg CDER : 0.288
+#Avg CDER : 0.260
+#Avg CDER : 0.212
+#Avg CDER : Error!
+#Avg CDER : Error!
+
+# cssd_testset of magicdata-ramc, collar=0.0
+#Avg CDER : 0.380
+#Avg CDER : 0.360
+#Avg CDER : 0.348
+#Avg CDER : 0.319
+#Avg CDER : 0.291
+#Avg CDER : 0.256
+#Avg CDER : 0.220
+#Avg CDER : 0.204
+#Avg CDER : 0.211
+#Avg CDER : 0.208
+#Avg CDER : 0.227

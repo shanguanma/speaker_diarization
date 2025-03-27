@@ -352,6 +352,83 @@ if [ ${stage} -le 6 ] && [ ${stop_stage} -ge 6 ];then
   done
  done
 fi
+#  grep -r Eval logs/run_ts_vad3_stage5-6_att_wo_linear_cam++_per.log
+# dev of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=23.72, miss=0.28, falarm=18.92, confusion=4.53
+#Eval for threshold 0.3 DER=19.11, miss=0.52, falarm=13.03, confusion=5.56
+#Eval for threshold 0.35 DER=17.45, miss=0.69, falarm=10.75, confusion=6.01
+#Eval for threshold 0.4 DER=16.22, miss=0.98, falarm=8.86, confusion=6.38
+#Eval for threshold 0.45 DER=15.35, miss=1.38, falarm=7.28, confusion=6.68
+#Eval for threshold 0.5 DER=14.86, miss=2.03, falarm=6.02, confusion=6.81
+#Eval for threshold 0.55 DER=15.19, miss=3.40, falarm=5.44, confusion=6.34
+#Eval for threshold 0.6 DER=15.77, miss=4.94, falarm=4.96, confusion=5.87
+#Eval for threshold 0.7 DER=17.74, miss=8.72, falarm=4.09, confusion=4.93
+#Eval for threshold 0.8 DER=21.31, miss=14.15, falarm=3.24, confusion=3.93
+#Eval for threshold 0.9 DER=26.88, miss=21.64, falarm=2.35, confusion=2.88
+
+# test of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=23.88, miss=0.34, falarm=20.35, confusion=3.19
+#Eval for threshold 0.3 DER=19.94, miss=0.71, falarm=14.79, confusion=4.44
+#Eval for threshold 0.35 DER=18.48, miss=1.00, falarm=12.43, confusion=5.06
+#Eval for threshold 0.4 DER=17.25, miss=1.38, falarm=10.23, confusion=5.64
+#Eval for threshold 0.45 DER=16.23, miss=1.89, falarm=8.23, confusion=6.10
+#Eval for threshold 0.5 DER=15.61, miss=2.73, falarm=6.50, confusion=6.38
+#Eval for threshold 0.55 DER=16.05, miss=4.50, falarm=5.78, confusion=5.77
+#Eval for threshold 0.6 DER=16.88, miss=6.57, falarm=5.28, confusion=5.03
+#Eval for threshold 0.7 DER=18.84, miss=10.88, falarm=4.31, confusion=3.65
+#Eval for threshold 0.8 DER=21.84, miss=15.99, falarm=3.37, confusion=2.48
+#Eval for threshold 0.9 DER=27.30, miss=23.52, falarm=2.37, confusion=1.42
+
+# cssd_testset of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=37.52, miss=3.65, falarm=29.12, confusion=4.75
+#Eval for threshold 0.3 DER=31.83, miss=5.19, falarm=20.27, confusion=6.37
+#Eval for threshold 0.35 DER=29.78, miss=6.07, falarm=16.54, confusion=7.17
+#Eval for threshold 0.4 DER=28.03, miss=7.10, falarm=12.99, confusion=7.93
+#Eval for threshold 0.45 DER=26.79, miss=8.39, falarm=9.84, confusion=8.55
+#Eval for threshold 0.5 DER=26.53, miss=10.49, falarm=7.51, confusion=8.53
+#Eval for threshold 0.55 DER=27.76, miss=13.80, falarm=6.55, confusion=7.42
+#Eval for threshold 0.6 DER=29.31, miss=17.28, falarm=5.72, confusion=6.32
+#Eval for threshold 0.7 DER=32.99, miss=24.35, falarm=4.24, confusion=4.40
+#Eval for threshold 0.8 DER=38.66, miss=32.91, falarm=2.84, confusion=2.91
+#Eval for threshold 0.9 DER=48.63, miss=45.47, falarm=1.46, confusion=1.69
+
+# dev of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=14.82, miss=0.06, falarm=10.56, confusion=4.20
+#Eval for threshold 0.3 DER=11.38, miss=0.12, falarm=6.21, confusion=5.05
+#Eval for threshold 0.35 DER=10.14, miss=0.18, falarm=4.54, confusion=5.42
+#Eval for threshold 0.4 DER=9.32, miss=0.28, falarm=3.28, confusion=5.76
+#Eval for threshold 0.45 DER=8.76, miss=0.43, falarm=2.26, confusion=6.07
+#Eval for threshold 0.5 DER=8.43, miss=0.72, falarm=1.43, confusion=6.28
+#Eval for threshold 0.55 DER=8.87, miss=1.68, falarm=1.23, confusion=5.96
+#Eval for threshold 0.6 DER=9.51, miss=2.79, falarm=1.14, confusion=5.59
+#Eval for threshold 0.7 DER=11.54, miss=5.75, falarm=0.97, confusion=4.82
+#Eval for threshold 0.8 DER=15.04, miss=10.20, falarm=0.84, confusion=3.99
+#Eval for threshold 0.9 DER=20.61, miss=16.86, falarm=0.70, confusion=3.05
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=15.30, miss=0.08, falarm=12.62, confusion=2.60
+#Eval for threshold 0.3 DER=12.52, miss=0.22, falarm=8.63, confusion=3.67
+#Eval for threshold 0.35 DER=11.50, miss=0.35, falarm=6.91, confusion=4.23
+#Eval for threshold 0.4 DER=10.60, miss=0.52, falarm=5.28, confusion=4.81
+#Eval for threshold 0.45 DER=9.85, miss=0.77, falarm=3.77, confusion=5.31
+#Eval for threshold 0.5 DER=9.37, miss=1.21, falarm=2.44, confusion=5.72
+#Eval for threshold 0.55 DER=9.90, miss=2.58, falarm=2.08, confusion=5.24
+#Eval for threshold 0.6 DER=10.77, miss=4.24, falarm=1.94, confusion=4.58
+#Eval for threshold 0.7 DER=12.77, miss=7.71, falarm=1.69, confusion=3.38
+#Eval for threshold 0.8 DER=15.57, miss=11.84, falarm=1.41, confusion=2.33
+#Eval for threshold 0.9 DER=20.59, miss=18.11, falarm=1.11, confusion=1.37
+# cssd_testset of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=19.43, miss=1.16, falarm=15.04, confusion=3.22
+#Eval for threshold 0.3 DER=15.31, miss=1.67, falarm=9.04, confusion=4.60
+#Eval for threshold 0.35 DER=13.87, miss=1.94, falarm=6.55, confusion=5.38
+#Eval for threshold 0.4 DER=12.69, miss=2.30, falarm=4.20, confusion=6.19
+#Eval for threshold 0.45 DER=11.84, miss=2.83, falarm=2.02, confusion=6.99
+#Eval for threshold 0.5 DER=11.71, miss=3.95, falarm=0.43, confusion=7.33
+#Eval for threshold 0.55 DER=13.16, miss=6.52, falarm=0.25, confusion=6.40
+#Eval for threshold 0.6 DER=14.90, miss=9.23, falarm=0.19, confusion=5.48
+#Eval for threshold 0.7 DER=18.91, miss=14.94, falarm=0.11, confusion=3.86
+#Eval for threshold 0.8 DER=24.96, miss=22.30, falarm=0.06, confusion=2.60
+#Eval for threshold 0.9 DER=35.77, miss=34.15, falarm=0.02, confusion=1.59
 
 if [ ${stage} -le 7 ] && [ ${stop_stage} -ge 7 ];then
    echo "compute CDER for magicdata-ramc"
@@ -366,7 +443,45 @@ if [ ${stage} -le 7 ] && [ ${stop_stage} -ge 7 ];then
     done
    done
 fi
+#bash run_ts_vad3.sh --stage 7 --stop-stage 7 | tee logs/run_ts_vad3_stage7_cder.log ^C
+#(dia_pt2.4) [maduo@pbcmlg01 magicdata-ramc]$ grep -r Avg logs/run_ts_vad3_stage7_cder.log
+# dev of magicdata-ramc, collar=0.0
+#Avg CDER : 1.017
+#Avg CDER : 0.811
+#Avg CDER : 0.689
+#Avg CDER : 0.575
+#Avg CDER : 0.485
+#Avg CDER : 0.336
+#Avg CDER : 0.249
+#Avg CDER : 0.208
+#Avg CDER : 0.145
+#Avg CDER : 0.111
+#Avg CDER : 0.153
 
+# test of magicdata-ramc, collar=0.0
+#Avg CDER : 0.760
+#Avg CDER : 0.596
+#Avg CDER : 0.494
+#Avg CDER : 0.442
+#Avg CDER : 0.374
+#Avg CDER : 0.275
+#Avg CDER : 0.195
+#Avg CDER : 0.166
+#Avg CDER : 0.131
+#Avg CDER : 0.134
+#Avg CDER : 0.142
+# cssd_testset of magicdata-ramc, collar=0.0
+#Avg CDER : 0.380
+#Avg CDER : 0.318
+#Avg CDER : 0.282
+#Avg CDER : 0.246
+#Avg CDER : 0.201
+#Avg CDER : 0.180
+#Avg CDER : 0.161
+#Avg CDER : 0.151
+#Avg CDER : 0.150
+#Avg CDER : 0.189
+#Avg CDER : 0.225
 
 
 if [ ${stage} -le 8 ] && [ ${stop_stage} -ge 8 ];then
