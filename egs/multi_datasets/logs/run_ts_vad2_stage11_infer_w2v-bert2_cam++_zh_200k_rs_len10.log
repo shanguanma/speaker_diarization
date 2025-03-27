@@ -1,0 +1,188 @@
+2025-02-06 10:06:09,896 (infer:256) INFO: infer data_cfg: TSVADDataConfig(data_dir='/mntcephfs/lab_data/maduo/datasets/alimeeting', ts_len=6000, rs_len=10, segment_shift=1, spk_path='/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding', speech_encoder_type='w2v-bert2', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-06 10:06:09,896 (infer:257) INFO: currently, it will infer Eval set.
+  0%|          | 0/25 [00:00<?, ?it/s]100%|██████████| 25/25 [00:00<00:00, 430.95it/s]
+2025-02-06 10:06:09,961 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-06 10:06:09,961 (ts_vad_dataset:160) INFO: loaded sentence=15141, shortest sent=5120.0, longest sent=160000.0, rs_len=10, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-06 10:06:10,022 (infer:279) INFO: Device: cuda:0
+2025-02-06 10:06:10,022 (infer:296) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/model.safetensors', speech_encoder_type='w2v-bert2', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='mamba2', multi_backend_type='transformer', d_state=256, expand=4)
+self.wavlm_fuse_feat_post_norm: False
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+                    ^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_deprecation.py", line 101, in inner_f
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 478, in <module>
+    main(args)
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 297, in main
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 206, in __init__
+    ) = self.create_speech_encoder(sample_times, cfg, device)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 381, in create_speech_encoder
+    conf =  Wav2Vec2BertConfig.from_pretrained(cfg.speech_encoder_config,hidden_act="swish")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 541, in from_pretrained
+    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 570, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 629, in _get_config_dict
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Please provide either the path to a local folder or the repo_id of a model on the Hub.
+2025-02-06 10:06:13,745 (infer:256) INFO: infer data_cfg: TSVADDataConfig(data_dir='/mntcephfs/lab_data/maduo/datasets/alimeeting', ts_len=6000, rs_len=10, segment_shift=1, spk_path='/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding', speech_encoder_type='w2v-bert2', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-06 10:06:13,745 (infer:257) INFO: currently, it will infer Test set.
+  0%|          | 0/60 [00:00<?, ?it/s] 70%|███████   | 42/60 [00:00<00:00, 419.28it/s]100%|██████████| 60/60 [00:00<00:00, 421.31it/s]
+2025-02-06 10:06:13,900 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-06 10:06:13,901 (ts_vad_dataset:160) INFO: loaded sentence=38807, shortest sent=640.0, longest sent=160000.0, rs_len=10, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-06 10:06:13,966 (infer:279) INFO: Device: cuda:0
+2025-02-06 10:06:13,966 (infer:296) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/model.safetensors', speech_encoder_type='w2v-bert2', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='mamba2', multi_backend_type='transformer', d_state=256, expand=4)
+self.wavlm_fuse_feat_post_norm: False
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+                    ^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_deprecation.py", line 101, in inner_f
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 478, in <module>
+    main(args)
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 297, in main
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 206, in __init__
+    ) = self.create_speech_encoder(sample_times, cfg, device)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 381, in create_speech_encoder
+    conf =  Wav2Vec2BertConfig.from_pretrained(cfg.speech_encoder_config,hidden_act="swish")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 541, in from_pretrained
+    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 570, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 629, in _get_config_dict
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Please provide either the path to a local folder or the repo_id of a model on the Hub.
+2025-02-06 10:06:17,405 (infer:256) INFO: infer data_cfg: TSVADDataConfig(data_dir='/mntcephfs/lab_data/maduo/datasets/alimeeting', ts_len=6000, rs_len=10, segment_shift=1, spk_path='/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding', speech_encoder_type='w2v-bert2', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-06 10:06:17,405 (infer:257) INFO: currently, it will infer Eval set.
+  0%|          | 0/25 [00:00<?, ?it/s]100%|██████████| 25/25 [00:00<00:00, 434.62it/s]
+2025-02-06 10:06:17,469 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-06 10:06:17,469 (ts_vad_dataset:160) INFO: loaded sentence=15141, shortest sent=5120.0, longest sent=160000.0, rs_len=10, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-06 10:06:17,536 (infer:279) INFO: Device: cuda:0
+2025-02-06 10:06:17,536 (infer:296) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/model.safetensors', speech_encoder_type='w2v-bert2', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='mamba2', multi_backend_type='transformer', d_state=256, expand=4)
+self.wavlm_fuse_feat_post_norm: False
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+                    ^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_deprecation.py", line 101, in inner_f
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 478, in <module>
+    main(args)
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 297, in main
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 206, in __init__
+    ) = self.create_speech_encoder(sample_times, cfg, device)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 381, in create_speech_encoder
+    conf =  Wav2Vec2BertConfig.from_pretrained(cfg.speech_encoder_config,hidden_act="swish")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 541, in from_pretrained
+    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 570, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 629, in _get_config_dict
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Please provide either the path to a local folder or the repo_id of a model on the Hub.
+2025-02-06 10:06:20,930 (infer:256) INFO: infer data_cfg: TSVADDataConfig(data_dir='/mntcephfs/lab_data/maduo/datasets/alimeeting', ts_len=6000, rs_len=10, segment_shift=1, spk_path='/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding', speech_encoder_type='w2v-bert2', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-06 10:06:20,930 (infer:257) INFO: currently, it will infer Test set.
+  0%|          | 0/60 [00:00<?, ?it/s] 70%|███████   | 42/60 [00:00<00:00, 417.77it/s]100%|██████████| 60/60 [00:00<00:00, 420.28it/s]
+2025-02-06 10:06:21,085 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-06 10:06:21,086 (ts_vad_dataset:160) INFO: loaded sentence=38807, shortest sent=640.0, longest sent=160000.0, rs_len=10, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-06 10:06:21,145 (infer:279) INFO: Device: cuda:0
+2025-02-06 10:06:21,146 (infer:296) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/model.safetensors', speech_encoder_type='w2v-bert2', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='mamba2', multi_backend_type='transformer', d_state=256, expand=4)
+self.wavlm_fuse_feat_post_norm: False
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+                    ^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_deprecation.py", line 101, in inner_f
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Use `repo_type` argument if needed.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 478, in <module>
+    main(args)
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py", line 297, in main
+    model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 206, in __init__
+    ) = self.create_speech_encoder(sample_times, cfg, device)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py", line 381, in create_speech_encoder
+    conf =  Wav2Vec2BertConfig.from_pretrained(cfg.speech_encoder_config,hidden_act="swish")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 541, in from_pretrained
+    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 570, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/configuration_utils.py", line 629, in _get_config_dict
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/transformers/utils/hub.py", line 469, in cached_file
+    raise EnvironmentError(
+OSError: Incorrect path_or_model_id: '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json'. Please provide either the path to a local folder or the repo_id of a model on the Hub.

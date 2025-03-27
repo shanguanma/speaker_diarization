@@ -1,0 +1,110 @@
+2025-02-06 09:38:36,823 (infer:256) INFO: infer data_cfg: TSVADDataConfig(data_dir='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/datasets/ami/ami_version1.6.2/data_processed/data/ami', ts_len=6000, rs_len=10, segment_shift=1, spk_path='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/model_hub/ts_vad/spk_embed/ami/SpeakerEmbedding/', speech_encoder_type='CAM++', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-06 09:38:36,823 (infer:257) INFO: currently, it will infer test set.
+  0%|          | 0/63 [00:00<?, ?it/s] 44%|████▍     | 28/63 [00:00<00:00, 264.09it/s]100%|██████████| 63/63 [00:00<00:00, 309.02it/s]100%|██████████| 63/63 [00:00<00:00, 301.89it/s]
+2025-02-06 09:38:37,082 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-06 09:38:37,083 (ts_vad_dataset:160) INFO: loaded sentence=32631, shortest sent=2560.0, longest sent=160000.0, rs_len=10, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-06 09:38:37,146 (infer:279) INFO: Device: cuda:0
+2025-02-06 09:38:37,146 (infer:296) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', speech_encoder_type='CAM++', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='mamba2', multi_backend_type='transformer', d_state=256, expand=4)
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py:898: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  loadedState = torch.load(model_path, map_location=device)
+/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+2025-02-06 09:38:37,675 (infer:201) INFO: params.model_file: /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/alimeeting_ami_aishell_4_ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state256_rs_len10/best-valid-der.pt
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py:203: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  torch.load(params.model_file, map_location=device)["model"]
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/ts_vad_dataset.py:398: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  feature = torch.load(path, map_location="cpu")
+2025-02-06 09:40:22,284 (model:870) WARNING: All labels are zero
+2025-02-06 09:45:45,225 (model:870) WARNING: All labels are zero
+2025-02-06 09:45:46,111 (model:870) WARNING: All labels are zero
+2025-02-06 09:45:46,994 (model:870) WARNING: All labels are zero
+2025-02-06 09:46:24,793 (infer:89) INFO: frame_len: 0.04!!
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.4427263334313996
+Model ACC:  0.9598953960397246
+  0%|          | 0/63 [00:00<?, ?it/s]  2%|▏         | 1/63 [00:00<00:35,  1.73it/s]  3%|▎         | 2/63 [00:01<00:35,  1.73it/s]  5%|▍         | 3/63 [00:01<00:34,  1.74it/s]  6%|▋         | 4/63 [00:02<00:33,  1.74it/s]  8%|▊         | 5/63 [00:02<00:31,  1.84it/s] 10%|▉         | 6/63 [00:03<00:29,  1.92it/s] 11%|█         | 7/63 [00:03<00:28,  1.97it/s] 13%|█▎        | 8/63 [00:04<00:27,  2.01it/s] 14%|█▍        | 9/63 [00:05<00:31,  1.70it/s] 16%|█▌        | 10/63 [00:05<00:34,  1.54it/s] 17%|█▋        | 11/63 [00:06<00:35,  1.44it/s] 19%|█▉        | 12/63 [00:07<00:33,  1.51it/s] 21%|██        | 13/63 [00:07<00:32,  1.55it/s] 22%|██▏       | 14/63 [00:08<00:30,  1.59it/s] 24%|██▍       | 15/63 [00:08<00:29,  1.61it/s] 25%|██▌       | 16/63 [00:10<00:34,  1.34it/s] 27%|██▋       | 17/63 [00:10<00:27,  1.66it/s] 29%|██▊       | 18/63 [00:10<00:22,  1.97it/s] 30%|███       | 19/63 [00:10<00:19,  2.28it/s] 32%|███▏      | 20/63 [00:11<00:21,  2.01it/s] 33%|███▎      | 21/63 [00:12<00:22,  1.85it/s] 35%|███▍      | 22/63 [00:12<00:23,  1.76it/s] 37%|███▋      | 23/63 [00:13<00:23,  1.70it/s] 38%|███▊      | 24/63 [00:14<00:23,  1.66it/s] 40%|███▉      | 25/63 [00:14<00:23,  1.64it/s] 41%|████▏     | 26/63 [00:15<00:22,  1.62it/s] 43%|████▎     | 27/63 [00:15<00:22,  1.61it/s] 44%|████▍     | 28/63 [00:16<00:21,  1.62it/s] 46%|████▌     | 29/63 [00:17<00:20,  1.64it/s] 48%|████▊     | 30/63 [00:17<00:20,  1.64it/s] 49%|████▉     | 31/63 [00:18<00:19,  1.65it/s] 51%|█████     | 32/63 [00:18<00:15,  2.03it/s] 52%|█████▏    | 33/63 [00:18<00:12,  2.42it/s] 54%|█████▍    | 34/63 [00:19<00:10,  2.80it/s] 56%|█████▌    | 35/63 [00:19<00:08,  3.16it/s] 57%|█████▋    | 36/63 [00:19<00:10,  2.54it/s] 59%|█████▊    | 37/63 [00:20<00:11,  2.26it/s] 60%|██████    | 38/63 [00:21<00:17,  1.42it/s] 62%|██████▏   | 39/63 [00:22<00:15,  1.51it/s] 63%|██████▎   | 40/63 [00:22<00:14,  1.64it/s] 65%|██████▌   | 41/63 [00:23<00:12,  1.74it/s] 67%|██████▋   | 42/63 [00:23<00:11,  1.82it/s] 68%|██████▊   | 43/63 [00:24<00:10,  1.88it/s] 70%|██████▉   | 44/63 [00:24<00:10,  1.89it/s] 71%|███████▏  | 45/63 [00:25<00:09,  1.89it/s] 73%|███████▎  | 46/63 [00:25<00:08,  1.89it/s] 75%|███████▍  | 47/63 [00:26<00:08,  1.89it/s] 76%|███████▌  | 48/63 [00:26<00:07,  2.03it/s] 78%|███████▊  | 49/63 [00:27<00:06,  2.14it/s] 79%|███████▉  | 50/63 [00:27<00:05,  2.22it/s] 81%|████████  | 51/63 [00:27<00:05,  2.29it/s] 83%|████████▎ | 52/63 [00:28<00:05,  2.06it/s] 84%|████████▍ | 53/63 [00:29<00:05,  1.92it/s] 86%|████████▌ | 54/63 [00:29<00:04,  1.84it/s] 87%|████████▋ | 55/63 [00:30<00:04,  1.78it/s] 89%|████████▉ | 56/63 [00:31<00:04,  1.66it/s] 90%|█████████ | 57/63 [00:31<00:03,  1.58it/s] 92%|█████████▏| 58/63 [00:32<00:03,  1.54it/s] 94%|█████████▎| 59/63 [00:33<00:03,  1.10it/s] 95%|█████████▌| 60/63 [00:34<00:02,  1.18it/s] 97%|█████████▋| 61/63 [00:35<00:01,  1.24it/s] 98%|█████████▊| 62/63 [00:36<00:00,  1.29it/s]100%|██████████| 63/63 [00:36<00:00,  1.32it/s]100%|██████████| 63/63 [00:36<00:00,  1.71it/s]
+Eval for threshold 0.2 DER=28.60, miss=3.59, falarm=22.93, confusion=2.07
+
+
+Eval for threshold 0.3 DER=22.20, miss=6.08, falarm=13.49, confusion=2.62
+
+
+Eval for threshold 0.35 DER=20.90, miss=7.57, falarm=10.59, confusion=2.73
+
+
+Eval for threshold 0.4 DER=20.15, miss=9.19, falarm=8.22, confusion=2.74
+
+
+Eval for threshold 0.45 DER=19.91, miss=10.88, falarm=6.35, confusion=2.68
+
+
+Eval for threshold 0.5 DER=20.07, miss=12.67, falarm=4.84, confusion=2.56
+
+
+Eval for threshold 0.55 DER=20.69, miss=14.68, falarm=3.69, confusion=2.32
+
+
+Eval for threshold 0.6 DER=21.65, miss=16.87, falarm=2.74, confusion=2.04
+
+
+Eval for threshold 0.7 DER=24.53, miss=21.62, falarm=1.50, confusion=1.41
+
+
+Eval for threshold 0.8 DER=29.18, miss=27.58, falarm=0.78, confusion=0.82
+
+
+2025-02-06 09:47:14,616 (infer:256) INFO: infer data_cfg: TSVADDataConfig(data_dir='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/datasets/ami/ami_version1.6.2/data_processed/data/ami', ts_len=6000, rs_len=10, segment_shift=1, spk_path='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/model_hub/ts_vad/spk_embed/ami/SpeakerEmbedding/', speech_encoder_type='CAM++', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-06 09:47:14,616 (infer:257) INFO: currently, it will infer test set.
+  0%|          | 0/63 [00:00<?, ?it/s] 63%|██████▎   | 40/63 [00:00<00:00, 396.98it/s]100%|██████████| 63/63 [00:00<00:00, 399.86it/s]
+2025-02-06 09:47:14,789 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-06 09:47:14,790 (ts_vad_dataset:160) INFO: loaded sentence=32631, shortest sent=2560.0, longest sent=160000.0, rs_len=10, segment_shift=1,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-06 09:47:14,841 (infer:279) INFO: Device: cuda:0
+2025-02-06 09:47:14,842 (infer:296) INFO: infer model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', speech_encoder_type='CAM++', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='mamba2', multi_backend_type='transformer', d_state=256, expand=4)
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py:898: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  loadedState = torch.load(model_path, map_location=device)
+/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+2025-02-06 09:47:15,343 (infer:201) INFO: params.model_file: /mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/alimeeting_ami_aishell_4_ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr1e4_single_backend_2layer_mamba2_multi_backend_transformer_d_state256_rs_len10/best-valid-der.pt
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/infer.py:203: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  torch.load(params.model_file, map_location=device)["model"]
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/ts_vad_dataset.py:398: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  feature = torch.load(path, map_location="cpu")
+2025-02-06 09:48:57,896 (model:870) WARNING: All labels are zero
+2025-02-06 09:54:18,960 (model:870) WARNING: All labels are zero
+2025-02-06 09:54:19,847 (model:870) WARNING: All labels are zero
+2025-02-06 09:54:20,732 (model:870) WARNING: All labels are zero
+2025-02-06 09:54:58,723 (infer:89) INFO: frame_len: 0.04!!
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.441629077684023
+Model ACC:  0.9598927453308589
+  0%|          | 0/63 [00:00<?, ?it/s]  2%|▏         | 1/63 [00:00<00:35,  1.75it/s]  3%|▎         | 2/63 [00:01<00:34,  1.74it/s]  5%|▍         | 3/63 [00:01<00:34,  1.74it/s]  6%|▋         | 4/63 [00:02<00:33,  1.74it/s]  8%|▊         | 5/63 [00:02<00:31,  1.85it/s] 10%|▉         | 6/63 [00:03<00:29,  1.92it/s] 11%|█         | 7/63 [00:03<00:28,  1.98it/s] 13%|█▎        | 8/63 [00:04<00:27,  2.01it/s] 14%|█▍        | 9/63 [00:05<00:31,  1.70it/s] 16%|█▌        | 10/63 [00:05<00:34,  1.54it/s] 17%|█▋        | 11/63 [00:06<00:35,  1.45it/s] 19%|█▉        | 12/63 [00:07<00:33,  1.51it/s] 21%|██        | 13/63 [00:07<00:32,  1.56it/s] 22%|██▏       | 14/63 [00:08<00:30,  1.60it/s] 24%|██▍       | 15/63 [00:09<00:40,  1.18it/s] 25%|██▌       | 16/63 [00:09<00:31,  1.48it/s] 27%|██▋       | 17/63 [00:10<00:25,  1.79it/s] 29%|██▊       | 18/63 [00:10<00:21,  2.11it/s] 30%|███       | 19/63 [00:10<00:18,  2.40it/s] 32%|███▏      | 20/63 [00:11<00:20,  2.08it/s] 33%|███▎      | 21/63 [00:12<00:22,  1.90it/s] 35%|███▍      | 22/63 [00:12<00:22,  1.79it/s] 37%|███▋      | 23/63 [00:13<00:23,  1.72it/s] 38%|███▊      | 24/63 [00:14<00:23,  1.67it/s] 40%|███▉      | 25/63 [00:14<00:23,  1.65it/s] 41%|████▏     | 26/63 [00:15<00:22,  1.63it/s] 43%|████▎     | 27/63 [00:15<00:22,  1.61it/s] 44%|████▍     | 28/63 [00:16<00:21,  1.64it/s] 46%|████▌     | 29/63 [00:17<00:20,  1.65it/s] 48%|████▊     | 30/63 [00:17<00:19,  1.65it/s] 49%|████▉     | 31/63 [00:18<00:19,  1.66it/s] 51%|█████     | 32/63 [00:18<00:15,  2.04it/s] 52%|█████▏    | 33/63 [00:18<00:12,  2.44it/s] 54%|█████▍    | 34/63 [00:18<00:10,  2.80it/s] 56%|█████▌    | 35/63 [00:19<00:08,  3.14it/s] 57%|█████▋    | 36/63 [00:19<00:10,  2.54it/s] 59%|█████▊    | 37/63 [00:20<00:11,  2.26it/s] 60%|██████    | 38/63 [00:21<00:17,  1.41it/s] 62%|██████▏   | 39/63 [00:22<00:15,  1.51it/s] 63%|██████▎   | 40/63 [00:22<00:14,  1.64it/s] 65%|██████▌   | 41/63 [00:23<00:12,  1.74it/s] 67%|██████▋   | 42/63 [00:23<00:11,  1.82it/s] 68%|██████▊   | 43/63 [00:24<00:10,  1.88it/s] 70%|██████▉   | 44/63 [00:24<00:10,  1.88it/s] 71%|███████▏  | 45/63 [00:25<00:09,  1.89it/s] 73%|███████▎  | 46/63 [00:25<00:08,  1.90it/s] 75%|███████▍  | 47/63 [00:26<00:08,  1.90it/s] 76%|███████▌  | 48/63 [00:26<00:07,  2.05it/s] 78%|███████▊  | 49/63 [00:27<00:06,  2.15it/s] 79%|███████▉  | 50/63 [00:27<00:05,  2.24it/s] 81%|████████  | 51/63 [00:27<00:05,  2.31it/s] 83%|████████▎ | 52/63 [00:28<00:05,  2.07it/s] 84%|████████▍ | 53/63 [00:29<00:05,  1.93it/s] 86%|████████▌ | 54/63 [00:29<00:04,  1.85it/s] 87%|████████▋ | 55/63 [00:30<00:04,  1.79it/s] 89%|████████▉ | 56/63 [00:30<00:04,  1.67it/s] 90%|█████████ | 57/63 [00:31<00:03,  1.59it/s] 92%|█████████▏| 58/63 [00:33<00:04,  1.13it/s] 94%|█████████▎| 59/63 [00:33<00:03,  1.20it/s] 95%|█████████▌| 60/63 [00:34<00:02,  1.26it/s] 97%|█████████▋| 61/63 [00:35<00:01,  1.30it/s] 98%|█████████▊| 62/63 [00:35<00:00,  1.33it/s]100%|██████████| 63/63 [00:36<00:00,  1.36it/s]100%|██████████| 63/63 [00:36<00:00,  1.72it/s]
+Eval for threshold 0.2 DER=18.23, miss=2.51, falarm=14.60, confusion=1.11
+
+
+Eval for threshold 0.3 DER=13.63, miss=4.25, falarm=7.91, confusion=1.48
+
+
+Eval for threshold 0.35 DER=12.88, miss=5.31, falarm=5.99, confusion=1.59
+
+
+Eval for threshold 0.4 DER=12.56, miss=6.46, falarm=4.50, confusion=1.60
+
+
+Eval for threshold 0.45 DER=12.60, miss=7.68, falarm=3.32, confusion=1.60
+
+
+Eval for threshold 0.5 DER=12.89, miss=8.98, falarm=2.36, confusion=1.55
+
+
+Eval for threshold 0.55 DER=13.55, miss=10.45, falarm=1.68, confusion=1.41
+
+
+Eval for threshold 0.6 DER=14.44, miss=12.05, falarm=1.12, confusion=1.27
+
+
+Eval for threshold 0.7 DER=17.09, miss=15.73, falarm=0.49, confusion=0.87
+
+
+Eval for threshold 0.8 DER=21.27, miss=20.56, falarm=0.22, confusion=0.50
+
+

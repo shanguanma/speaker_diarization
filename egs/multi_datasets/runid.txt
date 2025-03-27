@@ -1,0 +1,112 @@
+note: A800 pgpu26 is not working.
+pgu17: A100 80GB,
+pgpu17: NVIDIA A100-SXM4-80GB
+pgpu13: NVIDIA A100-SXM4-40GB
+huawei diarization project number:F00120240032
+pgpu23,24,25,27 A800,
+pgpu27: A800 80GB
+
+
+
+申请两卡
+srun -n 1 -c 6 --gres=gpu:2 -p p-A800 -A F00120240032 --pty bash
+srun -n 1 -c 6 --gres=gpu:1 -p p-A800 -A F00120240032   --nodelist=pgpu23 --pty bash
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage71-74_epoch20_cam++_zh_200k_transformer_rs_len4.log run_ts_vad2.sh --stage 71 --stop-stage 74
+Submitted batch job 219697
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage61-64_epoch20_cam++_zh_200k_conformer_rs_len4.log run_ts_vad2.sh --stage 61 --stop-stage 61
+Submitted batch job 219696
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage51_epoch20_cam++_zh_200k_mamba2_rs_len4.log run_ts_vad2.sh --stage 51 --stop-stage 51
+Submitted batch job 219649
+
+(dia_pt2.4) [maduo@pbcmlg01 multi_datasets]$ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage42_infer_cam++_zh_200k_conformer_rs_len8_1.log run_ts_vad2.sh --stage 42 --stop-stage 42
+Submitted batch job 219646
+(dia_pt2.4) [maduo@pbcmlg01 multi_datasets]$ vim runid.txt
+(dia_pt2.4) [maduo@pbcmlg01 multi_datasets]$ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage43_infer_cam++_zh_200k_conformer_rs_len8_1.log run_ts_vad2.sh --stage 43 --stop-stage 43
+Submitted batch job 219647
+(dia_pt2.4) [maduo@pbcmlg01 multi_datasets]$ vim runid.txt
+(dia_pt2.4) [maduo@pbcmlg01 multi_datasets]$ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage44_infer_cam++_zh_200k_conformer_rs_len8_1.log run_ts_vad2.sh --stage 44 --stop-stage 44
+Submitted batch job 219648
+
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage41_epoch20_cam++_zh_200k_conformer_rs_len8_2.log run_ts_vad2.sh --stage 41 --stop-stage 41
+Submitted batch job 219611
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage44_infer_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 44 --stop-stage 44
+Submitted batch job 219600
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage43_infer_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 43 --stop-stage 43
+Submitted batch job 219599
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage42_infer_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 42 --stop-stage 42
+Submitted batch job 219598
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage41_epoch20_cam++_zh_200k_conformer_rs_len8_1.log run_ts_vad2.sh --stage 41 --stop-stage 41
+Submitted batch job 219557
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage41_epoch20_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 41 --stop-stage 41
+Submitted batch job 219230
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage34_infer_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 34 --stop-stage 34
+Submitted batch job 219187
+
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage33_infer_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 33 --stop-stage 33
+Submitted batch job 219186
+
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage32_infer_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 32 --stop-stage 32
+Submitted batch job 219185
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage31_epoch20_cam++_zh_200k_conformer_rs_len8.log run_ts_vad2.sh --stage 31 --stop-stage 31
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage24_infer_cam++_zh_200k_transformer_rs_len8.log run_ts_vad2.sh --stage 24 --stop-stage 24
+Submitted batch job 218974
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage23_infer_cam++_zh_200k_transformer_rs_len8.log run_ts_vad2.sh --stage 23 --stop-stage 23
+Submitted batch job 218973
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage22_infer_cam++_zh_200k_transformer_rs_len8.log run_ts_vad2.sh --stage 22 --stop-stage 22
+Submitted batch job 218972
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage21_epoch20_cam++_zh_200k_transformer_rs_len8.log run_ts_vad2.sh --stage 21 --stop-stage 21
+Submitted batch job 218803
+
+ sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage14_epoch40_w2v-bert2_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 14 --stop-stage 14
+Submitted batch job 218774
+ sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage12_1_infer_w2v-bert2_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 12 --stop-stage 12
+Submitted batch job 218763
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage12_infer_w2v-bert2_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 12 --stop-stage 12
+Submitted batch job 218761
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage11_infer_w2v-bert2_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 11 --stop-stage 11
+Submitted batch job 218760
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage14_epoch40_w2v-bert2_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 14 --stop-stage 14
+Submitted batch job 218759
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage4_infer_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 4 --stop-stage 4
+Submitted batch job 218758
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage3_infer_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 3 --stop-stage 3
+Submitted batch job 218757
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage2_infer_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 2 --stop-stage 2
+Submitted batch job 218756
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage3_infer_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 3 --stop-stage 3
+Submitted batch job 218755
+
+sbatch --nodes 1 --gres=gpu:1  --cpus-per-gpu=6  --ntasks-per-node 1  -p p-A800 -A F00120240032 -o logs/run_ts_vad2_stage2_infer_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 2 --stop-stage 2
+Submitted batch job 218754
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage10_w2v-bert2_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 10 --stop-stage 10
+Submitted batch job 217293
+
+
+
+sbatch --nodes 1 --gres=gpu:2  --cpus-per-gpu=6  --ntasks-per-node 2  -p p-A100 -A F00120240032 -o logs/run_ts_vad2_stage1-4_cam++_zh_200k_rs_len10.log run_ts_vad2.sh --stage 1 --stop-stage 4
+Submitted batch job 217292

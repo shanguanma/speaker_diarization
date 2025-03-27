@@ -1,0 +1,2353 @@
+2025-02-14 15:44:01,949 (train_accelerate_ddp:857) INFO: params: {'best_train_loss': inf, 'best_valid_loss': inf, 'best_train_der': inf, 'best_valid_der': inf, 'best_train_epoch': -1, 'best_valid_epoch': -1, 'batch_idx_train': 0, 'log_interval': 500, 'reset_interval': 200, 'valid_interval': 500, 'batch_size': 64, 'verbose': 1, 'world_size': 2, 'tensorboard': True, 'num_epochs': 20, 'max_updates': 40000, 'warmup_updates': 4000, 'freeze_updates': 4000, 'start_batch': 0, 'start_epoch': 1, 'seed': 1337, 'exp_dir': PosixPath('/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/alimeeting_ami_aishell_4_ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_transformer_rs_len4'), 'save_every_n': 1500, 'keep_last_k': 1, 'keep_last_epoch': 1, 'grad_clip': True, 'feature_grad_mult': 0.1, 'lr': 0.0002, 'average_period': 200, 'train_on_average': False, 'musan_path': '/mntcephfs/lee_dataset/asr/musan', 'rir_path': '/mntcephfs/lee_dataset/asr/RIRS_NOISES', 'spk_path': '/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', 'speaker_embedding_name_dir': 'cam++_zh-cn_200k_feature_dir', 'data_dir': '/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', 'dataset_name': 'alimeeting_ami_aishell_4', 'max_num_speaker': 7, 'speech_encoder_path': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', 'select_encoder_layer_nums': 6, 'wavlm_fuse_feat_post_norm': False, 'speech_encoder_config': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', 'num_transformer_layer': 2, 'd_state': 256, 'expand': 4, 'speech_encoder_type': 'CAM++', 'speaker_embed_dim': 192, 'rs_len': 4, 'segment_shift': 2, 'single_backend_type': 'conformer', 'multi_backend_type': 'transformer', 'do_finetune': False, 'init_modules': None, 'finetune_ckpt': None}
+2025-02-14 15:44:01,949 (train_accelerate_ddp:857) INFO: params: {'best_train_loss': inf, 'best_valid_loss': inf, 'best_train_der': inf, 'best_valid_der': inf, 'best_train_epoch': -1, 'best_valid_epoch': -1, 'batch_idx_train': 0, 'log_interval': 500, 'reset_interval': 200, 'valid_interval': 500, 'batch_size': 64, 'verbose': 1, 'world_size': 2, 'tensorboard': True, 'num_epochs': 20, 'max_updates': 40000, 'warmup_updates': 4000, 'freeze_updates': 4000, 'start_batch': 0, 'start_epoch': 1, 'seed': 1337, 'exp_dir': PosixPath('/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/alimeeting_ami_aishell_4_ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_epoch20_front_fix_seed_lr2e4_single_backend_2layer_conformer_multi_backend_transformer_rs_len4'), 'save_every_n': 1500, 'keep_last_k': 1, 'keep_last_epoch': 1, 'grad_clip': True, 'feature_grad_mult': 0.1, 'lr': 0.0002, 'average_period': 200, 'train_on_average': False, 'musan_path': '/mntcephfs/lee_dataset/asr/musan', 'rir_path': '/mntcephfs/lee_dataset/asr/RIRS_NOISES', 'spk_path': '/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', 'speaker_embedding_name_dir': 'cam++_zh-cn_200k_feature_dir', 'data_dir': '/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', 'dataset_name': 'alimeeting_ami_aishell_4', 'max_num_speaker': 7, 'speech_encoder_path': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', 'select_encoder_layer_nums': 6, 'wavlm_fuse_feat_post_norm': False, 'speech_encoder_config': '/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', 'num_transformer_layer': 2, 'd_state': 256, 'expand': 4, 'speech_encoder_type': 'CAM++', 'speaker_embed_dim': 192, 'rs_len': 4, 'segment_shift': 2, 'single_backend_type': 'conformer', 'multi_backend_type': 'transformer', 'do_finetune': False, 'init_modules': None, 'finetune_ckpt': None}
+2025-02-14 15:44:01,950 (train_accelerate_ddp:873) INFO: data_cfg: TSVADDataConfig(data_dir='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', ts_len=6000, rs_len=4, segment_shift=2, spk_path='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', speech_encoder_type='CAM++', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+2025-02-14 15:44:01,951 (train_accelerate_ddp:873) INFO: data_cfg: TSVADDataConfig(data_dir='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', ts_len=6000, rs_len=4, segment_shift=2, spk_path='/mntcephfs/data/haizhouli/Lab-projects/maduo/huawei_diarization/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4', speech_encoder_type='CAM++', speaker_embedding_name_dir='cam++_zh-cn_200k_feature_dir', speaker_embed_dim=192, noise_ratio=0.8, zero_ratio=0.3, sample_rate=16000, max_num_speaker=7, dataset_name='alimeeting', embed_input=False, embed_len=1, embed_shift=0.4, label_rate=25, random_channel=False, random_mask_speaker_prob=0.0, random_mask_speaker_step=0, musan_path='/mntcephfs/lee_dataset/asr/musan', rir_path='/mntcephfs/lee_dataset/asr/RIRS_NOISES')
+  0%|          | 0/145 [00:00<?, ?it/s] 22%|██▏       | 32/145 [00:00<00:00, 317.49it/s]  0%|          | 0/145 [00:00<?, ?it/s] 51%|█████     | 74/145 [00:00<00:00, 370.95it/s] 29%|██▉       | 42/145 [00:00<00:00, 414.83it/s] 86%|████████▌ | 124/145 [00:00<00:00, 427.71it/s] 60%|██████    | 87/145 [00:00<00:00, 433.15it/s]100%|██████████| 145/145 [00:00<00:00, 417.74it/s]
+2025-02-14 15:44:02,346 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-14 15:44:02,347 (ts_vad_dataset:160) INFO: loaded sentence=35332, shortest sent=640.0, longest sent=64000.0, rs_len=4, segment_shift=2,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+ 95%|█████████▌| 138/145 [00:00<00:00, 467.04it/s]100%|██████████| 145/145 [00:00<00:00, 457.01it/s]
+2025-02-14 15:44:02,423 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-14 15:44:02,424 (ts_vad_dataset:160) INFO: loaded sentence=35332, shortest sent=640.0, longest sent=64000.0, rs_len=4, segment_shift=2,  rir=False, musan=False, noise_ratio=0.8, zero_ratio=0.3 
+  0%|          | 0/2080 [00:00<?, ?it/s]  0%|          | 0/2080 [00:00<?, ?it/s]  1%|          | 14/2080 [00:00<00:15, 132.38it/s]  1%|▏         | 28/2080 [00:00<00:15, 132.05it/s]  1%|▏         | 28/2080 [00:00<00:20, 98.66it/s]   3%|▎         | 55/2080 [00:00<00:12, 161.57it/s]  3%|▎         | 55/2080 [00:00<00:10, 186.25it/s]  4%|▍         | 82/2080 [00:00<00:10, 197.94it/s]  4%|▍         | 82/2080 [00:00<00:09, 215.40it/s]  5%|▌         | 112/2080 [00:00<00:08, 242.78it/s]  5%|▌         | 112/2080 [00:00<00:08, 230.24it/s]  7%|▋         | 138/2080 [00:00<00:11, 172.18it/s]  7%|▋         | 138/2080 [00:00<00:11, 167.04it/s]  8%|▊         | 162/2080 [00:00<00:10, 184.18it/s]  8%|▊         | 162/2080 [00:00<00:10, 187.94it/s]  9%|▉         | 189/2080 [00:01<00:09, 205.84it/s]  9%|▉         | 189/2080 [00:00<00:09, 208.83it/s] 10%|█         | 214/2080 [00:01<00:08, 219.60it/s] 10%|█         | 214/2080 [00:01<00:08, 217.34it/s] 12%|█▏        | 240/2080 [00:01<00:08, 227.68it/s] 12%|█▏        | 240/2080 [00:01<00:08, 229.33it/s] 13%|█▎        | 269/2080 [00:01<00:07, 245.10it/s] 13%|█▎        | 269/2080 [00:01<00:07, 243.79it/s] 14%|█▍        | 295/2080 [00:01<00:11, 158.00it/s] 14%|█▍        | 295/2080 [00:01<00:11, 157.55it/s] 16%|█▌        | 323/2080 [00:01<00:09, 182.15it/s] 16%|█▌        | 323/2080 [00:01<00:09, 182.50it/s] 17%|█▋        | 355/2080 [00:01<00:08, 213.45it/s] 17%|█▋        | 355/2080 [00:01<00:08, 213.14it/s] 18%|█▊        | 381/2080 [00:01<00:07, 221.46it/s] 18%|█▊        | 381/2080 [00:01<00:07, 221.21it/s] 20%|█▉        | 408/2080 [00:02<00:07, 230.91it/s] 20%|█▉        | 408/2080 [00:01<00:07, 231.07it/s] 21%|██        | 441/2080 [00:02<00:06, 256.32it/s] 21%|██        | 441/2080 [00:02<00:06, 256.41it/s] 23%|██▎       | 476/2080 [00:02<00:05, 279.29it/s] 23%|██▎       | 476/2080 [00:02<00:05, 279.39it/s] 24%|██▍       | 506/2080 [00:02<00:05, 281.56it/s] 24%|██▍       | 506/2080 [00:02<00:05, 281.63it/s] 26%|██▌       | 537/2080 [00:02<00:05, 289.40it/s] 26%|██▌       | 537/2080 [00:02<00:05, 289.33it/s] 27%|██▋       | 568/2080 [00:02<00:05, 290.47it/s] 27%|██▋       | 568/2080 [00:02<00:05, 290.50it/s] 29%|██▉       | 598/2080 [00:02<00:08, 170.42it/s] 29%|██▉       | 598/2080 [00:02<00:08, 170.43it/s] 31%|███       | 635/2080 [00:02<00:06, 206.48it/s] 31%|███       | 635/2080 [00:03<00:06, 206.47it/s] 32%|███▏      | 670/2080 [00:03<00:05, 236.60it/s] 32%|███▏      | 670/2080 [00:03<00:05, 236.61it/s] 34%|███▍      | 708/2080 [00:03<00:05, 269.45it/s] 34%|███▍      | 708/2080 [00:03<00:05, 269.43it/s] 36%|███▌      | 747/2080 [00:03<00:04, 298.55it/s] 36%|███▌      | 747/2080 [00:03<00:04, 298.51it/s] 38%|███▊      | 782/2080 [00:03<00:04, 311.18it/s] 38%|███▊      | 781/2080 [00:03<00:04, 308.22it/s] 40%|███▉      | 822/2080 [00:03<00:03, 334.03it/s] 40%|███▉      | 822/2080 [00:03<00:03, 334.99it/s] 41%|████▏     | 858/2080 [00:03<00:03, 330.96it/s] 41%|████▏     | 858/2080 [00:03<00:03, 330.29it/s] 43%|████▎     | 893/2080 [00:03<00:03, 335.63it/s] 43%|████▎     | 893/2080 [00:03<00:03, 335.11it/s] 45%|████▍     | 930/2080 [00:03<00:03, 341.01it/s] 45%|████▍     | 930/2080 [00:03<00:03, 341.34it/s] 47%|████▋     | 969/2080 [00:03<00:03, 352.97it/s] 47%|████▋     | 969/2080 [00:03<00:03, 353.17it/s] 48%|████▊     | 1008/2080 [00:04<00:02, 362.35it/s] 48%|████▊     | 1008/2080 [00:03<00:02, 362.51it/s] 50%|█████     | 1045/2080 [00:04<00:02, 361.51it/s] 50%|█████     | 1045/2080 [00:04<00:02, 361.36it/s] 52%|█████▏    | 1087/2080 [00:04<00:02, 377.84it/s] 52%|█████▏    | 1087/2080 [00:04<00:02, 377.83it/s] 54%|█████▍    | 1126/2080 [00:04<00:02, 369.20it/s] 54%|█████▍    | 1126/2080 [00:04<00:02, 369.30it/s] 56%|█████▌    | 1165/2080 [00:04<00:02, 374.96it/s] 56%|█████▌    | 1165/2080 [00:04<00:02, 374.88it/s] 58%|█████▊    | 1208/2080 [00:04<00:02, 388.81it/s] 58%|█████▊    | 1208/2080 [00:04<00:02, 388.81it/s] 60%|██████    | 1252/2080 [00:04<00:02, 389.60it/s] 60%|██████    | 1252/2080 [00:04<00:02, 384.93it/s] 62%|██████▏   | 1296/2080 [00:04<00:01, 402.30it/s] 62%|██████▏   | 1298/2080 [00:04<00:01, 403.52it/s] 64%|██████▍   | 1338/2080 [00:04<00:01, 406.08it/s] 64%|██████▍   | 1340/2080 [00:04<00:01, 408.05it/s] 66%|██████▋   | 1382/2080 [00:04<00:01, 413.72it/s] 67%|██████▋   | 1384/2080 [00:04<00:01, 415.24it/s] 68%|██████▊   | 1424/2080 [00:05<00:01, 413.00it/s] 69%|██████▊   | 1426/2080 [00:05<00:01, 414.87it/s] 70%|███████   | 1466/2080 [00:05<00:01, 390.02it/s] 71%|███████   | 1468/2080 [00:05<00:01, 387.09it/s] 72%|███████▏  | 1506/2080 [00:05<00:01, 380.70it/s] 72%|███████▎  | 1508/2080 [00:05<00:01, 381.86it/s] 75%|███████▍  | 1554/2080 [00:05<00:01, 407.62it/s] 75%|███████▍  | 1557/2080 [00:05<00:01, 410.35it/s] 77%|███████▋  | 1596/2080 [00:05<00:01, 410.39it/s] 77%|███████▋  | 1599/2080 [00:05<00:01, 410.77it/s] 79%|███████▉  | 1642/2080 [00:05<00:01, 424.32it/s] 79%|███████▉  | 1646/2080 [00:05<00:01, 426.08it/s] 81%|████████▏ | 1690/2080 [00:05<00:00, 437.95it/s] 81%|████████▏ | 1692/2080 [00:05<00:00, 435.73it/s] 83%|████████▎ | 1734/2080 [00:05<00:00, 403.57it/s] 83%|████████▎ | 1736/2080 [00:05<00:00, 392.21it/s] 86%|████████▌ | 1782/2080 [00:05<00:00, 423.30it/s] 86%|████████▌ | 1784/2080 [00:05<00:00, 414.81it/s] 88%|████████▊ | 1826/2080 [00:06<00:00, 425.96it/s] 88%|████████▊ | 1828/2080 [00:05<00:00, 421.07it/s] 90%|████████▉ | 1871/2080 [00:06<00:00, 430.95it/s] 90%|█████████ | 1873/2080 [00:06<00:00, 428.87it/s] 92%|█████████▏| 1915/2080 [00:06<00:00, 425.93it/s] 92%|█████████▏| 1917/2080 [00:06<00:00, 424.69it/s] 94%|█████████▍| 1964/2080 [00:06<00:00, 442.30it/s] 95%|█████████▍| 1966/2080 [00:06<00:00, 442.36it/s] 97%|█████████▋| 2013/2080 [00:06<00:00, 455.21it/s] 97%|█████████▋| 2015/2080 [00:06<00:00, 453.28it/s] 99%|█████████▉| 2062/2080 [00:06<00:00, 463.39it/s] 99%|█████████▉| 2064/2080 [00:06<00:00, 462.25it/s]100%|██████████| 2080/2080 [00:06<00:00, 315.72it/s]
+100%|██████████| 2080/2080 [00:06<00:00, 318.18it/s]
+2025-02-14 15:44:09,453 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-14 15:44:09,453 (ts_vad_dataset:152) INFO: model expect fbank as input , fbank_input should be True !!!
+2025-02-14 15:44:09,464 (ts_vad_dataset:160) INFO: loaded sentence=526485, shortest sent=48640.0, longest sent=64000.0, rs_len=4, segment_shift=2,  rir=True, musan=True, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-14 15:44:09,464 (train_accelerate_ddp:908) INFO: The scale window is set to 8192.
+2025-02-14 15:44:09,465 (ts_vad_dataset:160) INFO: loaded sentence=526485, shortest sent=48640.0, longest sent=64000.0, rs_len=4, segment_shift=2,  rir=True, musan=True, noise_ratio=0.8, zero_ratio=0.3 
+2025-02-14 15:44:09,465 (train_accelerate_ddp:908) INFO: The scale window is set to 8192.
+/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/accelerate/accelerator.py:494: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = torch.cuda.amp.GradScaler(**kwargs)
+2025-02-14 15:44:09,613 (other:349) WARNING: Detected kernel version 4.18.0, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
+2025-02-14 15:44:09,613 (train_accelerate_ddp:946) INFO: model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', speech_encoder_type='CAM++', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='conformer', multi_backend_type='transformer', d_state=256, expand=4)
+self.wavlm_fuse_feat_post_norm: False
+/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/accelerate/accelerator.py:494: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = torch.cuda.amp.GradScaler(**kwargs)
+2025-02-14 15:44:09,634 (train_accelerate_ddp:946) INFO: model_cfg: TSVADConfig(speech_encoder_path='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin', speech_encoder_type='CAM++', freeze_speech_encoder_updates=4000, num_attention_head=4, num_transformer_layer=2, transformer_embed_dim=384, transformer_ffn_embed_dim=1536, speaker_embed_dim=192, dropout=0.1, use_spk_embed=True, feature_grad_mult=0.1, whisper_n_mels=80, select_encoder_layer_nums=6, wavlm_fuse_feat_post_norm=False, speech_encoder_config='/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/wav-bert2.0/config.json', single_backend_type='conformer', multi_backend_type='transformer', d_state=256, expand=4)
+self.wavlm_fuse_feat_post_norm: False
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py:953: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  loadedState = torch.load(model_path, map_location=device)
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/model.py:953: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  loadedState = torch.load(model_path, map_location=device)
+/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+/mntnfs/lee_data1/maduo/anaconda3/envs/dia_pt2.4/lib/python3.11/site-packages/torch/nn/modules/transformer.py:307: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.self_attn.batch_first was not True(use batch_first for better inference performance)
+  warnings.warn(f"enable_nested_tensor is True, but self.use_nested_tensor is False because {why_not_sparsity_fast_path}")
+2025-02-14 15:44:09,994 (train_accelerate_ddp:949) INFO: model: TSVADModel(
+  (rs_dropout): Dropout(p=0.1, inplace=False)
+  (speech_encoder): CAMPPlus(
+    (head): FCM(
+      (conv1): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (layer1): Sequential(
+        (0): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential(
+            (0): Conv2d(32, 32, kernel_size=(1, 1), stride=(2, 1), bias=False)
+            (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential()
+        )
+      )
+      (layer2): Sequential(
+        (0): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential(
+            (0): Conv2d(32, 32, kernel_size=(1, 1), stride=(2, 1), bias=False)
+            (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential()
+        )
+      )
+      (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (xvector): Sequential(
+      (tdnn): TDNNLayer(
+        (linear): Conv1d(320, 128, kernel_size=(5,), stride=(2,), padding=(2,), bias=False)
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (block1): CAMDenseTDNNBlock(
+        (0): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(128, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (1): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(160, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(160, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (2): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(192, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (3): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(224, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(224, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (4): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(256, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (5): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(288, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(288, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (6): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(320, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (7): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(352, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(352, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (8): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(384, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (9): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(416, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(416, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (10): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(448, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (11): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(480, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+      )
+      (transit1): TransitLayer(
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (linear): Conv1d(512, 256, kernel_size=(1,), stride=(1,), bias=False)
+      )
+      (block2): CAMDenseTDNNBlock(
+        (0): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(256, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (1): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(288, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(288, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (2): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(320, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (3): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(352, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(352, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (4): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(384, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (5): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(416, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(416, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (6): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(448, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (7): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(480, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (8): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(512, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (9): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(544, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(544, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (10): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(576, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (11): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(608, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(608, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (12): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(640, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(640, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (13): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(672, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(672, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (14): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(704, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(704, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (15): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(736, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(736, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (16): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(768, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (17): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(800, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (18): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(832, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(832, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (19): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(864, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(864, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (20): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(896, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(896, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (21): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(928, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(928, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (22): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(960, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (23): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(992, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(992, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+      )
+      (transit2): TransitLayer(
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (linear): Conv1d(1024, 512, kernel_size=(1,), stride=(1,), bias=False)
+      )
+      (block3): CAMDenseTDNNBlock(
+        (0): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(512, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (1): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(544, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(544, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (2): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(576, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (3): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(608, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(608, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (4): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(640, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(640, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (5): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(672, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(672, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (6): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(704, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(704, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (7): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(736, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(736, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (8): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(768, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (9): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(800, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (10): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(832, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(832, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (11): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(864, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(864, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (12): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(896, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(896, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (13): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(928, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(928, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (14): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(960, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (15): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(992, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(992, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+      )
+      (transit3): TransitLayer(
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (linear): Conv1d(1024, 512, kernel_size=(1,), stride=(1,), bias=False)
+      )
+      (out_nonlinear): Sequential(
+        (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (stats): StatsPool()
+      (dense): DenseLayer(
+        (linear): Conv1d(1024, 192, kernel_size=(1,), stride=(1,), bias=False)
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(192, eps=1e-05, momentum=0.1, affine=False, track_running_stats=True)
+        )
+      )
+    )
+  )
+  (speech_down_or_up): Sequential(
+    (0): Conv1d(512, 192, kernel_size=(5,), stride=(2,), padding=(2,))
+    (1): BatchNorm1D(
+      (bn): BatchNorm1d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (2): ReLU()
+  )
+  (pos_encoder): PositionalEncoding(
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (single_backend): Conformer(
+    (conformer_layers): ModuleList(
+      (0-1): 2 x ConformerLayer(
+        (ffn1): _FeedForwardModule(
+          (sequential): Sequential(
+            (0): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=384, out_features=1536, bias=True)
+            (2): SiLU()
+            (3): Dropout(p=0.0, inplace=False)
+            (4): Linear(in_features=1536, out_features=384, bias=True)
+            (5): Dropout(p=0.0, inplace=False)
+          )
+        )
+        (self_attn_layer_norm): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=384, out_features=384, bias=True)
+        )
+        (self_attn_dropout): Dropout(p=0.0, inplace=False)
+        (conv_module): _ConvolutionModule(
+          (layer_norm): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+          (sequential): Sequential(
+            (0): Conv1d(384, 768, kernel_size=(1,), stride=(1,))
+            (1): GLU(dim=1)
+            (2): Conv1d(384, 384, kernel_size=(31,), stride=(1,), padding=(15,), groups=384)
+            (3): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (4): SiLU()
+            (5): Conv1d(384, 384, kernel_size=(1,), stride=(1,))
+            (6): Dropout(p=0.0, inplace=False)
+          )
+        )
+        (ffn2): _FeedForwardModule(
+          (sequential): Sequential(
+            (0): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=384, out_features=1536, bias=True)
+            (2): SiLU()
+            (3): Dropout(p=0.0, inplace=False)
+            (4): Linear(in_features=1536, out_features=384, bias=True)
+            (5): Dropout(p=0.0, inplace=False)
+          )
+        )
+        (final_layer_norm): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+      )
+    )
+  )
+  (backend_down): Sequential(
+    (0): Conv1d(2688, 384, kernel_size=(5,), stride=(1,), padding=(2,))
+    (1): BatchNorm1D(
+      (bn): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (2): ReLU()
+  )
+  (multi_backend): TransformerEncoder(
+    (layers): ModuleList(
+      (0-1): 2 x TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=384, out_features=384, bias=True)
+        )
+        (linear1): Linear(in_features=384, out_features=1536, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=1536, out_features=384, bias=True)
+        (norm1): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+    )
+  )
+  (fc): Linear(in_features=384, out_features=7, bias=True)
+)
+2025-02-14 15:44:09,996 (train_accelerate_ddp:951) INFO: Number of model parameters: 22884199
+2025-02-14 15:44:09,996 (train_accelerate_ddp:949) INFO: model: TSVADModel(
+  (rs_dropout): Dropout(p=0.1, inplace=False)
+  (speech_encoder): CAMPPlus(
+    (head): FCM(
+      (conv1): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (layer1): Sequential(
+        (0): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential(
+            (0): Conv2d(32, 32, kernel_size=(1, 1), stride=(2, 1), bias=False)
+            (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential()
+        )
+      )
+      (layer2): Sequential(
+        (0): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential(
+            (0): Conv2d(32, 32, kernel_size=(1, 1), stride=(2, 1), bias=False)
+            (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): BasicResBlock(
+          (conv1): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (shortcut): Sequential()
+        )
+      )
+      (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 1), padding=(1, 1), bias=False)
+      (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (xvector): Sequential(
+      (tdnn): TDNNLayer(
+        (linear): Conv1d(320, 128, kernel_size=(5,), stride=(2,), padding=(2,), bias=False)
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (block1): CAMDenseTDNNBlock(
+        (0): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(128, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (1): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(160, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(160, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (2): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(192, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (3): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(224, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(224, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (4): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(256, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (5): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(288, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(288, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (6): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(320, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (7): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(352, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(352, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (8): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(384, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (9): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(416, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(416, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (10): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(448, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (11): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(480, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(1,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+      )
+      (transit1): TransitLayer(
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (linear): Conv1d(512, 256, kernel_size=(1,), stride=(1,), bias=False)
+      )
+      (block2): CAMDenseTDNNBlock(
+        (0): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(256, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (1): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(288, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(288, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (2): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(320, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(320, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (3): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(352, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(352, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (4): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(384, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (5): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(416, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(416, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (6): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(448, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(448, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (7): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(480, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (8): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(512, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (9): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(544, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(544, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (10): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(576, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (11): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(608, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(608, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (12): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(640, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(640, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (13): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(672, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(672, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (14): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(704, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(704, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (15): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(736, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(736, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (16): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(768, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (17): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(800, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (18): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(832, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(832, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (19): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(864, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(864, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (20): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(896, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(896, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (21): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(928, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(928, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (22): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(960, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (23): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(992, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(992, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+      )
+      (transit2): TransitLayer(
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (linear): Conv1d(1024, 512, kernel_size=(1,), stride=(1,), bias=False)
+      )
+      (block3): CAMDenseTDNNBlock(
+        (0): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(512, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (1): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(544, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(544, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (2): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(576, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(576, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (3): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(608, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(608, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (4): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(640, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(640, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (5): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(672, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(672, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (6): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(704, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(704, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (7): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(736, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(736, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (8): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(768, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(768, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (9): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(800, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(800, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (10): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(832, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(832, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (11): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(864, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(864, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (12): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(896, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(896, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (13): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(928, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(928, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (14): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(960, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(960, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+        (15): CAMDenseTDNNLayer(
+          (nonlinear1): Sequential(
+            (batchnorm): BatchNorm1d(992, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (linear1): Conv1d(992, 128, kernel_size=(1,), stride=(1,), bias=False)
+          (nonlinear2): Sequential(
+            (batchnorm): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (relu): ReLU(inplace=True)
+          )
+          (cam_layer): CAMLayer(
+            (linear_local): Conv1d(128, 32, kernel_size=(3,), stride=(1,), padding=(2,), dilation=(2,), bias=False)
+            (linear1): Conv1d(128, 64, kernel_size=(1,), stride=(1,))
+            (relu): ReLU(inplace=True)
+            (linear2): Conv1d(64, 32, kernel_size=(1,), stride=(1,))
+            (sigmoid): Sigmoid()
+          )
+        )
+      )
+      (transit3): TransitLayer(
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (linear): Conv1d(1024, 512, kernel_size=(1,), stride=(1,), bias=False)
+      )
+      (out_nonlinear): Sequential(
+        (batchnorm): BatchNorm1d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (stats): StatsPool()
+      (dense): DenseLayer(
+        (linear): Conv1d(1024, 192, kernel_size=(1,), stride=(1,), bias=False)
+        (nonlinear): Sequential(
+          (batchnorm): BatchNorm1d(192, eps=1e-05, momentum=0.1, affine=False, track_running_stats=True)
+        )
+      )
+    )
+  )
+  (speech_down_or_up): Sequential(
+    (0): Conv1d(512, 192, kernel_size=(5,), stride=(2,), padding=(2,))
+    (1): BatchNorm1D(
+      (bn): BatchNorm1d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (2): ReLU()
+  )
+  (pos_encoder): PositionalEncoding(
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (single_backend): Conformer(
+    (conformer_layers): ModuleList(
+      (0-1): 2 x ConformerLayer(
+        (ffn1): _FeedForwardModule(
+          (sequential): Sequential(
+            (0): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=384, out_features=1536, bias=True)
+            (2): SiLU()
+            (3): Dropout(p=0.0, inplace=False)
+            (4): Linear(in_features=1536, out_features=384, bias=True)
+            (5): Dropout(p=0.0, inplace=False)
+          )
+        )
+        (self_attn_layer_norm): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=384, out_features=384, bias=True)
+        )
+        (self_attn_dropout): Dropout(p=0.0, inplace=False)
+        (conv_module): _ConvolutionModule(
+          (layer_norm): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+          (sequential): Sequential(
+            (0): Conv1d(384, 768, kernel_size=(1,), stride=(1,))
+            (1): GLU(dim=1)
+            (2): Conv1d(384, 384, kernel_size=(31,), stride=(1,), padding=(15,), groups=384)
+            (3): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            (4): SiLU()
+            (5): Conv1d(384, 384, kernel_size=(1,), stride=(1,))
+            (6): Dropout(p=0.0, inplace=False)
+          )
+        )
+        (ffn2): _FeedForwardModule(
+          (sequential): Sequential(
+            (0): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=384, out_features=1536, bias=True)
+            (2): SiLU()
+            (3): Dropout(p=0.0, inplace=False)
+            (4): Linear(in_features=1536, out_features=384, bias=True)
+            (5): Dropout(p=0.0, inplace=False)
+          )
+        )
+        (final_layer_norm): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+      )
+    )
+  )
+  (backend_down): Sequential(
+    (0): Conv1d(2688, 384, kernel_size=(5,), stride=(1,), padding=(2,))
+    (1): BatchNorm1D(
+      (bn): BatchNorm1d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (2): ReLU()
+  )
+  (multi_backend): TransformerEncoder(
+    (layers): ModuleList(
+      (0-1): 2 x TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=384, out_features=384, bias=True)
+        )
+        (linear1): Linear(in_features=384, out_features=1536, bias=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (linear2): Linear(in_features=1536, out_features=384, bias=True)
+        (norm1): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((384,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.1, inplace=False)
+        (dropout2): Dropout(p=0.1, inplace=False)
+      )
+    )
+  )
+  (fc): Linear(in_features=384, out_features=7, bias=True)
+)
+2025-02-14 15:44:09,998 (train_accelerate_ddp:951) INFO: Number of model parameters: 22884199
+pgpu25:30658:30658 [0] NCCL INFO Bootstrap : Using ib1:20.20.20.25<0>
+pgpu25:30658:30658 [0] NCCL INFO NET/Plugin : dlerror=libnccl-net.so: cannot open shared object file: No such file or directory No plugin found (libnccl-net.so), using internal implementation
+pgpu25:30658:30658 [0] NCCL INFO cudaDriverVersion 12040
+NCCL version 2.20.5+cuda11.0
+pgpu25:30659:30659 [1] NCCL INFO cudaDriverVersion 12040
+pgpu25:30659:30659 [1] NCCL INFO Bootstrap : Using ib1:20.20.20.25<0>
+pgpu25:30659:30659 [1] NCCL INFO NET/Plugin : dlerror=libnccl-net.so: cannot open shared object file: No such file or directory No plugin found (libnccl-net.so), using internal implementation
+pgpu25:30659:30991 [1] NCCL INFO NET/IB : Using [0]mlx5_0:1/RoCE [1]mlx5_1:1/IB [2]mlx5_3:1/IB [RO]; OOB ib1:20.20.20.25<0>
+pgpu25:30659:30991 [1] NCCL INFO Using non-device net plugin version 0
+pgpu25:30659:30991 [1] NCCL INFO Using network IB
+pgpu25:30658:30994 [0] NCCL INFO NET/IB : Using [0]mlx5_0:1/RoCE [1]mlx5_1:1/IB [2]mlx5_3:1/IB [RO]; OOB ib1:20.20.20.25<0>
+pgpu25:30658:30994 [0] NCCL INFO Using non-device net plugin version 0
+pgpu25:30658:30994 [0] NCCL INFO Using network IB
+pgpu25:30658:30994 [0] NCCL INFO comm 0x55555ee421a0 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 25000 commId 0xe2d767e6808b5fd2 - Init START
+pgpu25:30659:30991 [1] NCCL INFO comm 0x555563e40e80 rank 1 nranks 2 cudaDev 1 nvmlDev 1 busId 2b000 commId 0xe2d767e6808b5fd2 - Init START
+pgpu25:30658:30994 [0] NCCL INFO Setting affinity for GPU 0 to 1ffe00
+pgpu25:30659:30991 [1] NCCL INFO Setting affinity for GPU 1 to 1ffe00
+pgpu25:30658:30994 [0] NCCL INFO comm 0x55555ee421a0 rank 0 nRanks 2 nNodes 1 localRanks 2 localRank 0 MNNVL 0
+pgpu25:30659:30991 [1] NCCL INFO comm 0x555563e40e80 rank 1 nRanks 2 nNodes 1 localRanks 2 localRank 1 MNNVL 0
+pgpu25:30658:30994 [0] NCCL INFO Channel 00/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 01/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 02/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 03/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 04/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 05/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 06/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 07/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 08/16 :    0   1
+pgpu25:30659:30991 [1] NCCL INFO Trees [0] -1/-1/-1->1->0 [1] -1/-1/-1->1->0 [2] -1/-1/-1->1->0 [3] -1/-1/-1->1->0 [4] 0/-1/-1->1->-1 [5] 0/-1/-1->1->-1 [6] 0/-1/-1->1->-1 [7] 0/-1/-1->1->-1 [8] -1/-1/-1->1->0 [9] -1/-1/-1->1->0 [10] -1/-1/-1->1->0 [11] -1/-1/-1->1->0 [12] 0/-1/-1->1->-1 [13] 0/-1/-1->1->-1 [14] 0/-1/-1->1->-1 [15] 0/-1/-1->1->-1
+pgpu25:30658:30994 [0] NCCL INFO Channel 09/16 :    0   1
+pgpu25:30659:30991 [1] NCCL INFO P2P Chunksize set to 524288
+pgpu25:30658:30994 [0] NCCL INFO Channel 10/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 11/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 12/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 13/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 14/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Channel 15/16 :    0   1
+pgpu25:30658:30994 [0] NCCL INFO Trees [0] 1/-1/-1->0->-1 [1] 1/-1/-1->0->-1 [2] 1/-1/-1->0->-1 [3] 1/-1/-1->0->-1 [4] -1/-1/-1->0->1 [5] -1/-1/-1->0->1 [6] -1/-1/-1->0->1 [7] -1/-1/-1->0->1 [8] 1/-1/-1->0->-1 [9] 1/-1/-1->0->-1 [10] 1/-1/-1->0->-1 [11] 1/-1/-1->0->-1 [12] -1/-1/-1->0->1 [13] -1/-1/-1->0->1 [14] -1/-1/-1->0->1 [15] -1/-1/-1->0->1
+pgpu25:30658:30994 [0] NCCL INFO P2P Chunksize set to 524288
+pgpu25:30659:30991 [1] NCCL INFO Channel 00/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 00/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 01/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 01/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 02/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 02/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 03/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 03/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 04/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 04/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 05/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 05/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 06/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 06/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 07/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 07/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 08/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 08/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 09/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 09/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 10/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 10/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 11/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 11/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 12/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 12/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 13/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 13/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 14/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 14/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Channel 15/0 : 1[1] -> 0[0] via P2P/IPC/read
+pgpu25:30658:30994 [0] NCCL INFO Channel 15/0 : 0[0] -> 1[1] via P2P/IPC/read
+pgpu25:30659:30991 [1] NCCL INFO Connected all rings
+pgpu25:30659:30991 [1] NCCL INFO Connected all trees
+pgpu25:30659:30991 [1] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+pgpu25:30659:30991 [1] NCCL INFO 16 coll channels, 0 collnet channels, 0 nvls channels, 16 p2p channels, 16 p2p channels per peer
+pgpu25:30658:30994 [0] NCCL INFO Connected all rings
+pgpu25:30658:30994 [0] NCCL INFO Connected all trees
+pgpu25:30658:30994 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+pgpu25:30658:30994 [0] NCCL INFO 16 coll channels, 0 collnet channels, 0 nvls channels, 16 p2p channels, 16 p2p channels per peer
+pgpu25:30659:30991 [1] NCCL INFO comm 0x555563e40e80 rank 1 nranks 2 cudaDev 1 nvmlDev 1 busId 2b000 commId 0xe2d767e6808b5fd2 - Init COMPLETE
+pgpu25:30658:30994 [0] NCCL INFO comm 0x55555ee421a0 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 25000 commId 0xe2d767e6808b5fd2 - Init COMPLETE
+2025-02-14 15:44:11,445 (train_accelerate_ddp:1032) INFO: start training from epoch 1
+2025-02-14 15:44:11,445 (train_accelerate_ddp:1033) INFO: Train set grouped total_num_itrs = 4114
+2025-02-14 15:44:11,445 (train_accelerate_ddp:1032) INFO: start training from epoch 1
+2025-02-14 15:44:11,445 (train_accelerate_ddp:1033) INFO: Train set grouped total_num_itrs = 4114
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/ts_vad_dataset.py:392: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  feature = torch.load(path, map_location="cpu")
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/ts_vad_dataset.py:392: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  feature = torch.load(path, map_location="cpu")
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/ts_vad_dataset.py:398: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  feature = torch.load(path, map_location="cpu")
+/mntnfs/lee_data1/maduo/codebase/speaker_diarization/egs/multi_datasets/ts_vad2/ts_vad_dataset.py:398: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  feature = torch.load(path, map_location="cpu")
+2025-02-14 15:44:17,764 (train_accelerate_ddp:702) INFO: [Train] - Epoch 1, batch_idx_train: 0, num_updates: 0, {'loss': 0.7032420635223389, 'DER': 2.433534108418546, 'ACC': np.float64(0.5280357142857143), 'MI': 0.03039641406359434, 'FA': 1.8749124527244712, 'CF': 0.5282252416304805}, batch size: 64, grad_norm: 2.3821966648101807, grad_scale: , lr: 1.00e-07, 
+2025-02-14 15:44:17,765 (train_accelerate_ddp:702) INFO: [Train] - Epoch 1, batch_idx_train: 0, num_updates: 0, {'loss': 0.7001066207885742, 'DER': 2.5773501110288675, 'ACC': np.float64(0.5317633928571428), 'MI': 0.018948926720947445, 'FA': 2.0303478904515173, 'CF': 0.5280532938564027}, batch size: 64, grad_norm: 2.3821966648101807, grad_scale: , lr: 1.00e-07, 
+slurmstepd: error: *** JOB 219696 ON pgpu25 CANCELLED AT 2025-02-14T15:53:00 ***

@@ -21,7 +21,7 @@ if [ ${stage} -le -4 ] && [ ${stop_stage} -ge -4 ];then
    dest_dir=/data/maduo/datasets/aishell-4/data_processed
    for name in train_L train_M train_S;do
     cat $dest_dir/${name}_rttmlist.txt >> $dest_dir/train_rttmlist.txt
-    cat $dest_dir/${name}_wavlist.txt >>  $dest_dir/train_wavlist.txt 
+    cat $dest_dir/${name}_wavlist.txt >>  $dest_dir/train_wavlist.txt
    done
 fi
 if [ ${stage} -le -3 ] && [ ${stop_stage} -ge -3 ];then
@@ -82,10 +82,10 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ];then
              --wavscp $wavscp\
              --dest_dir $dest_dir\
              --type $name
-  done  
+  done
 fi
 # prepared alimeeting, you  see ../alimeeting/prepared_alimeeting.sh
-# prepared ami and aishell-4 speaker embedding , you can see run_extract_speaker_embedding_hltsz.sh 
+# prepared ami and aishell-4 speaker embedding , you can see run_extract_speaker_embedding_hltsz.sh
 # 1. combine label json file
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
    echo ""
@@ -96,7 +96,7 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
      else
       alimeeting_json=/data/maduo/datasets/alimeeting/Train_Ali_far/Train.json
      fi
-     ami_json=/data/maduo/datasets/ami/ami_version1.6.2/data_processed/data/ami/$name/$name.json 
+     ami_json=/data/maduo/datasets/ami/ami_version1.6.2/data_processed/data/ami/$name/$name.json
      aishell_4_json=/data/maduo/datasets/aishell-4/data_processed/$name/$name.json
      out_json=/data/maduo/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4
      python3 merge_shuff_json.py\
@@ -104,7 +104,7 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
 	    $name\
 	    $alimeeting_json\
 	    $ami_json\
-	    $aishell_4_json 
+	    $aishell_4_json
   done
 fi
 
@@ -144,7 +144,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ];then
      fi
      ami=/data/maduo/model_hub/ts_vad/spk_embed/ami/SpeakerEmbedding/$name/cam++_en_zh_advanced_feature_dir
      aishell_4=/data/maduo/model_hub/ts_vad/spk_embed/aishell_4/SpeakerEmbedding/$name/cam++_en_zh_advanced_feature_dir
-     
+
      out=/data/maduo/exp/speaker_diarization/ts_vad2/data/alimeeting_ami_aishell_4/$name/cam++_en_zh_advanced_feature_dir
      mkdir -p $out
      python3 combine_files_using_softlink.py\

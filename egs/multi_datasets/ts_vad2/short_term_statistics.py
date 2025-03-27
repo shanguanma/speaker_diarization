@@ -16,7 +16,7 @@ step6: We crop the short-term segment from non-overlap segment of step 5 via sho
 
 
 how to run it ?
-computer der of less than 1s segment 
+computer der of less than 1s segment
 python3 ts_vad2/short_term_statistics.py 1 hyp_rttm ref_rttm
 
 computer der of less than 2s segment
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     collar = sys.argv[4] # default 0.25
     uri_list = get_uris_from_rttm(res_path)
     print(f"total utts: {len(uri_list)}")
-    der = DiarizationErrorRate(skip_overlap=False,collar=float((collar))
+    der = DiarizationErrorRate(skip_overlap=False,collar=float(collar))
     for uri in uri_list:
         print(f"uri: {uri}")
         hyp = rttm_parser(res_path, uri,"")
