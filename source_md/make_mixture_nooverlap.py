@@ -6,7 +6,7 @@
 # This script generates simulated multi-talker mixtures for diarization
 # (No speaker overlaps)
 #
-# common/make_mixture_nooverlap.py \
+# speaker_diarization/bin/make_mixture_nooverlap.py \
 #     mixture.scp \
 #     data/mixture \
 #     wav/mixture

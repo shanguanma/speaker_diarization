@@ -5,7 +5,7 @@
 #
 # This script generates simulated multi-talker mixtures for diarization
 #
-# source_md/make_mixture.py \
+# speaker_diarization/bin/make_mixture.py \
 #     mixture.scp \
 #     data/mixture \
 #     wav/mixture

@@ -34,7 +34,7 @@ Usage:
         > mixture.scp             # output scp-like file
 
 The actual data dir and wav files are generated using make_mixture.py:
-    source_md/make_mixture.py \
+    /make_mixture.py \
         mixture.scp \             # scp-like file for mixture
         data/mixture \            # output data dir
         wav/mixture               # output wav dir
