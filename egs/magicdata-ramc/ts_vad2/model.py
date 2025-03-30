@@ -228,6 +228,7 @@ class TSVADModel(nn.Module):
             self.wavlm_encoder_num_layer,
             self.wavlmproj,
             self.wavlmlnorm,
+            self.gsp_fc,
         ) = self.create_speech_encoder(sample_times, cfg, device)
 
         # projection
@@ -474,6 +475,7 @@ class TSVADModel(nn.Module):
         wavlm_encoder_num_layer: int = None  # only for WavLM_weight_sum
         self.wavlmlnorm: Optional[nn.Module] = None  # only for WavLM_weight_sum
         self.wavlmproj: Optional[nn.Module] = None  # only for WavLM_weight_sum
+        self.gsp_fc: Optional[nn.Module] = None # only for CAM++_frame_level_gsp_fc
         if self.speech_encoder_type == "CAM++":
             self.speech_encoder = CAMPPlus(feat_dim=80, embedding_size=192)
             self.speech_encoder.train()
@@ -493,6 +495,28 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.speaker_embed_dim),
                 nn.ReLU(),
             )
+        if self.speech_encoder_type == "CAM++_frame_level_gsp_fc":
+            self.speech_encoder = CAMPPlus(feat_dim=80, embedding_size=192)
+            self.speech_encoder.train()
+            self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+            )
+            # reference from https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10768974 `III.A part`
+            self.gsp_fc = nn.Linear(2,256)
+            stride = int(2 // sample_times) if self.label_rate == 25 else 1
+            pretrain_speech_encoder_dim = 256
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+
         elif self.speech_encoder_type == "ERes2NetV2_COMMON":
             self.speech_encoder = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=26, scale=2, expansion=2)
             self.speech_encoder.train()
@@ -949,6 +973,7 @@ class TSVADModel(nn.Module):
             wavlm_encoder_num_layer,
             self.wavlmproj,
             self.wavlmlnorm,
+            self.gsp_fc,
         )
     def non_speech_encoder_parameters(self):
 
@@ -1090,6 +1115,19 @@ class TSVADModel(nn.Module):
                     x = self.speech_encoder.get_frame_level_feat_frame_rate25(ref_speech) # (B,D,T)
             # no downsample, its frame rate is 13 or 25
             x = self.speech_down_or_up(x)  # (B,D,T) -> (B,F,T)
+        elif self.speech_encoder_type == "CAM++_frame_level_gsp_fc":
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # its input fbank feature(80-dim)
+                x = self.speech_encoder(ref_speech, get_time_out=True)
+            # # Frame-level GSP（compute stats of per time step）
+            mean= x.mean(dim=1,keepdim=True) #(B,1,T')
+            std= x.std(dim=1,keepdim=True) #(B,1,T')
+            stats = torch.cat([mean, std], dim=1)       # (B, 2, T')
+
+            stats = stats.permute(0, 2, 1) # (B, T',2)
+            x = self.gsp_fc(stats) # (B, T', F)
+            x = x.permute(0,2,1) # (B, F, T')
+            x = self.speech_down_or_up(x)
         else:
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)
