@@ -342,6 +342,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("--num-transformer-layer",type=int,default=2, help="""single_backend or multi_backend number of layers""")
     parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba2 network""")
     parser.add_argument("--expand",type=int,default=4,help="""expand of mamba2 network""")
+    parser.add_argument("--ots-vad-style", type=str, default="", help="choice it from `v1`")
     return parser
 
 
@@ -917,6 +918,7 @@ def main(args):
     model_cfg.num_transformer_layer=params.num_transformer_layer
     model_cfg.d_state = params.d_state
     model_cfg.expand = params.expand
+    model_cfg.ots_vad_style = params.ots_vad_style
 
 
 
