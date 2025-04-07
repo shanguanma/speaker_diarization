@@ -364,7 +364,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("--num-transformer-layer",type=int,default=2, help="""single_backend or multi_backend number of layers""")
     parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba2 network""")
     parser.add_argument("--expand",type=int,default=4,help="""expand of mamba2 network""")
-
+    parser.add_argument("--ots-vad-style",type=str2bool, default=False,help="")
     return parser
 
 
@@ -421,6 +421,7 @@ def get_params() -> AttributeDict:
 
 def calculate_loss(outs, labels, labels_len):
     total_loss = 0
+    #print(f"outs shape: {outs.shape}, labels shape: {labels.shape}, labels_len: {labels_len}")
     for i in range(labels_len.size(0)):
         total_loss += F.binary_cross_entropy_with_logits(
             outs[i, :, : labels_len[i]], labels[i, :, : labels_len[i]]
@@ -965,7 +966,7 @@ def main(args):
     model_cfg.d_state = params.d_state
     model_cfg.expand = params.expand
     model_cfg.label_rate = params.label_rate
-
+    model_cfg.ots_vad_style = params.ots_vad_style
     logging.info(f"model_cfg: {model_cfg}")
 
     model = TSVADModel(cfg=model_cfg,task_cfg=data_cfg)

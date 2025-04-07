@@ -293,7 +293,7 @@ def main(args):
     model_cfg.d_state = args.d_state
     model_cfg.expand = args.expand
     model_cfg.label_rate = args.label_rate
-
+    model_cfg.ots_vad_style = args.ots_vad_style
     logging.info(f"infer model_cfg: {model_cfg}")
     model = TSVADModel(cfg=model_cfg, task_cfg=data_cfg, device=device)
 

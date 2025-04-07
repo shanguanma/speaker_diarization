@@ -123,6 +123,7 @@ class TSVADConfig:
     """expand of mamba2"""
     label_rate: int = 25
     """default is 25, on label is 40ms,  for redimnet, I use one label is 10ms, means that label_rate is 100"""
+    ots_vad_style: bool = False
 
 
 model_cfg = TSVADConfig()
@@ -206,6 +207,7 @@ class TSVADModel(nn.Module):
         self.support_variable_number_speakers = (
             task_cfg.support_variable_number_speakers
         )
+        self.ots_vad_style = cfg.ots_vad_style
         # assert (
         #    self.label_rate == cfg.label_rate
         # ), f"self.label_rate is {elf.label_rate} not support!"
@@ -308,6 +310,16 @@ class TSVADModel(nn.Module):
                 ),
                 BatchNorm1D(num_features=cfg.transformer_embed_dim),
                 nn.ReLU(),
+            )
+        elif cfg.single_backend_type == "conformer_ots_vad":
+            self.single_backend = torchaudio.models.Conformer(
+                    input_dim=384, # 192*2
+                    num_heads=8,
+                    ffn_dim=512,
+                    num_layers=6,
+                    depthwise_conv_kernel_size=31,
+                    dropout= 0.1,
+                    use_group_norm=True,
             )
         elif cfg.single_backend_type == "mamba":
             self.pos_encoder = PositionalEncoding(
@@ -464,7 +476,14 @@ class TSVADModel(nn.Module):
                 self.fc = nn.Linear(cfg.transformer_embed_dim, 1)
             else:
                 self.fc = nn.Linear(cfg.transformer_embed_dim, self.max_num_speaker)
-
+        elif cfg.multi_backend_type == "lstm_ots_vad":
+            self.multi_backend = nn.LSTM(
+                input_size=self.max_num_speaker*384,
+                hidden_size=256,
+                bidirectional=True,
+                batch_first=True
+            )
+            self.fc = nn.Linear(512, self.max_num_speaker)
         return self.multi_backend, self.fc, self.multi_backend_proj
 
     def create_speech_encoder(self, sample_times, cfg, device):
@@ -505,6 +524,27 @@ class TSVADModel(nn.Module):
             self.gsp_fc = nn.Linear(2,256)
             stride = int(2 // sample_times) if self.label_rate == 25 else 1
             pretrain_speech_encoder_dim = 256
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    cfg.speaker_embed_dim,
+                    5,
+                    stride=stride,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.speaker_embed_dim),
+                nn.ReLU(),
+            )
+        if self.speech_encoder_type == "CAM++_ots_vad":
+            self.speech_encoder = CAMPPlus(feat_dim=80, embedding_size=192)
+            self.speech_encoder.train()
+            self.load_speaker_encoder(
+                cfg.speech_encoder_path, device=device, module_name="speech_encoder"
+            )
+            # reference from https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10768974 `III.A part`
+            self.gsp_fc = nn.Linear(2,192)
+            stride = int(2 // sample_times) if self.label_rate == 25 else 1
+            pretrain_speech_encoder_dim = 512
             self.speech_down_or_up = nn.Sequential(
                 nn.Conv1d(
                     pretrain_speech_encoder_dim,
@@ -997,6 +1037,97 @@ class TSVADModel(nn.Module):
                 *self.multi_backend.parameters(),
                 *self.fc.parameters(),
             ]
+    def forward_common_ots_vad(
+        self,
+        ref_speech: torch.Tensor,
+        target_speech: torch.Tensor,
+        labels: torch.Tensor,
+        # labels_len: torch.Tensor,
+        fix_encoder: bool = True,
+        num_updates: int = 0,
+    ):
+        B = ref_speech.size(0)
+        T = ref_speech.size(1)
+        # print(f"ref_speech shape: {ref_speech.shape}")
+        max_len = labels.size(-1)
+        fix_encoder = num_updates < self.freeze_speech_encoder_updates
+        if self.speech_encoder_type == "CAM++_ots_vad":
+            with torch.no_grad() if fix_encoder else contextlib.ExitStack():
+                # its input fbank feature(80-dim)
+                x = self.speech_encoder(ref_speech, get_time_out=True)#(B,512,T')
+            x = self.speech_down_or_up(x) # (B,192,T'//2)
+
+            # # Frame-level GSP（compute stats of per time step）
+            mean= x.mean(dim=1,keepdim=True) #(B,1,T'//2)
+            std= x.std(dim=1,keepdim=True) #(B,1,T'//2)
+            stats = torch.cat([mean, std], dim=1)       # (B, 2, T'//2)
+
+            stats = stats.permute(0, 2, 1) # (B, T'//2,2)
+            x = self.gsp_fc(stats) # (B, T'//2, 192)
+            x = x.permute(0,2,1) #(B,192, T'//2)
+        ## process gap of audio len and label len
+        gap = x.size(-1) - max_len
+        assert (
+            abs(x.size(-1) - max_len) <= 3
+            ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}, label len: {max_len}, ref_speech len: {x.size(-1)}"
+        # padding audio len to label len
+        if gap == -1:
+            x = nn.functional.pad(x, (0, 1))
+        elif gap == -2:
+            x = nn.functional.pad(x, (0, 2))
+        elif gap == -3:
+            x = nn.functional.pad(x, (0, 3))
+        # cut audio len to label len
+        x = x[:, :, :max_len]  # (B,192,T'//2)
+
+        # print(f"after padding audio len shape: {x.shape}")
+        mix_embeds = x.transpose(1, 2)  # (B,T'//2,D) # D=192, T=T'//2
+
+        # target speech
+        ts_embeds = self.rs_dropout(target_speech)  # B, 4, D
+
+        # combine target embedding and mix embedding
+        # Extend ts_embeds for time alignemnt
+        ts_embeds = ts_embeds.unsqueeze(2)  # B, 4, 1, D
+        # repeat T to cat mix frame-level information
+        ts_embeds = ts_embeds.repeat(1, 1, mix_embeds.shape[1], 1)  # B, 4, T, D
+        B, _, T, _ = ts_embeds.shape
+        #conformer for single speaker
+        # assume self.max_num_speaker==4,
+        cat_embeds = []
+        for i in range(self.max_num_speaker):
+            ts_embed = ts_embeds[:, i, :, :]  # B,T,D
+            cat_embed = torch.cat((ts_embed, mix_embeds), 2)  # B,T,2D
+            #if self.proj_layer is not None:
+            #    cat_embed = self.proj_layer(cat_embed)
+            #logging.debug(f"cat_embed: shape: {cat_embed.shape}")  # (B,T,384)
+            #cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
+            if self.single_backend_type == "conformer_ots_vad":
+                #cat_embed = cat_embed.transpose(0, 1)  # B,T, 2D
+                lengths = torch.tensor(
+                    [cat_embed.size(1) for i in cat_embed],
+                    dtype=torch.int32,
+                    device=cat_embed.device,
+                )
+                #cat_embed = cat_embed.transpose(0, 1)  # T,B 2D
+                #cat_embed = self.pos_encoder(cat_embed)
+                #cat_embed = cat_embed.transpose(0, 1)  # B,T, F
+                # print(f"before single_backend, cat_embed shape: {cat_embed.shape}")
+                #print(f"before self.single_backend: cat_embed shape: {cat_embed.shape}")
+                cat_embed, _ = self.single_backend(cat_embed, lengths)  # B,T, 2D
+            cat_embeds.append(cat_embed)
+        # Combine the outputs
+        cat_embeds  = torch.cat(cat_embeds, dim=-1)  # [B, T, self.max_num_speaker*2D]
+        #print(f"before self.multi_backend_type, cat_embeds shape: {cat_embeds.shape}")
+        if self.multi_backend_type == "lstm_ots_vad":
+            cat_embeds,_ = self.multi_backend(cat_embeds)  # B,T, 512
+            #print(f"cat_embeds shape: {cat_embeds.shape}")
+            outs = self.fc(cat_embeds)  # B T' 4
+        outs = outs.transpose(1, 2)  # B,4,T'
+        return outs
+
+
+
     def forward_common(
         self,
         ref_speech: torch.Tensor,
@@ -1127,7 +1258,7 @@ class TSVADModel(nn.Module):
             stats = stats.permute(0, 2, 1) # (B, T',2)
             x = self.gsp_fc(stats) # (B, T', F)
             x = x.permute(0,2,1) # (B, F, T')
-            x = self.speech_down_or_up(x)
+            x = self.speech_down_or_up(x) # (B,192,T'//2)
         else:
             with torch.no_grad() if fix_encoder else contextlib.ExitStack():
                 # its input fbank feature(80-dim)
@@ -1193,6 +1324,18 @@ class TSVADModel(nn.Module):
                 # print(f"before single_backend, cat_embed shape: {cat_embed.shape}")
                 cat_embed, _ = self.single_backend(cat_embed, lengths)  # B,T, F
                 # print(f"after single_backend, cat_embed shape: {cat_embed.shape}")
+            elif self.single_backend_type == "conformer_ots_vad":
+                cat_embed = cat_embed.transpose(0, 1)  # B,T, 2D
+                lengths = torch.tensor(
+                    [cat_embed.size(1) for i in cat_embed],
+                    dtype=torch.int32,
+                    device=cat_embed.device,
+                )
+                #cat_embed = cat_embed.transpose(0, 1)  # T,B 2D
+                #cat_embed = self.pos_encoder(cat_embed)
+                #cat_embed = cat_embed.transpose(0, 1)  # B,T, F
+                # print(f"before single_backend, cat_embed shape: {cat_embed.shape}")
+                cat_embed, _ = self.single_backend(cat_embed, lengths)  # B,T, F
             else:
                 cat_embed = self.pos_encoder(cat_embed)
                 cat_embed = self.single_backend(cat_embed)  # T, B, F
@@ -1447,7 +1590,7 @@ class TSVADModel(nn.Module):
         labels: torch.Tensor,
         num_updates: int,
     ):
-        if not self.support_variable_number_speakers:
+        if not self.ots_vad_style:
             outs = self.forward_common(
                 ref_speech=ref_speech,
                 target_speech=target_speech,
@@ -1455,7 +1598,7 @@ class TSVADModel(nn.Module):
                 num_updates=num_updates,
             )
         else:
-            outs = self.forward_common_variable_number_speakers(
+            outs = self.forward_common_ots_vad(
                 ref_speech=ref_speech,
                 target_speech=target_speech,
                 labels=labels,
@@ -1475,7 +1618,7 @@ class TSVADModel(nn.Module):
         start=None,
         # inference:bool=True,
     ):
-        outs = self.forward_common(
+        outs = self.forward(
             ref_speech=ref_speech,
             target_speech=target_speech,
             labels=labels,

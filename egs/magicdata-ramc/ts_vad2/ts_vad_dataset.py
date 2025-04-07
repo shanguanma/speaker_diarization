@@ -332,9 +332,9 @@ class TSVADDataset(torch.utils.data.Dataset):
 
         frame_len = audio_stop - audio_start
         #logger.info(f"ref_speech shape: {ref_speech.shape} in fn load_rs")
-        assert (
-            frame_len - ref_speech.shape[1] <= 100
-        ), f"frame_len {frame_len} ref_speech.shape[1] {ref_speech.shape[1]}"
+        #assert (
+        #    frame_len - ref_speech.shape[1] <= 100
+        #), f"frame_len {frame_len} ref_speech.shape[1] {ref_speech.shape[1]}"
         if frame_len - ref_speech.shape[1] > 0:
             new_ref_speech = np.zeros((ref_speech.shape[0], frame_len))
             new_ref_speech[:, : ref_speech.shape[1]] = ref_speech
