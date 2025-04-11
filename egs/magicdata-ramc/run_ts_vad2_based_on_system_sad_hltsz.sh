@@ -199,7 +199,7 @@ fi
 #Eval for threshold 0.5 DER=7.90, miss=5.85, falarm=0.36, confusion=1.69
 #Eval for threshold 0.55 DER=8.94, miss=7.35, falarm=0.27, confusion=1.32
 #Eval for threshold 0.6 DER=10.22, miss=9.02, falarm=0.21, confusion=0.99
-#Eval for threshold 0.7 DER=13.16, miss=12.49, falarm=0.12, confusion=0.55
+#Eval for threshold 0.7 DER=13.16, miss=12.49, falarm=0.12, confusion=0.55  
 #Eval for threshold 0.8 DER=17.48, miss=17.11, falarm=0.06, confusion=0.31
 #Eval for threshold 0.9 DER=26.56, miss=26.39, falarm=0.03, confusion=0.15
 
@@ -222,42 +222,42 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
   done
 fi
 
-grep -r 'Avg CDER' logs/run_ts_vad2_based_on_system_sad_stage5.log
-# dev of magicdata-ramc, CDER
-Avg CDER : 0.411
-Avg CDER : 0.298
-Avg CDER : 0.251
-Avg CDER : 0.211
-Avg CDER : 0.172
-Avg CDER : 0.149
-Avg CDER : 0.132
-Avg CDER : 0.114
-Avg CDER : 0.104
-Avg CDER : 0.097
-Avg CDER : 0.092
-
-# test of magicdata-ramc, CDER
-Avg CDER : 0.391
-Avg CDER : 0.310
-Avg CDER : 0.267
-Avg CDER : 0.225
-Avg CDER : 0.193
-Avg CDER : 0.155
-Avg CDER : 0.127
-Avg CDER : 0.111
-Avg CDER : 0.119
-Avg CDER : 0.103
-Avg CDER : 0.104
-
-# cssd_testset of magicdata-ramc, CDER
-Avg CDER : 0.274
-Avg CDER : 0.208
-Avg CDER : 0.178
-Avg CDER : 0.150
-Avg CDER : 0.128
-Avg CDER : 0.109
-Avg CDER : 0.100
-Avg CDER : 0.095
-Avg CDER : 0.088
-Avg CDER : 0.107
-Avg CDER : 0.134
+#grep -r 'Avg CDER' logs/run_ts_vad2_based_on_system_sad_stage5.log
+## dev of magicdata-ramc, CDER
+#Avg CDER : 0.411
+#Avg CDER : 0.298
+#Avg CDER : 0.251
+#Avg CDER : 0.211
+#Avg CDER : 0.172
+#Avg CDER : 0.149
+#Avg CDER : 0.132
+#Avg CDER : 0.114
+#Avg CDER : 0.104
+#Avg CDER : 0.097
+#Avg CDER : 0.092
+#
+## test of magicdata-ramc, CDER
+#Avg CDER : 0.391
+#Avg CDER : 0.310
+#Avg CDER : 0.267
+#Avg CDER : 0.225
+#Avg CDER : 0.193
+#Avg CDER : 0.155
+#Avg CDER : 0.127
+#Avg CDER : 0.111
+#Avg CDER : 0.119
+#Avg CDER : 0.103
+#Avg CDER : 0.104
+#
+## cssd_testset of magicdata-ramc, CDER
+#Avg CDER : 0.274
+#Avg CDER : 0.208
+#Avg CDER : 0.178
+#Avg CDER : 0.150  threshold=0.4
+#Avg CDER : 0.128
+#Avg CDER : 0.109
+#Avg CDER : 0.100
+#Avg CDER : 0.095
+#Avg CDER : 0.088  threshold=0.7
+#Avg CDER : 0.107
+#Avg CDER : 0.134

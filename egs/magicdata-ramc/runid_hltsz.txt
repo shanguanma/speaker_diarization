@@ -5,7 +5,15 @@ srun -n 1 -c 6 --gres=gpu:2 -p speech --pty bash
 -w, --nodelist=<node name list>  # 指定申请的节点；
 -x, --exclude=<node name list>   # 排除指定的节点；
 
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_ts_vad2_hltsz_20250320_infer_cssd_testset.log run_ts_vad2_hltsz.sh --stage 4 --stop-stage 4
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage12-13.log run_eend_vc_hltsz.sh --stage 12 --stop-stage 13
+ sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage10-11.log run_eend_vc_hltsz.sh --stage 10 --stop-stage 11
 
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_ts_vad2_based_on_system_sad_stage5.log run_ts_vad2_based_on_system_sad.sh --stage 5 --stop-stage 5
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_ts_vad2_based_on_system_sad_stage4.log run_ts_vad2_based_on_system_sad.sh --stage 4 --stop-stage 4
+
+sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_ts_vad2_based_on_system_sad_stage3.log run_ts_vad2_based_on_system_sad.sh --stage 3 --stop-stage 3
 sbatch --nodes 1  --gres=gpu:1  --cpus-per-gpu=8  --ntasks-per-node 1 -p speech -o logs/run_eend_vc_hltsz_stage8-9.log run_eend_vc_hltsz.sh --stage 8 --stop-stage 9
 Submitted batch job 15066
 
