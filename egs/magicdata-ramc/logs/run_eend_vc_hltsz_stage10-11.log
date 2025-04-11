@@ -1,0 +1,826 @@
+stage2: model inference...
+2025-03-11 16:24:13,461 - INFO: Applied quirks (see `speechbrain.utils.quirks`): [disable_jit_profiling, allow_tf32]
+2025-03-11 16:24:13,461 - INFO: Excluded quirks specified by the `SB_DISABLE_QUIRKS` environment (comma-separated list): []
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/pyannote-audio/pyannote/audio/pipelines/speaker_verification.py:45: UserWarning: Module 'speechbrain.pretrained' was deprecated, redirecting to 'speechbrain.inference'. Please update your script. This is a change from SpeechBrain 1.0. See: https://github.com/speechbrain/speechbrain/releases/tag/v1.0.0
+  from speechbrain.pretrained import (
+2025-03-11 16:24:13,510 - INFO: ONNX Runtime version: 1.17.0
+2025-03-11 16:24:13,510 - INFO: Available providers: ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'AzureExecutionProvider', 'CPUExecutionProvider']
+2025-03-11 16:24:13,755 - INFO: Namespace(configuration='eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml', in_wav_scp='/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', out_dir='exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/dev', uem_file='/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', avg_ckpt_num=5, val_metric='DER', val_mode='best', val_metric_summary='exp/wavlm_updated_conformer_magicdata-ramc/val_metric_summary.lst', segmentation_model=None, embedding_model='/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx', max_speakers=8, batch_size=32, max_length_merged='50', merge_closer='0.5', cluster_threshold=0.7, min_cluster_size=30, segmentation_step=0.1)
+2025-03-11 16:24:13,755 - INFO: Path(args.configuration).expanduser(): eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml
+2025-03-11 16:24:13,755 - INFO: config_path: /data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml
+2025-03-11 16:24:13,761 - INFO: config: {'meta': {'save_dir': '/data/maduo/exp/speaker_diarization/eend_vc', 'seed': 3407}, 'finetune': {'finetune': False}, 'trainer': {'path': 'eend_vc.trainer_dual_opt.Trainer', 'args': {'max_epochs': 100, 'gradient_percentile': 90, 'gradient_history_size': 1000, 'save_max_score': False, 'save_ckpt_interval': 1, 'max_patience': 10, 'max_num_checkpoints': 100, 'gradient_accumulation_steps': 1, 'validation_interval': 1, 'freeze_wavlm': False, 'lr_decay': False, 'use_one_cycle_lr': False}}, 'optimizer_small': {'path': 'torch.optim.AdamW', 'args': {'lr': 2e-05}}, 'optimizer_big': {'path': 'torch.optim.AdamW', 'args': {'lr': 0.001}}, 'model': {'path': 'eend_vc.diarizen.models.eend.model_wavlm_conformer.Model', 'args': {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}}, 'train_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/all.uem', 'chunk_size': 8, 'chunk_shift': 6, 'sample_rate': 16000}, 'dataloader': {'batch_size': 16, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}, 'validate_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', 'chunk_size': 8, 'chunk_shift': 8, 'sample_rate': 16000}, 'dataloader': {'batch_size': 8, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}}
+2025-03-11 16:24:13,765 - INFO: averaging the best 5 checkpoints...
+2025-03-11 16:24:13,766 - INFO: config: {'meta': {'save_dir': '/data/maduo/exp/speaker_diarization/eend_vc', 'seed': 3407}, 'finetune': {'finetune': False}, 'trainer': {'path': 'eend_vc.trainer_dual_opt.Trainer', 'args': {'max_epochs': 100, 'gradient_percentile': 90, 'gradient_history_size': 1000, 'save_max_score': False, 'save_ckpt_interval': 1, 'max_patience': 10, 'max_num_checkpoints': 100, 'gradient_accumulation_steps': 1, 'validation_interval': 1, 'freeze_wavlm': False, 'lr_decay': False, 'use_one_cycle_lr': False}}, 'optimizer_small': {'path': 'torch.optim.AdamW', 'args': {'lr': 2e-05}}, 'optimizer_big': {'path': 'torch.optim.AdamW', 'args': {'lr': 0.001}}, 'model': {'path': 'eend_vc.diarizen.models.eend.model_wavlm_conformer.Model', 'args': {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}}, 'train_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/all.uem', 'chunk_size': 8, 'chunk_shift': 6, 'sample_rate': 16000}, 'dataloader': {'batch_size': 16, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}, 'validate_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', 'chunk_size': 8, 'chunk_shift': 8, 'sample_rate': 16000}, 'dataloader': {'batch_size': 8, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}}
+2025-03-11 16:24:47,904 - INFO: embedding: /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx
+[0;93m2025-03-11 16:24:55.896892331 [W:onnxruntime:, transformer_memcpy.cc:74 ApplyImpl] 2 Memcpy nodes are added to the graph main_graph for CUDAExecutionProvider. It might have negative impact on performance (including unable to run CUDA graph). Set session_options.log_severity_level=1 to see the detail logs before this message.[m
+[0;93m2025-03-11 16:24:55.898707567 [W:onnxruntime:, session_state.cc:1166 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.[m
+[0;93m2025-03-11 16:24:55.898717718 [W:onnxruntime:, session_state.cc:1168 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.[m
+2025-03-11 16:25:01,201 - INFO: onnx run at cuda device!!!
+2025-03-11 16:25:01,302 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1421
+2025-03-11 16:25:01,302 - INFO: Extracting segmentations...
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/pyannote-audio/pyannote/audio/utils/reproducibility.py:74: ReproducibilityWarning: TensorFloat-32 (TF32) has been disabled as it might lead to reproducibility issues and lower accuracy.
+It can be re-enabled by calling
+   >>> import torch
+   >>> torch.backends.cuda.matmul.allow_tf32 = True
+   >>> torch.backends.cudnn.allow_tf32 = True
+See https://github.com/pyannote/pyannote-audio/issues/1370 for more details.
+
+  warnings.warn(
+2025-03-11 16:25:37,813 - INFO: Extracting Embeddings.
+2025-03-11 16:26:13,442 - INFO: Clustering.
+2025-03-11 16:26:14,887 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1422
+2025-03-11 16:26:14,887 - INFO: Extracting segmentations...
+2025-03-11 16:26:41,622 - INFO: Extracting Embeddings.
+2025-03-11 16:27:12,353 - INFO: Clustering.
+2025-03-11 16:27:13,467 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1423
+2025-03-11 16:27:13,467 - INFO: Extracting segmentations...
+2025-03-11 16:27:41,233 - INFO: Extracting Embeddings.
+2025-03-11 16:28:20,369 - INFO: Clustering.
+2025-03-11 16:28:22,108 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1426
+2025-03-11 16:28:22,108 - INFO: Extracting segmentations...
+2025-03-11 16:28:50,818 - INFO: Extracting Embeddings.
+2025-03-11 16:29:29,779 - INFO: Clustering.
+2025-03-11 16:29:31,324 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1428
+2025-03-11 16:29:31,324 - INFO: Extracting segmentations...
+2025-03-11 16:29:56,636 - INFO: Extracting Embeddings.
+2025-03-11 16:30:30,261 - INFO: Clustering.
+2025-03-11 16:30:31,765 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1434
+2025-03-11 16:30:31,765 - INFO: Extracting segmentations...
+2025-03-11 16:30:58,356 - INFO: Extracting Embeddings.
+2025-03-11 16:31:33,822 - INFO: Clustering.
+2025-03-11 16:31:35,275 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1447
+2025-03-11 16:31:35,275 - INFO: Extracting segmentations...
+2025-03-11 16:32:03,481 - INFO: Extracting Embeddings.
+2025-03-11 16:32:37,386 - INFO: Clustering.
+2025-03-11 16:32:38,912 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1448
+2025-03-11 16:32:38,912 - INFO: Extracting segmentations...
+2025-03-11 16:33:06,863 - INFO: Extracting Embeddings.
+2025-03-11 16:33:50,128 - INFO: Clustering.
+2025-03-11 16:33:51,838 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1449
+2025-03-11 16:33:51,838 - INFO: Extracting segmentations...
+2025-03-11 16:34:20,780 - INFO: Extracting Embeddings.
+2025-03-11 16:34:59,058 - INFO: Clustering.
+2025-03-11 16:35:00,695 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1452
+2025-03-11 16:35:00,695 - INFO: Extracting segmentations...
+2025-03-11 16:35:25,805 - INFO: Extracting Embeddings.
+2025-03-11 16:36:01,432 - INFO: Clustering.
+2025-03-11 16:36:03,249 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1458
+2025-03-11 16:36:03,249 - INFO: Extracting segmentations...
+2025-03-11 16:36:28,697 - INFO: Extracting Embeddings.
+2025-03-11 16:37:06,512 - INFO: Clustering.
+2025-03-11 16:37:08,116 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1461
+2025-03-11 16:37:08,116 - INFO: Extracting segmentations...
+2025-03-11 16:37:32,944 - INFO: Extracting Embeddings.
+2025-03-11 16:38:00,821 - INFO: Clustering.
+2025-03-11 16:38:01,837 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1463
+2025-03-11 16:38:01,838 - INFO: Extracting segmentations...
+2025-03-11 16:38:27,606 - INFO: Extracting Embeddings.
+2025-03-11 16:38:57,822 - INFO: Clustering.
+2025-03-11 16:38:58,853 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1468
+2025-03-11 16:38:58,853 - INFO: Extracting segmentations...
+2025-03-11 16:39:23,255 - INFO: Extracting Embeddings.
+2025-03-11 16:39:59,662 - INFO: Clustering.
+2025-03-11 16:40:01,336 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1469
+2025-03-11 16:40:01,336 - INFO: Extracting segmentations...
+2025-03-11 16:40:24,590 - INFO: Extracting Embeddings.
+2025-03-11 16:40:54,155 - INFO: Clustering.
+2025-03-11 16:40:55,422 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1470
+2025-03-11 16:40:55,422 - INFO: Extracting segmentations...
+2025-03-11 16:41:20,449 - INFO: Extracting Embeddings.
+2025-03-11 16:41:57,341 - INFO: Clustering.
+2025-03-11 16:41:59,511 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1473
+2025-03-11 16:41:59,511 - INFO: Extracting segmentations...
+2025-03-11 16:42:25,156 - INFO: Extracting Embeddings.
+2025-03-11 16:43:03,608 - INFO: Clustering.
+2025-03-11 16:43:05,333 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1475
+2025-03-11 16:43:05,333 - INFO: Extracting segmentations...
+2025-03-11 16:43:28,006 - INFO: Extracting Embeddings.
+2025-03-11 16:43:58,344 - INFO: Clustering.
+2025-03-11 16:44:00,094 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-1477
+2025-03-11 16:44:00,095 - INFO: Extracting segmentations...
+2025-03-11 16:44:24,026 - INFO: Extracting Embeddings.
+2025-03-11 16:45:00,038 - INFO: Clustering.
+args: {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}
+Average model over 5 checkpoints...
+[{'epoch': 3, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0003/pytorch_model.bin'), 'Loss': 0.188, 'DER': 0.073}, {'epoch': 2, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0002/pytorch_model.bin'), 'Loss': 0.186, 'DER': 0.075}, {'epoch': 8, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0008/pytorch_model.bin'), 'Loss': 0.208, 'DER': 0.076}, {'epoch': 5, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0005/pytorch_model.bin'), 'Loss': 0.189, 'DER': 0.077}, {'epoch': 6, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0006/pytorch_model.bin'), 'Loss': 0.201, 'DER': 0.077}]
+self.embedding: /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx
+2025-03-11 16:45:17,716 - INFO: Applied quirks (see `speechbrain.utils.quirks`): [disable_jit_profiling, allow_tf32]
+2025-03-11 16:45:17,716 - INFO: Excluded quirks specified by the `SB_DISABLE_QUIRKS` environment (comma-separated list): []
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/pyannote-audio/pyannote/audio/pipelines/speaker_verification.py:45: UserWarning: Module 'speechbrain.pretrained' was deprecated, redirecting to 'speechbrain.inference'. Please update your script. This is a change from SpeechBrain 1.0. See: https://github.com/speechbrain/speechbrain/releases/tag/v1.0.0
+  from speechbrain.pretrained import (
+2025-03-11 16:45:17,796 - INFO: ONNX Runtime version: 1.17.0
+2025-03-11 16:45:17,797 - INFO: Available providers: ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'AzureExecutionProvider', 'CPUExecutionProvider']
+2025-03-11 16:45:18,678 - INFO: Namespace(configuration='eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml', in_wav_scp='/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/wav.scp', out_dir='exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/test', uem_file='/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/test/all.uem', avg_ckpt_num=5, val_metric='DER', val_mode='best', val_metric_summary='exp/wavlm_updated_conformer_magicdata-ramc/val_metric_summary.lst', segmentation_model=None, embedding_model='/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx', max_speakers=8, batch_size=32, max_length_merged='50', merge_closer='0.5', cluster_threshold=0.7, min_cluster_size=30, segmentation_step=0.1)
+2025-03-11 16:45:18,678 - INFO: Path(args.configuration).expanduser(): eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml
+2025-03-11 16:45:18,678 - INFO: config_path: /data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml
+2025-03-11 16:45:18,682 - INFO: config: {'meta': {'save_dir': '/data/maduo/exp/speaker_diarization/eend_vc', 'seed': 3407}, 'finetune': {'finetune': False}, 'trainer': {'path': 'eend_vc.trainer_dual_opt.Trainer', 'args': {'max_epochs': 100, 'gradient_percentile': 90, 'gradient_history_size': 1000, 'save_max_score': False, 'save_ckpt_interval': 1, 'max_patience': 10, 'max_num_checkpoints': 100, 'gradient_accumulation_steps': 1, 'validation_interval': 1, 'freeze_wavlm': False, 'lr_decay': False, 'use_one_cycle_lr': False}}, 'optimizer_small': {'path': 'torch.optim.AdamW', 'args': {'lr': 2e-05}}, 'optimizer_big': {'path': 'torch.optim.AdamW', 'args': {'lr': 0.001}}, 'model': {'path': 'eend_vc.diarizen.models.eend.model_wavlm_conformer.Model', 'args': {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}}, 'train_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/all.uem', 'chunk_size': 8, 'chunk_shift': 6, 'sample_rate': 16000}, 'dataloader': {'batch_size': 16, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}, 'validate_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', 'chunk_size': 8, 'chunk_shift': 8, 'sample_rate': 16000}, 'dataloader': {'batch_size': 8, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}}
+2025-03-11 16:45:18,689 - INFO: averaging the best 5 checkpoints...
+2025-03-11 16:45:18,689 - INFO: config: {'meta': {'save_dir': '/data/maduo/exp/speaker_diarization/eend_vc', 'seed': 3407}, 'finetune': {'finetune': False}, 'trainer': {'path': 'eend_vc.trainer_dual_opt.Trainer', 'args': {'max_epochs': 100, 'gradient_percentile': 90, 'gradient_history_size': 1000, 'save_max_score': False, 'save_ckpt_interval': 1, 'max_patience': 10, 'max_num_checkpoints': 100, 'gradient_accumulation_steps': 1, 'validation_interval': 1, 'freeze_wavlm': False, 'lr_decay': False, 'use_one_cycle_lr': False}}, 'optimizer_small': {'path': 'torch.optim.AdamW', 'args': {'lr': 2e-05}}, 'optimizer_big': {'path': 'torch.optim.AdamW', 'args': {'lr': 0.001}}, 'model': {'path': 'eend_vc.diarizen.models.eend.model_wavlm_conformer.Model', 'args': {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}}, 'train_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/all.uem', 'chunk_size': 8, 'chunk_shift': 6, 'sample_rate': 16000}, 'dataloader': {'batch_size': 16, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}, 'validate_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', 'chunk_size': 8, 'chunk_shift': 8, 'sample_rate': 16000}, 'dataloader': {'batch_size': 8, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}}
+2025-03-11 16:45:27,448 - INFO: embedding: /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx
+[0;93m2025-03-11 16:45:27.609972460 [W:onnxruntime:, transformer_memcpy.cc:74 ApplyImpl] 2 Memcpy nodes are added to the graph main_graph for CUDAExecutionProvider. It might have negative impact on performance (including unable to run CUDA graph). Set session_options.log_severity_level=1 to see the detail logs before this message.[m
+[0;93m2025-03-11 16:45:27.611816578 [W:onnxruntime:, session_state.cc:1166 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.[m
+[0;93m2025-03-11 16:45:27.611827573 [W:onnxruntime:, session_state.cc:1168 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.[m
+2025-03-11 16:45:27,705 - INFO: onnx run at cuda device!!!
+2025-03-11 16:45:27,799 - INFO: Diarizing Session CTS-CN-F2F-2019-11-04-387
+2025-03-11 16:45:27,799 - INFO: Extracting segmentations...
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/pyannote-audio/pyannote/audio/utils/reproducibility.py:74: ReproducibilityWarning: TensorFloat-32 (TF32) has been disabled as it might lead to reproducibility issues and lower accuracy.
+It can be re-enabled by calling
+   >>> import torch
+   >>> torch.backends.cuda.matmul.allow_tf32 = True
+   >>> torch.backends.cudnn.allow_tf32 = True
+See https://github.com/pyannote/pyannote-audio/issues/1370 for more details.
+
+  warnings.warn(
+2025-03-11 16:45:54,636 - INFO: Extracting Embeddings.
+2025-03-11 16:46:35,585 - INFO: Clustering.
+2025-03-11 16:46:37,496 - INFO: Diarizing Session CTS-CN-F2F-2019-11-11-193
+2025-03-11 16:46:37,496 - INFO: Extracting segmentations...
+2025-03-11 16:46:49,465 - INFO: Extracting Embeddings.
+2025-03-11 16:47:05,385 - INFO: Clustering.
+2025-03-11 16:47:06,018 - INFO: Diarizing Session CTS-CN-F2F-2019-11-11-198
+2025-03-11 16:47:06,018 - INFO: Extracting segmentations...
+2025-03-11 16:47:18,204 - INFO: Extracting Embeddings.
+2025-03-11 16:47:34,295 - INFO: Clustering.
+2025-03-11 16:47:35,014 - INFO: Diarizing Session CTS-CN-F2F-2019-11-11-390
+2025-03-11 16:47:35,015 - INFO: Extracting segmentations...
+2025-03-11 16:47:47,280 - INFO: Extracting Embeddings.
+2025-03-11 16:48:03,707 - INFO: Clustering.
+2025-03-11 16:48:04,461 - INFO: Diarizing Session CTS-CN-F2F-2019-11-11-423
+2025-03-11 16:48:04,461 - INFO: Extracting segmentations...
+2025-03-11 16:48:16,140 - INFO: Extracting Embeddings.
+2025-03-11 16:48:34,813 - INFO: Clustering.
+2025-03-11 16:48:35,377 - INFO: Diarizing Session CTS-CN-F2F-2019-11-11-431
+2025-03-11 16:48:35,377 - INFO: Extracting segmentations...
+2025-03-11 16:48:47,465 - INFO: Extracting Embeddings.
+2025-03-11 16:49:01,877 - INFO: Clustering.
+2025-03-11 16:49:02,461 - INFO: Diarizing Session CTS-CN-F2F-2019-11-11-716
+2025-03-11 16:49:02,461 - INFO: Extracting segmentations...
+2025-03-11 16:49:14,280 - INFO: Extracting Embeddings.
+2025-03-11 16:49:27,489 - INFO: Clustering.
+2025-03-11 16:49:27,952 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-3
+2025-03-11 16:49:27,976 - INFO: Extracting segmentations...
+2025-03-11 16:49:53,219 - INFO: Extracting Embeddings.
+2025-03-11 16:50:29,759 - INFO: Clustering.
+2025-03-11 16:50:31,653 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-8
+2025-03-11 16:50:31,653 - INFO: Extracting segmentations...
+2025-03-11 16:50:56,262 - INFO: Extracting Embeddings.
+2025-03-11 16:51:27,500 - INFO: Clustering.
+2025-03-11 16:51:28,771 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-9
+2025-03-11 16:51:28,771 - INFO: Extracting segmentations...
+2025-03-11 16:51:52,471 - INFO: Extracting Embeddings.
+2025-03-11 16:52:20,441 - INFO: Clustering.
+2025-03-11 16:52:21,612 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-17
+2025-03-11 16:52:21,612 - INFO: Extracting segmentations...
+2025-03-11 16:52:45,885 - INFO: Extracting Embeddings.
+2025-03-11 16:53:24,198 - INFO: Clustering.
+2025-03-11 16:53:26,330 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-26
+2025-03-11 16:53:26,330 - INFO: Extracting segmentations...
+2025-03-11 16:53:51,497 - INFO: Extracting Embeddings.
+2025-03-11 16:54:25,098 - INFO: Clustering.
+2025-03-11 16:54:27,006 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-27
+2025-03-11 16:54:27,006 - INFO: Extracting segmentations...
+2025-03-11 16:54:52,556 - INFO: Extracting Embeddings.
+2025-03-11 16:55:23,418 - INFO: Clustering.
+2025-03-11 16:55:24,847 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-37
+2025-03-11 16:55:24,848 - INFO: Extracting segmentations...
+2025-03-11 16:55:51,589 - INFO: Extracting Embeddings.
+2025-03-11 16:56:15,467 - INFO: Clustering.
+2025-03-11 16:56:16,682 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-39
+2025-03-11 16:56:16,682 - INFO: Extracting segmentations...
+2025-03-11 16:56:41,735 - INFO: Extracting Embeddings.
+2025-03-11 16:57:17,240 - INFO: Clustering.
+2025-03-11 16:57:19,056 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-45
+2025-03-11 16:57:19,056 - INFO: Extracting segmentations...
+2025-03-11 16:57:44,317 - INFO: Extracting Embeddings.
+2025-03-11 16:58:18,932 - INFO: Clustering.
+2025-03-11 16:58:20,967 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-52
+2025-03-11 16:58:20,967 - INFO: Extracting segmentations...
+2025-03-11 16:58:46,934 - INFO: Extracting Embeddings.
+2025-03-11 16:59:20,641 - INFO: Clustering.
+2025-03-11 16:59:22,327 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-53
+2025-03-11 16:59:22,327 - INFO: Extracting segmentations...
+2025-03-11 16:59:47,106 - INFO: Extracting Embeddings.
+2025-03-11 17:00:24,668 - INFO: Clustering.
+2025-03-11 17:00:26,936 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-56
+2025-03-11 17:00:26,937 - INFO: Extracting segmentations...
+2025-03-11 17:00:51,901 - INFO: Extracting Embeddings.
+2025-03-11 17:01:31,935 - INFO: Clustering.
+2025-03-11 17:01:34,060 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-65
+2025-03-11 17:01:34,060 - INFO: Extracting segmentations...
+2025-03-11 17:01:59,833 - INFO: Extracting Embeddings.
+2025-03-11 17:02:40,996 - INFO: Clustering.
+2025-03-11 17:02:43,588 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-68
+2025-03-11 17:02:43,588 - INFO: Extracting segmentations...
+2025-03-11 17:03:09,643 - INFO: Extracting Embeddings.
+2025-03-11 17:03:42,160 - INFO: Clustering.
+2025-03-11 17:03:43,727 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-73
+2025-03-11 17:03:43,727 - INFO: Extracting segmentations...
+2025-03-11 17:04:08,270 - INFO: Extracting Embeddings.
+2025-03-11 17:04:37,080 - INFO: Clustering.
+2025-03-11 17:04:38,234 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-75
+2025-03-11 17:04:38,235 - INFO: Extracting segmentations...
+2025-03-11 17:05:02,120 - INFO: Extracting Embeddings.
+2025-03-11 17:05:32,796 - INFO: Clustering.
+2025-03-11 17:05:34,076 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-77
+2025-03-11 17:05:34,076 - INFO: Extracting segmentations...
+2025-03-11 17:05:59,753 - INFO: Extracting Embeddings.
+2025-03-11 17:06:26,790 - INFO: Clustering.
+2025-03-11 17:06:27,852 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-81
+2025-03-11 17:06:27,852 - INFO: Extracting segmentations...
+2025-03-11 17:06:52,889 - INFO: Extracting Embeddings.
+2025-03-11 17:07:29,366 - INFO: Clustering.
+2025-03-11 17:07:31,606 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-82
+2025-03-11 17:07:31,606 - INFO: Extracting segmentations...
+2025-03-11 17:07:57,269 - INFO: Extracting Embeddings.
+2025-03-11 17:08:25,657 - INFO: Clustering.
+2025-03-11 17:08:27,092 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-88
+2025-03-11 17:08:27,092 - INFO: Extracting segmentations...
+2025-03-11 17:08:52,300 - INFO: Extracting Embeddings.
+2025-03-11 17:09:21,557 - INFO: Clustering.
+2025-03-11 17:09:23,041 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-91
+2025-03-11 17:09:23,041 - INFO: Extracting segmentations...
+2025-03-11 17:09:49,119 - INFO: Extracting Embeddings.
+2025-03-11 17:10:24,232 - INFO: Clustering.
+2025-03-11 17:10:26,017 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-94
+2025-03-11 17:10:26,017 - INFO: Extracting segmentations...
+2025-03-11 17:10:51,697 - INFO: Extracting Embeddings.
+2025-03-11 17:11:26,967 - INFO: Clustering.
+2025-03-11 17:11:28,944 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-100
+2025-03-11 17:11:28,945 - INFO: Extracting segmentations...
+2025-03-11 17:11:55,353 - INFO: Extracting Embeddings.
+2025-03-11 17:12:24,549 - INFO: Clustering.
+2025-03-11 17:12:26,134 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-101
+2025-03-11 17:12:26,135 - INFO: Extracting segmentations...
+2025-03-11 17:12:52,954 - INFO: Extracting Embeddings.
+2025-03-11 17:13:27,740 - INFO: Clustering.
+2025-03-11 17:13:29,863 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-105
+2025-03-11 17:13:29,864 - INFO: Extracting segmentations...
+2025-03-11 17:13:55,365 - INFO: Extracting Embeddings.
+2025-03-11 17:14:21,202 - INFO: Clustering.
+2025-03-11 17:14:22,362 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-121
+2025-03-11 17:14:22,362 - INFO: Extracting segmentations...
+2025-03-11 17:14:46,763 - INFO: Extracting Embeddings.
+2025-03-11 17:15:17,323 - INFO: Clustering.
+2025-03-11 17:15:18,606 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-123
+2025-03-11 17:15:18,606 - INFO: Extracting segmentations...
+2025-03-11 17:15:43,063 - INFO: Extracting Embeddings.
+2025-03-11 17:16:15,785 - INFO: Clustering.
+2025-03-11 17:16:17,519 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-126
+2025-03-11 17:16:17,519 - INFO: Extracting segmentations...
+2025-03-11 17:16:43,678 - INFO: Extracting Embeddings.
+2025-03-11 17:17:17,987 - INFO: Clustering.
+2025-03-11 17:17:19,716 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-128
+2025-03-11 17:17:19,716 - INFO: Extracting segmentations...
+2025-03-11 17:17:44,778 - INFO: Extracting Embeddings.
+2025-03-11 17:18:19,958 - INFO: Clustering.
+2025-03-11 17:18:21,560 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-135
+2025-03-11 17:18:21,560 - INFO: Extracting segmentations...
+2025-03-11 17:18:49,359 - INFO: Extracting Embeddings.
+2025-03-11 17:19:23,449 - INFO: Clustering.
+2025-03-11 17:19:25,297 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-138
+2025-03-11 17:19:25,297 - INFO: Extracting segmentations...
+2025-03-11 17:19:50,571 - INFO: Extracting Embeddings.
+2025-03-11 17:20:25,435 - INFO: Clustering.
+2025-03-11 17:20:27,460 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-142
+2025-03-11 17:20:27,460 - INFO: Extracting segmentations...
+2025-03-11 17:20:53,558 - INFO: Extracting Embeddings.
+2025-03-11 17:21:28,769 - INFO: Clustering.
+2025-03-11 17:21:30,891 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-144
+2025-03-11 17:21:30,891 - INFO: Extracting segmentations...
+2025-03-11 17:21:56,376 - INFO: Extracting Embeddings.
+2025-03-11 17:22:33,476 - INFO: Clustering.
+2025-03-11 17:22:35,687 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-150
+2025-03-11 17:22:35,687 - INFO: Extracting segmentations...
+2025-03-11 17:23:01,129 - INFO: Extracting Embeddings.
+2025-03-11 17:23:28,551 - INFO: Clustering.
+2025-03-11 17:23:29,882 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-151
+2025-03-11 17:23:29,882 - INFO: Extracting segmentations...
+2025-03-11 17:23:56,229 - INFO: Extracting Embeddings.
+2025-03-11 17:24:33,408 - INFO: Clustering.
+2025-03-11 17:24:35,209 - INFO: Diarizing Session CTS-CN-F2F-2019-11-15-153
+2025-03-11 17:24:35,209 - INFO: Extracting segmentations...
+2025-03-11 17:25:00,348 - INFO: Extracting Embeddings.
+2025-03-11 17:25:31,245 - INFO: Clustering.
+args: {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}
+Average model over 5 checkpoints...
+[{'epoch': 3, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0003/pytorch_model.bin'), 'Loss': 0.188, 'DER': 0.073}, {'epoch': 2, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0002/pytorch_model.bin'), 'Loss': 0.186, 'DER': 0.075}, {'epoch': 8, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0008/pytorch_model.bin'), 'Loss': 0.208, 'DER': 0.076}, {'epoch': 5, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0005/pytorch_model.bin'), 'Loss': 0.189, 'DER': 0.077}, {'epoch': 6, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0006/pytorch_model.bin'), 'Loss': 0.201, 'DER': 0.077}]
+self.embedding: /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx
+2025-03-11 17:26:48,078 - INFO: Applied quirks (see `speechbrain.utils.quirks`): [allow_tf32, disable_jit_profiling]
+2025-03-11 17:26:48,079 - INFO: Excluded quirks specified by the `SB_DISABLE_QUIRKS` environment (comma-separated list): []
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/pyannote-audio/pyannote/audio/pipelines/speaker_verification.py:45: UserWarning: Module 'speechbrain.pretrained' was deprecated, redirecting to 'speechbrain.inference'. Please update your script. This is a change from SpeechBrain 1.0. See: https://github.com/speechbrain/speechbrain/releases/tag/v1.0.0
+  from speechbrain.pretrained import (
+2025-03-11 17:26:48,500 - INFO: ONNX Runtime version: 1.17.0
+2025-03-11 17:26:48,500 - INFO: Available providers: ['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'AzureExecutionProvider', 'CPUExecutionProvider']
+2025-03-11 17:26:50,316 - INFO: Namespace(configuration='eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml', in_wav_scp='/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset/wav.scp', out_dir='exp/wavlm_updated_conformer_magicdata-ramc/infer_constrained_AHC_segmentation_step_0.1_min_cluster_size_30_AHC_thres_0.70_pyan_max_length_merged50_eres2netv2_sv_zh-cn_16k-common_200k/metric_DER_best/avg_ckpt5/cssd_testset', uem_file='/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/cssd_testset/all.uem', avg_ckpt_num=5, val_metric='DER', val_mode='best', val_metric_summary='exp/wavlm_updated_conformer_magicdata-ramc/val_metric_summary.lst', segmentation_model=None, embedding_model='/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx', max_speakers=8, batch_size=32, max_length_merged='50', merge_closer='0.5', cluster_threshold=0.7, min_cluster_size=30, segmentation_step=0.1)
+2025-03-11 17:26:50,316 - INFO: Path(args.configuration).expanduser(): eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml
+2025-03-11 17:26:50,316 - INFO: config_path: /data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/conf/wavlm_updated_conformer_magicdata-ramc.toml
+2025-03-11 17:26:50,347 - INFO: config: {'meta': {'save_dir': '/data/maduo/exp/speaker_diarization/eend_vc', 'seed': 3407}, 'finetune': {'finetune': False}, 'trainer': {'path': 'eend_vc.trainer_dual_opt.Trainer', 'args': {'max_epochs': 100, 'gradient_percentile': 90, 'gradient_history_size': 1000, 'save_max_score': False, 'save_ckpt_interval': 1, 'max_patience': 10, 'max_num_checkpoints': 100, 'gradient_accumulation_steps': 1, 'validation_interval': 1, 'freeze_wavlm': False, 'lr_decay': False, 'use_one_cycle_lr': False}}, 'optimizer_small': {'path': 'torch.optim.AdamW', 'args': {'lr': 2e-05}}, 'optimizer_big': {'path': 'torch.optim.AdamW', 'args': {'lr': 0.001}}, 'model': {'path': 'eend_vc.diarizen.models.eend.model_wavlm_conformer.Model', 'args': {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}}, 'train_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/all.uem', 'chunk_size': 8, 'chunk_shift': 6, 'sample_rate': 16000}, 'dataloader': {'batch_size': 16, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}, 'validate_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', 'chunk_size': 8, 'chunk_shift': 8, 'sample_rate': 16000}, 'dataloader': {'batch_size': 8, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}}
+2025-03-11 17:26:50,384 - INFO: averaging the best 5 checkpoints...
+2025-03-11 17:26:50,384 - INFO: config: {'meta': {'save_dir': '/data/maduo/exp/speaker_diarization/eend_vc', 'seed': 3407}, 'finetune': {'finetune': False}, 'trainer': {'path': 'eend_vc.trainer_dual_opt.Trainer', 'args': {'max_epochs': 100, 'gradient_percentile': 90, 'gradient_history_size': 1000, 'save_max_score': False, 'save_ckpt_interval': 1, 'max_patience': 10, 'max_num_checkpoints': 100, 'gradient_accumulation_steps': 1, 'validation_interval': 1, 'freeze_wavlm': False, 'lr_decay': False, 'use_one_cycle_lr': False}}, 'optimizer_small': {'path': 'torch.optim.AdamW', 'args': {'lr': 2e-05}}, 'optimizer_big': {'path': 'torch.optim.AdamW', 'args': {'lr': 0.001}}, 'model': {'path': 'eend_vc.diarizen.models.eend.model_wavlm_conformer.Model', 'args': {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}}, 'train_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/train/all.uem', 'chunk_size': 8, 'chunk_shift': 6, 'sample_rate': 16000}, 'dataloader': {'batch_size': 16, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}, 'validate_dataset': {'path': 'eend_vc.dataset.DiarizationDataset', 'args': {'scp_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/wav.scp', 'rttm_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/rttm_debug_nog0', 'uem_file': '/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format/dev/all.uem', 'chunk_size': 8, 'chunk_shift': 8, 'sample_rate': 16000}, 'dataloader': {'batch_size': 8, 'num_workers': 1, 'drop_last': True, 'pin_memory': True}}}
+2025-03-11 17:27:24,364 - INFO: embedding: /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx
+[0;93m2025-03-11 17:27:27.441080772 [W:onnxruntime:, transformer_memcpy.cc:74 ApplyImpl] 2 Memcpy nodes are added to the graph main_graph for CUDAExecutionProvider. It might have negative impact on performance (including unable to run CUDA graph). Set session_options.log_severity_level=1 to see the detail logs before this message.[m
+[0;93m2025-03-11 17:27:27.442960308 [W:onnxruntime:, session_state.cc:1166 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.[m
+[0;93m2025-03-11 17:27:27.442977447 [W:onnxruntime:, session_state.cc:1168 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.[m
+2025-03-11 17:27:27,549 - INFO: onnx run at cuda device!!!
+2025-03-11 17:27:27,692 - INFO: Diarizing Session CTS-CN-F2F-2018-04-23_620
+2025-03-11 17:27:27,692 - INFO: Extracting segmentations...
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/eend_vc/pyannote-audio/pyannote/audio/utils/reproducibility.py:74: ReproducibilityWarning: TensorFloat-32 (TF32) has been disabled as it might lead to reproducibility issues and lower accuracy.
+It can be re-enabled by calling
+   >>> import torch
+   >>> torch.backends.cuda.matmul.allow_tf32 = True
+   >>> torch.backends.cudnn.allow_tf32 = True
+See https://github.com/pyannote/pyannote-audio/issues/1370 for more details.
+
+  warnings.warn(
+2025-03-11 17:27:53,435 - INFO: Extracting Embeddings.
+2025-03-11 17:28:35,153 - INFO: Clustering.
+2025-03-11 17:28:36,966 - INFO: Diarizing Session CTS-CN-F2F-2017-12-15_438
+2025-03-11 17:28:36,967 - INFO: Extracting segmentations...
+2025-03-11 17:29:01,748 - INFO: Extracting Embeddings.
+2025-03-11 17:29:39,771 - INFO: Clustering.
+2025-03-11 17:29:41,738 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_723
+2025-03-11 17:29:41,738 - INFO: Extracting segmentations...
+2025-03-11 17:30:06,153 - INFO: Extracting Embeddings.
+2025-03-11 17:30:39,668 - INFO: Clustering.
+2025-03-11 17:30:41,293 - INFO: Diarizing Session CTS-CN-F2F-2017-12-15_412
+2025-03-11 17:30:41,293 - INFO: Extracting segmentations...
+2025-03-11 17:31:03,677 - INFO: Extracting Embeddings.
+2025-03-11 17:31:39,198 - INFO: Clustering.
+2025-03-11 17:31:41,043 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_469
+2025-03-11 17:31:41,043 - INFO: Extracting segmentations...
+2025-03-11 17:32:05,328 - INFO: Extracting Embeddings.
+2025-03-11 17:32:42,161 - INFO: Clustering.
+2025-03-11 17:32:43,954 - INFO: Diarizing Session CTS-CN-F2F-2017-11-29_109
+2025-03-11 17:32:43,954 - INFO: Extracting segmentations...
+2025-03-11 17:33:07,646 - INFO: Extracting Embeddings.
+2025-03-11 17:33:46,738 - INFO: Clustering.
+2025-03-11 17:33:48,548 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_726
+2025-03-11 17:33:48,548 - INFO: Extracting segmentations...
+2025-03-11 17:34:14,099 - INFO: Extracting Embeddings.
+2025-03-11 17:34:45,634 - INFO: Clustering.
+2025-03-11 17:34:47,162 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_236
+2025-03-11 17:34:47,162 - INFO: Extracting segmentations...
+2025-03-11 17:35:11,066 - INFO: Extracting Embeddings.
+2025-03-11 17:35:48,613 - INFO: Clustering.
+2025-03-11 17:35:50,461 - INFO: Diarizing Session CTS-CN-F2F-2017-11-14_87
+2025-03-11 17:35:50,462 - INFO: Extracting segmentations...
+2025-03-11 17:36:15,182 - INFO: Extracting Embeddings.
+2025-03-11 17:36:50,969 - INFO: Clustering.
+2025-03-11 17:36:52,867 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_949
+2025-03-11 17:36:52,867 - INFO: Extracting segmentations...
+2025-03-11 17:37:15,989 - INFO: Extracting Embeddings.
+2025-03-11 17:37:45,792 - INFO: Clustering.
+2025-03-11 17:37:47,491 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_948
+2025-03-11 17:37:47,491 - INFO: Extracting segmentations...
+2025-03-11 17:38:10,287 - INFO: Extracting Embeddings.
+2025-03-11 17:38:47,429 - INFO: Clustering.
+2025-03-11 17:38:49,221 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_779
+2025-03-11 17:38:49,221 - INFO: Extracting segmentations...
+2025-03-11 17:39:10,528 - INFO: Extracting Embeddings.
+2025-03-11 17:39:41,293 - INFO: Clustering.
+2025-03-11 17:39:42,908 - INFO: Diarizing Session CTS-CN-F2F-2017-11-14_85
+2025-03-11 17:39:42,908 - INFO: Extracting segmentations...
+2025-03-11 17:40:06,861 - INFO: Extracting Embeddings.
+2025-03-11 17:40:44,460 - INFO: Clustering.
+2025-03-11 17:40:46,151 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_757
+2025-03-11 17:40:46,151 - INFO: Extracting segmentations...
+2025-03-11 17:41:10,467 - INFO: Extracting Embeddings.
+2025-03-11 17:41:38,541 - INFO: Clustering.
+2025-03-11 17:41:40,149 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_545
+2025-03-11 17:41:40,149 - INFO: Extracting segmentations...
+2025-03-11 17:42:03,152 - INFO: Extracting Embeddings.
+2025-03-11 17:42:36,056 - INFO: Clustering.
+2025-03-11 17:42:37,455 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_782
+2025-03-11 17:42:37,456 - INFO: Extracting segmentations...
+2025-03-11 17:43:01,057 - INFO: Extracting Embeddings.
+2025-03-11 17:43:35,918 - INFO: Clustering.
+2025-03-11 17:43:37,486 - INFO: Diarizing Session CTS-CN-F2F-2017-12-20_70
+2025-03-11 17:43:37,486 - INFO: Extracting segmentations...
+2025-03-11 17:43:48,471 - INFO: Extracting Embeddings.
+2025-03-11 17:44:04,236 - INFO: Clustering.
+2025-03-11 17:44:04,856 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_799
+2025-03-11 17:44:04,856 - INFO: Extracting segmentations...
+2025-03-11 17:44:22,675 - INFO: Extracting Embeddings.
+2025-03-11 17:44:44,161 - INFO: Clustering.
+2025-03-11 17:44:45,415 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_563
+2025-03-11 17:44:45,415 - INFO: Extracting segmentations...
+2025-03-11 17:45:10,038 - INFO: Extracting Embeddings.
+2025-03-11 17:45:45,628 - INFO: Clustering.
+2025-03-11 17:45:47,776 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_615
+2025-03-11 17:45:47,776 - INFO: Extracting segmentations...
+2025-03-11 17:46:10,476 - INFO: Extracting Embeddings.
+2025-03-11 17:46:41,229 - INFO: Clustering.
+2025-03-11 17:46:43,006 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_763
+2025-03-11 17:46:43,006 - INFO: Extracting segmentations...
+2025-03-11 17:47:07,887 - INFO: Extracting Embeddings.
+2025-03-11 17:47:38,103 - INFO: Clustering.
+2025-03-11 17:47:39,894 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_560
+2025-03-11 17:47:39,894 - INFO: Extracting segmentations...
+2025-03-11 17:48:04,348 - INFO: Extracting Embeddings.
+2025-03-11 17:48:41,009 - INFO: Clustering.
+2025-03-11 17:48:42,860 - INFO: Diarizing Session CTS-CN-F2F-2017-11-14_88
+2025-03-11 17:48:42,860 - INFO: Extracting segmentations...
+2025-03-11 17:49:07,780 - INFO: Extracting Embeddings.
+2025-03-11 17:49:46,516 - INFO: Clustering.
+2025-03-11 17:49:48,473 - INFO: Diarizing Session CTS-CN-F2F-2017-12-15_440
+2025-03-11 17:49:48,473 - INFO: Extracting segmentations...
+2025-03-11 17:50:13,033 - INFO: Extracting Embeddings.
+2025-03-11 17:50:49,948 - INFO: Clustering.
+2025-03-11 17:50:52,103 - INFO: Diarizing Session CTS-CN-F2F-2018-04-23_507
+2025-03-11 17:50:52,122 - INFO: Extracting segmentations...
+2025-03-11 17:51:00,555 - INFO: Extracting Embeddings.
+2025-03-11 17:51:13,145 - INFO: Clustering.
+2025-03-11 17:51:13,622 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_825
+2025-03-11 17:51:13,622 - INFO: Extracting segmentations...
+2025-03-11 17:51:40,123 - INFO: Extracting Embeddings.
+2025-03-11 17:52:15,135 - INFO: Clustering.
+2025-03-11 17:52:17,385 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_776
+2025-03-11 17:52:17,385 - INFO: Extracting segmentations...
+2025-03-11 17:52:39,346 - INFO: Extracting Embeddings.
+2025-03-11 17:53:07,138 - INFO: Clustering.
+2025-03-11 17:53:08,616 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_777
+2025-03-11 17:53:08,616 - INFO: Extracting segmentations...
+2025-03-11 17:53:29,929 - INFO: Extracting Embeddings.
+2025-03-11 17:54:00,769 - INFO: Clustering.
+2025-03-11 17:54:02,378 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_950
+2025-03-11 17:54:02,378 - INFO: Extracting segmentations...
+2025-03-11 17:54:24,367 - INFO: Extracting Embeddings.
+2025-03-11 17:54:56,696 - INFO: Clustering.
+2025-03-11 17:54:58,361 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_472
+2025-03-11 17:54:58,361 - INFO: Extracting segmentations...
+2025-03-11 17:55:23,360 - INFO: Extracting Embeddings.
+2025-03-11 17:55:59,691 - INFO: Clustering.
+2025-03-11 17:56:01,467 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_703
+2025-03-11 17:56:01,467 - INFO: Extracting segmentations...
+2025-03-11 17:56:27,257 - INFO: Extracting Embeddings.
+2025-03-11 17:56:57,972 - INFO: Clustering.
+2025-03-11 17:57:00,547 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_716
+2025-03-11 17:57:00,547 - INFO: Extracting segmentations...
+2025-03-11 17:57:24,322 - INFO: Extracting Embeddings.
+2025-03-11 17:57:59,666 - INFO: Clustering.
+2025-03-11 17:58:01,385 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_471
+2025-03-11 17:58:01,386 - INFO: Extracting segmentations...
+2025-03-11 17:58:25,633 - INFO: Extracting Embeddings.
+2025-03-11 17:59:01,508 - INFO: Clustering.
+2025-03-11 17:59:03,387 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_700
+2025-03-11 17:59:03,387 - INFO: Extracting segmentations...
+2025-03-11 17:59:30,345 - INFO: Extracting Embeddings.
+2025-03-11 18:00:05,896 - INFO: Clustering.
+2025-03-11 18:00:08,266 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_713
+2025-03-11 18:00:08,266 - INFO: Extracting segmentations...
+2025-03-11 18:00:31,372 - INFO: Extracting Embeddings.
+2025-03-11 18:01:03,987 - INFO: Clustering.
+2025-03-11 18:01:05,777 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_712
+2025-03-11 18:01:05,778 - INFO: Extracting segmentations...
+2025-03-11 18:01:28,303 - INFO: Extracting Embeddings.
+2025-03-11 18:02:01,141 - INFO: Clustering.
+2025-03-11 18:02:02,810 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_909
+2025-03-11 18:02:02,810 - INFO: Extracting segmentations...
+2025-03-11 18:02:26,180 - INFO: Extracting Embeddings.
+2025-03-11 18:02:58,851 - INFO: Clustering.
+2025-03-11 18:03:00,839 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_470
+2025-03-11 18:03:00,839 - INFO: Extracting segmentations...
+2025-03-11 18:03:25,097 - INFO: Extracting Embeddings.
+2025-03-11 18:03:59,830 - INFO: Clustering.
+2025-03-11 18:04:01,466 - INFO: Diarizing Session CTS-CN-F2F-2018-05-08_110
+2025-03-11 18:04:01,466 - INFO: Extracting segmentations...
+2025-03-11 18:04:25,131 - INFO: Extracting Embeddings.
+2025-03-11 18:04:59,600 - INFO: Clustering.
+2025-03-11 18:05:01,441 - INFO: Diarizing Session CTS-CN-F2F-2018-04-16_699
+2025-03-11 18:05:01,441 - INFO: Extracting segmentations...
+2025-03-11 18:05:26,414 - INFO: Extracting Embeddings.
+2025-03-11 18:05:56,296 - INFO: Clustering.
+args: {'wavlm_dir': '/data/maduo/model_hub/speaker_pretrain_model/wavlm/WavLM-Base+.pt', 'wavlm_layer_num': 13, 'wavlm_feat_dim': 768, 'attention_in': 256, 'ffn_hidden': 1024, 'num_head': 4, 'num_layer': 4, 'dropout': 0.1, 'chunk_size': 8, 'use_posi': False, 'output_activate_function': False, 'selected_channel': 0, 'max_speakers_per_chunk': 2}
+Average model over 5 checkpoints...
+[{'epoch': 3, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0003/pytorch_model.bin'), 'Loss': 0.188, 'DER': 0.073}, {'epoch': 2, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0002/pytorch_model.bin'), 'Loss': 0.186, 'DER': 0.075}, {'epoch': 8, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0008/pytorch_model.bin'), 'Loss': 0.208, 'DER': 0.076}, {'epoch': 5, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0005/pytorch_model.bin'), 'Loss': 0.189, 'DER': 0.077}, {'epoch': 6, 'bin_path': PosixPath('/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/exp/wavlm_updated_conformer_magicdata-ramc/checkpoints/epoch_0006/pytorch_model.bin'), 'Loss': 0.201, 'DER': 0.077}]
+self.embedding: /data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.onnx
+ scoring...
+Loading speaker turns from reference RTTMs...
+Loading speaker turns from system RTTMs...
+WARNING: No universal evaluation map specified. Approximating from reference and speaker turn extents...
+Trimming reference speaker turns to UEM scoring regions...
+Trimming system speaker turns to UEM scoring regions...
+Checking for overlapping reference speaker turns...
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1421, SPEAKER: G00000224
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1422, SPEAKER: G00000248
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1422, SPEAKER: G00000249
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1423, SPEAKER: G00000462
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1426, SPEAKER: G00000070
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1428, SPEAKER: G00000619
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1434, SPEAKER: G00000096
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1448, SPEAKER: G00000200
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1449, SPEAKER: G00000144
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1452, SPEAKER: G00000079
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1461, SPEAKER: G00000058
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1470, SPEAKER: G00000073
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1473, SPEAKER: G00000448
+Checking for overlapping system speaker turns...
+Scoring...
+ scoring...
+Loading speaker turns from reference RTTMs...
+Loading speaker turns from system RTTMs...
+WARNING: No universal evaluation map specified. Approximating from reference and speaker turn extents...
+Trimming reference speaker turns to UEM scoring regions...
+Trimming system speaker turns to UEM scoring regions...
+Checking for overlapping reference speaker turns...
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-04-387, SPEAKER: G00000168
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-04-387, SPEAKER: G00000169
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-11-423, SPEAKER: G00000464
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-11-716, SPEAKER: G00000131
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-100, SPEAKER: G00000185
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-105, SPEAKER: G00000290
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-121, SPEAKER: G00000583
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-121, SPEAKER: G00000584
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-123, SPEAKER: G00000639
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-126, SPEAKER: G00000364
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-128, SPEAKER: G00000230
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-128, SPEAKER: G00000231
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-135, SPEAKER: G00000282
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-135, SPEAKER: G00000283
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-142, SPEAKER: G00000671
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-142, SPEAKER: G00000672
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-151, SPEAKER: G00000045
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-151, SPEAKER: G00000046
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-17, SPEAKER: G00000092
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-26, SPEAKER: G00000243
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-27, SPEAKER: G00000537
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-3, SPEAKER: G00000284
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-3, SPEAKER: G00000285
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-39, SPEAKER: G00000326
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-39, SPEAKER: G00000327
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-45, SPEAKER: G00000489
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-45, SPEAKER: G00000490
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-53, SPEAKER: G00000528
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-56, SPEAKER: G00000533
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-56, SPEAKER: G00000534
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-65, SPEAKER: G00000621
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-65, SPEAKER: G00000622
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-68, SPEAKER: G00000680
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-73, SPEAKER: G00000129
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-75, SPEAKER: G00000391
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-75, SPEAKER: G00000392
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-77, SPEAKER: G00000429
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-77, SPEAKER: G00000430
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-8, SPEAKER: G00000661
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-8, SPEAKER: G00000662
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-81, SPEAKER: G00000141
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-82, SPEAKER: G00000322
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-88, SPEAKER: G00000155
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-91, SPEAKER: G00000341
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-94, SPEAKER: G00000094
+Checking for overlapping system speaker turns...
+Scoring...
+ scoring...
+Loading speaker turns from reference RTTMs...
+Loading speaker turns from system RTTMs...
+WARNING: No universal evaluation map specified. Approximating from reference and speaker turn extents...
+Trimming reference speaker turns to UEM scoring regions...
+Trimming system speaker turns to UEM scoring regions...
+Checking for overlapping reference speaker turns...
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_85, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_85, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_87, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_87, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_88, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_88, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-29_109, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-29_109, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_412, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_412, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_438, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_438, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_440, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_440, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-20_70, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-20_70, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_545, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_545, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_560, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_560, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_563, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_563, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_615, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_615, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_699, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_699, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_700, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_700, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_703, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_703, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_716, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_716, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_723, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_723, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_726, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_726, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_757, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_757, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_763, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_763, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_507, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_507, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_620, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_620, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_110, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_110, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_236, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_236, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_469, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_469, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_470, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_470, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_471, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_471, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_472, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_472, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_712, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_712, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_713, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_713, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_776, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_776, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_777, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_777, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_779, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_779, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_782, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_782, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_799, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_799, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_825, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_825, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_909, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_909, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_948, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_948, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_949, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_949, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_950, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_950, SPEAKER: 2
+Checking for overlapping system speaker turns...
+Scoring...
+ scoring...
+Loading speaker turns from reference RTTMs...
+Loading speaker turns from system RTTMs...
+WARNING: No universal evaluation map specified. Approximating from reference and speaker turn extents...
+Trimming reference speaker turns to UEM scoring regions...
+Trimming system speaker turns to UEM scoring regions...
+Checking for overlapping reference speaker turns...
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1421, SPEAKER: G00000224
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1422, SPEAKER: G00000248
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1422, SPEAKER: G00000249
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1423, SPEAKER: G00000462
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1426, SPEAKER: G00000070
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1428, SPEAKER: G00000619
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1434, SPEAKER: G00000096
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1448, SPEAKER: G00000200
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1449, SPEAKER: G00000144
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1452, SPEAKER: G00000079
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1461, SPEAKER: G00000058
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1470, SPEAKER: G00000073
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-1473, SPEAKER: G00000448
+Checking for overlapping system speaker turns...
+Scoring...
+ scoring...
+Loading speaker turns from reference RTTMs...
+Loading speaker turns from system RTTMs...
+WARNING: No universal evaluation map specified. Approximating from reference and speaker turn extents...
+Trimming reference speaker turns to UEM scoring regions...
+Trimming system speaker turns to UEM scoring regions...
+Checking for overlapping reference speaker turns...
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-04-387, SPEAKER: G00000168
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-04-387, SPEAKER: G00000169
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-11-423, SPEAKER: G00000464
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-11-716, SPEAKER: G00000131
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-100, SPEAKER: G00000185
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-105, SPEAKER: G00000290
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-121, SPEAKER: G00000583
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-121, SPEAKER: G00000584
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-123, SPEAKER: G00000639
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-126, SPEAKER: G00000364
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-128, SPEAKER: G00000230
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-128, SPEAKER: G00000231
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-135, SPEAKER: G00000282
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-135, SPEAKER: G00000283
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-142, SPEAKER: G00000671
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-142, SPEAKER: G00000672
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-151, SPEAKER: G00000045
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-151, SPEAKER: G00000046
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-17, SPEAKER: G00000092
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-26, SPEAKER: G00000243
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-27, SPEAKER: G00000537
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-3, SPEAKER: G00000284
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-3, SPEAKER: G00000285
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-39, SPEAKER: G00000326
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-39, SPEAKER: G00000327
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-45, SPEAKER: G00000489
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-45, SPEAKER: G00000490
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-53, SPEAKER: G00000528
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-56, SPEAKER: G00000533
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-56, SPEAKER: G00000534
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-65, SPEAKER: G00000621
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-65, SPEAKER: G00000622
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-68, SPEAKER: G00000680
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-73, SPEAKER: G00000129
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-75, SPEAKER: G00000391
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-75, SPEAKER: G00000392
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-77, SPEAKER: G00000429
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-77, SPEAKER: G00000430
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-8, SPEAKER: G00000661
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-8, SPEAKER: G00000662
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-81, SPEAKER: G00000141
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-82, SPEAKER: G00000322
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-88, SPEAKER: G00000155
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-91, SPEAKER: G00000341
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2019-11-15-94, SPEAKER: G00000094
+Checking for overlapping system speaker turns...
+Scoring...
+ scoring...
+Loading speaker turns from reference RTTMs...
+Loading speaker turns from system RTTMs...
+WARNING: No universal evaluation map specified. Approximating from reference and speaker turn extents...
+Trimming reference speaker turns to UEM scoring regions...
+Trimming system speaker turns to UEM scoring regions...
+Checking for overlapping reference speaker turns...
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_85, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_85, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_87, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_87, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_88, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-14_88, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-29_109, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-11-29_109, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_412, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_412, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_438, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_438, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_440, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-15_440, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-20_70, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2017-12-20_70, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_545, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_545, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_560, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_560, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_563, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_563, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_615, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_615, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_699, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_699, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_700, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_700, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_703, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_703, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_716, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_716, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_723, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_723, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_726, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_726, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_757, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_757, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_763, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-16_763, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_507, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_507, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_620, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-04-23_620, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_110, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_110, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_236, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_236, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_469, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_469, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_470, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_470, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_471, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_471, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_472, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_472, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_712, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_712, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_713, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_713, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_776, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_776, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_777, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_777, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_779, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_779, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_782, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_782, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_799, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_799, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_825, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_825, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_909, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_909, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_948, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_948, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_949, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_949, SPEAKER: 2
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_950, SPEAKER: 1
+WARNING: Merging overlapping speaker turns. FILE: CTS-CN-F2F-2018-05-08_950, SPEAKER: 2
+Checking for overlapping system speaker turns...
+Scoring...

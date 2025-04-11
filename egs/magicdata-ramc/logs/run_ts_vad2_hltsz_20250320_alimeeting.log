@@ -1,0 +1,148 @@
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.3391213878399134
+Model ACC:  0.8822647046755487
+Eval for threshold 0.2 DER=31.23, miss=21.77, falarm=5.83, confusion=3.63
+
+
+Eval for threshold 0.3 DER=32.27, miss=25.91, falarm=3.37, confusion=2.98
+
+
+Eval for threshold 0.35 DER=33.23, miss=27.86, falarm=2.63, confusion=2.73
+
+
+Eval for threshold 0.4 DER=34.10, miss=29.57, falarm=2.06, confusion=2.46
+
+
+Eval for threshold 0.45 DER=35.15, miss=31.30, falarm=1.67, confusion=2.18
+
+
+Eval for threshold 0.5 DER=36.27, miss=33.02, falarm=1.39, confusion=1.86
+
+
+Eval for threshold 0.55 DER=37.78, miss=35.00, falarm=1.27, confusion=1.51
+
+
+Eval for threshold 0.6 DER=39.23, miss=36.83, falarm=1.16, confusion=1.24
+
+
+Eval for threshold 0.7 DER=42.69, miss=41.00, falarm=0.92, confusion=0.76
+
+
+Eval for threshold 0.8 DER=46.98, miss=45.85, falarm=0.70, confusion=0.43
+
+
+Eval for threshold 0.9 DER=52.75, miss=52.12, falarm=0.48, confusion=0.15
+
+
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.3081966131976543
+Model ACC:  0.8868526721007766
+Eval for threshold 0.2 DER=30.10, miss=19.62, falarm=7.01, confusion=3.47
+
+
+Eval for threshold 0.3 DER=31.04, miss=23.74, falarm=4.18, confusion=3.13
+
+
+Eval for threshold 0.35 DER=31.79, miss=25.62, falarm=3.17, confusion=2.99
+
+
+Eval for threshold 0.4 DER=32.64, miss=27.38, falarm=2.39, confusion=2.88
+
+
+Eval for threshold 0.45 DER=33.64, miss=29.16, falarm=1.75, confusion=2.73
+
+
+Eval for threshold 0.5 DER=34.75, miss=30.98, falarm=1.22, confusion=2.56
+
+
+Eval for threshold 0.55 DER=36.19, miss=33.01, falarm=0.98, confusion=2.20
+
+
+Eval for threshold 0.6 DER=37.79, miss=35.08, falarm=0.86, confusion=1.85
+
+
+Eval for threshold 0.7 DER=41.33, miss=39.48, falarm=0.63, confusion=1.22
+
+
+Eval for threshold 0.8 DER=45.73, miss=44.61, falarm=0.41, confusion=0.71
+
+
+Eval for threshold 0.9 DER=52.12, miss=51.63, falarm=0.21, confusion=0.28
+
+
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.3389254382664025
+Model ACC:  0.8823705036530556
+Eval for threshold 0.2 DER=20.82, miss=14.09, falarm=4.26, confusion=2.47
+
+
+Eval for threshold 0.3 DER=21.44, miss=17.13, falarm=2.08, confusion=2.23
+
+
+Eval for threshold 0.35 DER=22.04, miss=18.49, falarm=1.41, confusion=2.13
+
+
+Eval for threshold 0.4 DER=22.66, miss=19.77, falarm=0.90, confusion=1.99
+
+
+Eval for threshold 0.45 DER=23.56, miss=21.18, falarm=0.58, confusion=1.81
+
+
+Eval for threshold 0.5 DER=24.47, miss=22.54, falarm=0.35, confusion=1.58
+
+
+Eval for threshold 0.55 DER=25.79, miss=24.18, falarm=0.33, confusion=1.27
+
+
+Eval for threshold 0.6 DER=27.13, miss=25.78, falarm=0.32, confusion=1.04
+
+
+Eval for threshold 0.7 DER=30.25, miss=29.29, falarm=0.31, confusion=0.65
+
+
+Eval for threshold 0.8 DER=34.26, miss=33.61, falarm=0.29, confusion=0.36
+
+
+Eval for threshold 0.9 DER=39.93, miss=39.54, falarm=0.27, confusion=0.12
+
+
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.3081738357173994
+Model ACC:  0.886867592317017
+Eval for threshold 0.2 DER=20.30, miss=12.49, falarm=5.47, confusion=2.34
+
+
+Eval for threshold 0.3 DER=20.55, miss=15.08, falarm=2.99, confusion=2.47
+
+
+Eval for threshold 0.35 DER=20.86, miss=16.26, falarm=2.06, confusion=2.53
+
+
+Eval for threshold 0.4 DER=21.38, miss=17.42, falarm=1.34, confusion=2.61
+
+
+Eval for threshold 0.45 DER=21.95, miss=18.63, falarm=0.70, confusion=2.62
+
+
+Eval for threshold 0.5 DER=22.67, miss=19.88, falarm=0.22, confusion=2.57
+
+
+Eval for threshold 0.55 DER=23.85, miss=21.49, falarm=0.06, confusion=2.29
+
+
+Eval for threshold 0.6 DER=25.20, miss=23.20, falarm=0.05, confusion=1.96
+
+
+Eval for threshold 0.7 DER=28.39, miss=26.99, falarm=0.04, confusion=1.36
+
+
+Eval for threshold 0.8 DER=32.48, miss=31.61, falarm=0.04, confusion=0.84
+
+
+Eval for threshold 0.9 DER=38.71, miss=38.34, falarm=0.03, confusion=0.35
+
+

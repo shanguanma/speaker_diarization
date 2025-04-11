@@ -1,0 +1,74 @@
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.173287866874701
+Model ACC:  0.9617831321124504
+Eval for threshold 0.2 DER=26.62, miss=3.01, falarm=22.28, confusion=1.33
+
+
+Eval for threshold 0.3 DER=22.31, miss=4.34, falarm=15.79, confusion=2.18
+
+
+Eval for threshold 0.35 DER=20.99, miss=5.17, falarm=13.28, confusion=2.55
+
+
+Eval for threshold 0.4 DER=20.11, miss=6.17, falarm=11.10, confusion=2.84
+
+
+Eval for threshold 0.45 DER=19.70, miss=7.43, falarm=9.31, confusion=2.96
+
+
+Eval for threshold 0.5 DER=19.83, miss=9.09, falarm=8.00, confusion=2.74
+
+
+Eval for threshold 0.55 DER=20.53, miss=11.12, falarm=7.15, confusion=2.25
+
+
+Eval for threshold 0.6 DER=21.39, miss=13.19, falarm=6.38, confusion=1.82
+
+
+Eval for threshold 0.7 DER=23.83, miss=17.97, falarm=4.80, confusion=1.06
+
+
+Eval for threshold 0.8 DER=27.79, miss=24.00, falarm=3.24, confusion=0.55
+
+
+Eval for threshold 0.9 DER=35.33, miss=33.29, falarm=1.79, confusion=0.24
+
+
+/data/maduo/codebase/speaker_diarization/egs/magicdata-ramc/ts_vad2
+self.wavlm_fuse_feat_post_norm: False
+Model DER:  0.17337471782932729
+Model ACC:  0.9617438903123481
+Eval for threshold 0.2 DER=8.39, miss=0.87, falarm=7.07, confusion=0.46
+
+
+Eval for threshold 0.3 DER=6.14, miss=1.36, falarm=3.86, confusion=0.92
+
+
+Eval for threshold 0.35 DER=5.51, miss=1.68, falarm=2.67, confusion=1.16
+
+
+Eval for threshold 0.4 DER=5.13, miss=2.05, falarm=1.68, confusion=1.40
+
+
+Eval for threshold 0.45 DER=5.06, miss=2.63, falarm=0.88, confusion=1.54
+
+
+Eval for threshold 0.5 DER=5.40, miss=3.49, falarm=0.42, confusion=1.50
+
+
+Eval for threshold 0.55 DER=6.21, miss=4.68, falarm=0.33, confusion=1.20
+
+
+Eval for threshold 0.6 DER=7.12, miss=5.91, falarm=0.27, confusion=0.93
+
+
+Eval for threshold 0.7 DER=9.58, miss=8.90, falarm=0.15, confusion=0.53
+
+
+Eval for threshold 0.8 DER=13.37, miss=13.03, falarm=0.07, confusion=0.27
+
+
+Eval for threshold 0.9 DER=20.80, miss=20.62, falarm=0.03, confusion=0.14
+
+
