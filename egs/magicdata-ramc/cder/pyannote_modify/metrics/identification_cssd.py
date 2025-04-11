@@ -32,7 +32,7 @@
 # Runyan Yang       yangrunyan@hccl.ioa.ac.cn       (Institute of Acoustics, Chinese Academy of Science)
 # Qingxuan Li       liqx20@mails.tsinghua.edu.cn    (Tsinghua University)
 
-
+import logging
 from typing import Optional
 
 from pyannote.core import Annotation, Timeline
@@ -146,11 +146,13 @@ class CSSDErrorRate(UEMSupportMixin, BaseMetric):
                 reference_spk_label[label] = [ref_seg]
             if label not in matched_spk_label:
                 matched_spk_label[label] = []
-
+        logging.info(f"reference_spk_label: {reference_spk_label},matched_spk_label: {matched_spk_label}")
         for hyp_seg, _, label in hypothesis.itertracks(yield_label=True):
             if label not in reference_spk_label:
+                #print(f"not in ref , hyp_seg: {hyp_seg}")
                 tot_err+=1
                 continue
+            #print(f"tot_err: {tot_err}")
             matched = False
             for ref_seg in reference_spk_label[label]:
                 intersection = max(0,min(ref_seg.end,hyp_seg.end) - max(ref_seg.start,hyp_seg.start))
@@ -178,6 +180,8 @@ class CSSDErrorRate(UEMSupportMixin, BaseMetric):
         for label, ref_segs in reference_spk_label.items():
             if not matched_spk_label[label]:
                 tot_err+=len(ref_segs)
+                #print(f"tot_err: {tot_err}")
+        print(f"tot_err: {tot_err}, tot_ref: {tot_ref}")
         error_rate = tot_err / tot_ref
 
         detail = self.init_components()

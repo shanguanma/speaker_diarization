@@ -37,8 +37,22 @@ from rttm_io import rttm_read
 import numpy as np
 from argparse import ArgumentParser
 from pre_process import rttm_read_cder
+import logging
+def setup_logging(verbose: int=2):
+    """Make logging setup with a given log level."""
+    if verbose > 0:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
+    else:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
 
 def main():
+    setup_logging()
     parser = ArgumentParser(
         description='Score diarization from RTTM files.', add_help=True,
         usage='%(prog)s [options]')
@@ -48,7 +62,7 @@ def main():
 
     ref = rttm_read_cder(args.ref_rttm_fns)
     hyp = rttm_read_cder(args.sys_rttm_fns)
-
+    #print(f"ref: {ref}")
     CSSDER = CSSDErrorRate()
     results = []
 

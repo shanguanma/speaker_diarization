@@ -32,7 +32,7 @@
 # Runyan Yang       yangrunyan@hccl.ioa.ac.cn       (Institute of Acoustics, Chinese Academy of Science)
 # Qingxuan Li       liqx20@mails.tsinghua.edu.cn    (Tsinghua University)
 
-
+import logging
 from typing import Optional, Dict, TYPE_CHECKING
 
 import numpy as np
@@ -149,10 +149,13 @@ class CSSDErrorRate(CSSDErrorRate):
         # crop reference and hypothesis to evaluated regions (uem)
         # remove collars around reference segment boundaries
         # remove overlap regions (if requested)
+        logging.info(f"before self.uemify: reference: {reference}, hypothesis: {hypothesis}, uem: {uem}*********")
         reference, hypothesis, uem = self.uemify(
             reference, hypothesis, uem=uem,
             collar=self.collar, skip_overlap=self.skip_overlap,
             returns_uem=True)
+        
+        logging.info(f"after self.uemify: reference: {reference}, hypothesis: {hypothesis}, uem: {uem}!!!")
         # NOTE that this 'uemification' must be done here because it
         # might have an impact on the search for the optimal mapping.
 
@@ -169,6 +172,8 @@ class CSSDErrorRate(CSSDErrorRate):
         # NOTE that collar is set to 0.0 because 'uemify' has already
         # been applied (same reason for setting skip_overlap to False)
         mapped = hypothesis.rename_labels(mapping=mapping)
+        #print(f"mapped: {mapped}")
+        #print(f"sb : {super(CSSDErrorRate, self).compute_components(reference, mapped, uem=uem,collar=0.0, skip_overlap=False,**kwargs)}")
         return super(CSSDErrorRate, self) \
             .compute_components(reference, mapped, uem=uem,
                                 collar=0.0, skip_overlap=False,
