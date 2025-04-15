@@ -229,8 +229,8 @@ def load_model(
 def main(args):
     setup_logging(verbose=2)
     ## load dataset
-    from datasets import TSVADDataConfig
-    from datasets import load_dataset
+    from build_datasets import TSVADDataConfig
+    from build_datasets import load_dataset
     from model import TSVADModel
     from model import TSVADConfig
 
@@ -249,8 +249,9 @@ def main(args):
     data_cfg.max_num_speaker = args.max_num_speaker
     data_cfg.rs_len = args.rs_len
     data_cfg.segment_shift = args.segment_shift
+    data_cfg.enhance_ratio = args.enhance_ratio
 
-    logging.info(f"infer data_cfg: {data_cfg}")
+    logging.info(f"final infer data_cfg: {data_cfg}")
     logging.info(f"currently, it will infer {args.split} set.")
     # split=args.split # i.e.: Eval , Test
     infer_dataset = load_dataset(data_cfg, args.split)

@@ -77,8 +77,8 @@ from utils import (
     str2bool,
 )
 
-from datasets import load_dataset
-from datasets import TSVADDataConfig
+from build_datasets import load_dataset
+from build_datasets import TSVADDataConfig
 from model import TSVADModel
 from model import TSVADConfig
 

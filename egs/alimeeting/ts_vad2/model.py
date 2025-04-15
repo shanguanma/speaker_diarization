@@ -171,7 +171,7 @@ class BatchNorm1D(nn.Module):
         return output
 
 
-from datasets import TSVADDataConfig
+from build_datasets import TSVADDataConfig
 
 data_cfg = TSVADDataConfig()
 

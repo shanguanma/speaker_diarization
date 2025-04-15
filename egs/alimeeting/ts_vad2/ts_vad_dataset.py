@@ -13,6 +13,12 @@ import torch
 import librosa
 import torchaudio.compliance.kaldi as kaldi
 from typing import Any,Dict
+# only for add speech enhancement augment for ref_speech
+from modelscope.pipelines import pipeline
+from modelscope.utils.constant import Tasks
+# 设置要使用的线程数，比如8
+#torch.set_num_threads(8)
+#torch.set_num_interop_threads(8)
 logger = logging.getLogger(__name__)
 
 
@@ -96,6 +102,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         spk_path: str = None,
         segment_shift: int = 6,
         zero_ratio: float = 0.5,
+        enhance_ratio: float = 0.0, # if >0, I will use pretrain speech enhancement model to enhance it, it will let the model see the speech after DNN speech enhancement, making the model more robust.
         max_num_speaker: int = 4,
         dataset_name: str = "alimeeting",
         sample_rate: int = 16000,
@@ -138,6 +145,10 @@ class TSVADDataset(torch.utils.data.Dataset):
 
         self.noise_ratio = noise_ratio
         self.zero_ratio = zero_ratio
+        self.enhance_ratio = enhance_ratio
+        if self.enhance_ratio:
+            logger.info(f"Because self.enhance_ratio = {self.enhance_ratio}>0, will use speech enhance audio augment operation!!!!")
+            self.ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base',device="cuda:1") # require modescope>=1.20
         self.max_num_speaker = max_num_speaker
 
         self.embed_len = int(self.sample_rate * embed_len)
@@ -161,7 +172,7 @@ class TSVADDataset(torch.utils.data.Dataset):
             f"loaded sentence={len(self.sizes)}, "
             f"shortest sent={min(self.sizes)}, longest sent={max(self.sizes)}, "
             f"rs_len={rs_len}, segment_shift={segment_shift},  rir={rir_path is not None}, "
-            f"musan={musan_path is not None}, noise_ratio={noise_ratio}, zero_ratio={self.zero_ratio} "
+            f"musan={musan_path is not None}, noise_ratio={noise_ratio}, zero_ratio={self.zero_ratio} ,enhance_ratio={self.enhance_ratio}"
         )
 
     def load_data_and_label(self, json_path):
@@ -198,8 +209,8 @@ class TSVADDataset(torch.utils.data.Dataset):
                 pass
             else:
                 filename_set.add(filename)
-                dis = self.label_rate * self.segment_shift
-                chunk_size = self.label_rate * self.rs_len
+                dis = int(self.label_rate * self.segment_shift)
+                chunk_size = int(self.label_rate * self.rs_len)
                 folder = self.audio_path + "/" + filename + "/*.wav" # target speaker wavform
 
                 audios = glob.glob(folder)
@@ -323,7 +334,15 @@ class TSVADDataset(torch.utils.data.Dataset):
                     ref_speech = self.choose_and_add_noise(
                         random.randint(0, 2), ref_speech, frame_len
                     )
-
+        #logger.info(f"after add noise, ref_speech shape: {ref_speech.shape}")
+        # Each sample placed here needs to instantiate the model, which takes a lot of time
+        # add speech enhancement augment
+        if self.enhance_ratio:
+            add_noise = np.random.choice(2, p=[1 - self.enhance_ratio, self.enhance_ratio])
+            if add_noise==1:
+                #logger.info(f"before add enhance, ref_speech shape: {ref_speech.shape}")
+                ref_speech = self.add_speech_enhance_augment(ref_speech,length=frame_len)
+        #logger.info(f"after add enhance, ref_speech shape: {ref_speech.shape}")
         ref_speech = torch.FloatTensor(np.array(ref_speech))
 
         labels = []
@@ -363,6 +382,21 @@ class TSVADDataset(torch.utils.data.Dataset):
                 new_speaker_ids.append(speaker_id)
         labels = torch.from_numpy(np.array(labels)).float()  # 4, T
         return ref_speech, labels, new_speaker_ids, rc
+
+    def add_speech_enhance_augment(self,ref_speech: np.ndarray, length):
+        #ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base') # require modescope>=1.20 
+        # I modified the codes ` /maduo/miniconda3/envs/dia_cuda11.8_py311/lib/python3.11/site-packages/modelscope/pipelines/audio/ans_pipeline.py` to support np.arrary input
+        # ref_speech is np.float32
+        ref_speech = np.squeeze(ref_speech,axis=0)
+        result = self.ans(ref_speech)
+        enhance_bytes = result['output_pcm']
+        enhance_numpy = np.frombuffer(enhance_bytes, dtype=np.int16 )
+        # convert int16 to float32
+        pcm_float32_data = enhance_numpy.astype(np.float32) / 32768.0
+
+        pcm_float32_data = np.expand_dims(np.array(pcm_float32_data), axis=0)
+        return pcm_float32_data[:, :length] #(1,sample_points)
+
 
     def load_alimeeting_ts_embed(self, file, speaker_ids):
         target_speeches = []

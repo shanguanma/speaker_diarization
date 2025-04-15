@@ -83,8 +83,8 @@ from utils import (
     none_or_str,
 )
 
-from datasets import load_dataset
-from datasets import TSVADDataConfig
+from build_datasets import load_dataset
+from build_datasets import TSVADDataConfig
 from model import TSVADModel
 from model import TSVADConfig
 
@@ -283,6 +283,7 @@ def add_data_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument("--dataset-name",type=str,default="magicdata-ramc",help="dataset name", )
     parser.add_argument("--max-num-speaker", type=int, default=4, help="support max number of speaker in ts_vad")
+    parser.add_argument("--enhance-ratio", type=float, default=0.0, help="if >0, will add speech enhance audio augment")
     return parser
 
 def add_data_model_common_arguments(parser: argparse.ArgumentParser):
@@ -306,7 +307,7 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument(
         "--segment-shift",
-        type=int,
+        type=float,
         default=1,
         help="mix audio segment shift stride of per sample in ts vad model",
     )
@@ -845,8 +846,10 @@ def main(args):
     data_cfg.max_num_speaker = params.max_num_speaker
     data_cfg.rs_len = params.rs_len
     data_cfg.segment_shift = params.segment_shift
-    logging.info(f"data_cfg: {data_cfg}")
     data_cfg.dataset_name = params.dataset_name
+    data_cfg.enhance_ratio = params.enhance_ratio
+
+    logging.info(f"final data_cfg: {data_cfg}")
     if params.dataset_name=="alimeeting":
         valid_dataset = load_dataset(data_cfg, "Eval")
         train_dataset = load_dataset(data_cfg, "Train")

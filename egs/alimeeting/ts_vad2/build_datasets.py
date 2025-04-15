@@ -76,7 +76,8 @@ class TSVADDataConfig:
 
     rir_path: str = "/mntcephfs/lee_dataset/asr/RIRS_NOISES"
     """rir path."""
-
+    enhance_ratio: float= 0.0
+    """if >0, will add speech enhance audio augment"""
 
 cfg = TSVADDataConfig()
 from model import TSVADConfig
@@ -141,6 +142,7 @@ def load_dataset(
         musan_path=cfg.musan_path if "train" in split.lower() else None,
         rir_path=cfg.rir_path if "train" in split.lower() else None,
         noise_ratio=cfg.noise_ratio,
+        enhance_ratio=cfg.enhance_ratio if "train" in split.lower() else 0.0,
     )
     return datasets
 

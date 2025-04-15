@@ -20,4 +20,19 @@ openai-whisper # for whisper encoder of tsvad
  #-f https://download.pytorch.org/whl/cu118 torch==2.3.0
  #-f https://download.pytorch.org/whl/cu118 torchaudio==2.3.0
 # install lhotse (todo) remove it.
-pip install git+https://github.com/lhotse-speech/lhotse
+git+https://github.com/lhotse-speech/lhotse
+# for modescope
+#ans = pipeline(
+#    Tasks.acoustic_noise_suppression,
+#    model='iic/speech_zipenhancer_ans_multiloss_16k_base') # require modescope>=1.20
+#result = ans(
+#    'https://modelscope.oss-cn-beijing.aliyuncs.com/test/audios/speech_with_noise1.wav',
+#    output_path='output.wav')
+#print("done")
+
+Pillow
+oss2
+simplejson
+datasets==2.18.0
+addict
+sortedcontainers

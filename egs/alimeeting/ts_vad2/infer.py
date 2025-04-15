@@ -216,8 +216,8 @@ def load_model(device, params, model: torch.nn.Module, model_file:str=None,use_a
 def main(args):
     setup_logging(verbose=2)
     ## load dataset
-    from datasets import TSVADDataConfig
-    from datasets import load_dataset
+    from build_datasets import TSVADDataConfig
+    from build_datasets import load_dataset
     from model import TSVADModel
 
     data_cfg = TSVADDataConfig()
