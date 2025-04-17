@@ -241,6 +241,7 @@ def get_parser():
         default=False,
         help="train on the average model, how to average model, you can see '--average-period'",
     )
+    parser.add_argument("--enhanced-audio-dir",type=str, help="use zipenhancer speech enhancement model or sherpa_onnx gtcrn model to generate audio directory")
     add_data_arguments(parser)
     add_model_arguments(parser)
     add_data_model_common_arguments(parser)
@@ -284,6 +285,7 @@ def add_data_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("--dataset-name",type=str,default="magicdata-ramc",help="dataset name", )
     parser.add_argument("--max-num-speaker", type=int, default=4, help="support max number of speaker in ts_vad")
     parser.add_argument("--enhance-ratio", type=float, default=0.0, help="if >0, will add speech enhance audio augment")
+    
     return parser
 
 def add_data_model_common_arguments(parser: argparse.ArgumentParser):
@@ -573,7 +575,22 @@ def do_save_and_remove_once(
         topk=params.keep_last_epoch,
     )
 
+# 分布式训练专用配置
+#prof = torch.profiler.profile(
+#    activities=[torch.profiler.ProfilerActivity.CPU,
+#        torch.profiler.ProfilerActivity.CUDA,],
+#    schedule=torch.profiler.schedule(
+#        wait=2,
+#        warmup=1,
+#        active=3,
+#        repeat=2
+#    ),
+#    with_flops=True,  # 计算浮点运算量
+#    with_modules=True  # 显示调用模块信息
+#)
 
+#from memory_profiler import profile
+#@profile
 def train_one_epoch(
     params: AttributeDict,
     model: nn.Module,
@@ -607,7 +624,16 @@ def train_one_epoch(
 
     tot_loss = MetricsTracker()
     train_batch_nums = []
+    # only for debug
+    #prof= torch.profiler.profile(
+    #    schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=1),
+    #    on_trace_ready=torch.profiler.tensorboard_trace_handler('./log/ts_vad'),
+    #    record_shapes=True,
+    #    profile_memory=True,
+    #    with_stack=True,)
+    #prof.start()
     for batch_idx, batch in enumerate(train_dl):
+        #prof.step()
         params.batch_idx_train += 1
         batch_size = params.batch_size
 
@@ -631,7 +657,7 @@ def train_one_epoch(
 
         optimizer.step()
         scheduler.step()
-
+        
         ## average checkpoint
         if (
             params.train_on_average
@@ -708,6 +734,7 @@ def train_one_epoch(
             logging.info(
                 f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
             )
+    #prof.stop()
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -826,7 +853,8 @@ def load_checkpoint_if_available(
 
     return saved_params
 
-
+#from memory_profiler import profile
+#@profile
 def main(args):
     params = get_params()
     params.update(vars(args))
@@ -848,6 +876,7 @@ def main(args):
     data_cfg.segment_shift = params.segment_shift
     data_cfg.dataset_name = params.dataset_name
     data_cfg.enhance_ratio = params.enhance_ratio
+    data_cfg.enhanced_audio_dir = params.enhanced_audio_dir
 
     logging.info(f"final data_cfg: {data_cfg}")
     if params.dataset_name=="alimeeting":

@@ -78,6 +78,8 @@ class TSVADDataConfig:
     """rir path."""
     enhance_ratio: float= 0.0
     """if >0, will add speech enhance audio augment"""
+    enhanced_audio_dir: str = "/maduo/datasets/zipenhancer_alimeeting/"
+    """use zipenhancer speech enhancement model or sherpa_onnx gtcrn model to generate audio"""
 
 cfg = TSVADDataConfig()
 from model import TSVADConfig
@@ -85,7 +87,10 @@ from model import TSVADConfig
 model_cfg = TSVADConfig()
 cfg.speech_encoder_type = model_cfg.speech_encoder_type
 
-
+# only for debug, it is not much usefull. however it is simpler.
+# pip install memory-profiler
+#from memory_profiler import profile
+#@profile
 def load_dataset(
     cfg,
     split: str,
@@ -100,11 +105,15 @@ def load_dataset(
             spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
             json_path = f"{cfg.data_dir}/{split}_Ali_far/{split}.json"  ## offer mixer wavform name,
             audio_path = f"{cfg.data_dir}/{split}_Ali_far/target_audio"  ## offer number of speaker, offer mixer wavform name, offer target speaker wav,
+            if cfg.enhance_ratio>0:
+                enhanced_audio_path=f"{cfg.enhanced_audio_dir}/{split}_Ali_far/target_audio"
 
     elif cfg.dataset_name == "magicdata-ramc":
         spk_path=f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
         json_path=f"{cfg.data_dir}/{split}/{split}.json"  ## offer mixer wavform name,
         audio_path = f"{cfg.data_dir}/{split}/target_audio" ## offer number of speaker, offer mixer wavform name, offer target speaker wav
+        if cfg.enhance_ratio>0:
+            enhanced_audio_path=f"{cfg.enhanced_audio_dir}/{split}/target_audio"
     else:
         raise Exception(f"The given dataset {cfg.dataset_name} is not supported.")
 
@@ -143,6 +152,7 @@ def load_dataset(
         rir_path=cfg.rir_path if "train" in split.lower() else None,
         noise_ratio=cfg.noise_ratio,
         enhance_ratio=cfg.enhance_ratio if "train" in split.lower() else 0.0,
+        enhanced_audio_path=enhanced_audio_path if "train" in split.lower() else None,
     )
     return datasets
 

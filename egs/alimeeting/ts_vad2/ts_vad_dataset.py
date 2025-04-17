@@ -13,9 +13,13 @@ import torch
 import librosa
 import torchaudio.compliance.kaldi as kaldi
 from typing import Any,Dict
+
+# only add sherpa_onnx speech enhancement augment for ref_speech
+from pathlib import Path
+import sherpa_onnx
 # only for add speech enhancement augment for ref_speech
-from modelscope.pipelines import pipeline
-from modelscope.utils.constant import Tasks
+#from modelscope.pipelines import pipeline
+#from modelscope.utils.constant import Tasks
 # 设置要使用的线程数，比如8
 #torch.set_num_threads(8)
 #torch.set_num_interop_threads(8)
@@ -86,13 +90,37 @@ def _collate_data(
                 out[i, :, : v.size(1), :] = v
 
     return out
+## reference from ts_vad2/test_offline-speech-enhancement-gtcrn.py 
+def create_speech_denoiser():
+    model_filename = "/maduo/model_hub/speech_enhancement_model/gtcrn/gtcrn_simple.onnx"
+    if not Path(model_filename).is_file():
+        raise ValueError(
+            "Please first download a model from "
+            "https://github.com/k2-fsa/sherpa-onnx/releases/tag/speech-enhancement-models"
+        )
 
+    config = sherpa_onnx.OfflineSpeechDenoiserConfig(
+        model=sherpa_onnx.OfflineSpeechDenoiserModelConfig(
+            gtcrn=sherpa_onnx.OfflineSpeechDenoiserGtcrnModelConfig(
+                model=model_filename
+            ),
+            debug=False,
+            num_threads=1,
+            provider="cpu",
+            #provider="gpu",
+        )
+    )
+    if not config.validate():
+        print(config)
+        raise ValueError("Errors in config. Please check previous error logs")
+    return sherpa_onnx.OfflineSpeechDenoiser(config)
 
 class TSVADDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         json_path: str,
         audio_path: str,
+        enhanced_audio_path: str,
         ts_len: int,
         rs_len: int,
         is_train: bool,
@@ -119,6 +147,7 @@ class TSVADDataset(torch.utils.data.Dataset):
         speaker_embed_dim: int = 192, # same as speaker_embed_dim of model
     ):
         self.audio_path = audio_path
+        self.enhanced_audio_path = enhanced_audio_path
         self.spk_path = spk_path
         self.ts_len = ts_len  # Number of second for target speech
 
@@ -141,14 +170,15 @@ class TSVADDataset(torch.utils.data.Dataset):
         self.musan_path = musan_path
         self.rir_path = rir_path
         if musan_path is not None or  rir_path is not None:
-            self.noisesnr, self.numnoise, self.noiselist, self.rir_files = self.load_musan_or_rirs(musan_path,rir_path)
+             self.noisesnr, self.numnoise, self.noiselist, self.rir_files = self.load_musan_or_rirs(musan_path,rir_path)
 
         self.noise_ratio = noise_ratio
         self.zero_ratio = zero_ratio
         self.enhance_ratio = enhance_ratio
-        if self.enhance_ratio:
-            logger.info(f"Because self.enhance_ratio = {self.enhance_ratio}>0, will use speech enhance audio augment operation!!!!")
-            self.ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base',device="cuda:1") # require modescope>=1.20
+        #if self.enhance_ratio:
+        #    logger.info(f"Because self.enhance_ratio = {self.enhance_ratio}>0, will use speech enhance audio augment operation!!!!")
+            #self.ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base',device="cuda:1") # require modescope>=1.20
+        #    self.ans =  create_speech_denoiser()
         self.max_num_speaker = max_num_speaker
 
         self.embed_len = int(self.sample_rate * embed_len)
@@ -335,13 +365,20 @@ class TSVADDataset(torch.utils.data.Dataset):
                         random.randint(0, 2), ref_speech, frame_len
                     )
         #logger.info(f"after add noise, ref_speech shape: {ref_speech.shape}")
-        # Each sample placed here needs to instantiate the model, which takes a lot of time
+        # Each sample placed here needs to instantiate the model, which takes a lot of time, batch size=64, rs_len=8s, it will consume 100 mins on 500 train step on 2 A100-40GB
         # add speech enhancement augment
-        if self.enhance_ratio:
-            add_noise = np.random.choice(2, p=[1 - self.enhance_ratio, self.enhance_ratio])
-            if add_noise==1:
+        #if self.enhance_ratio:
+        #    add_noise = np.random.choice(2, p=[1 - self.enhance_ratio, self.enhance_ratio])
+        #    if add_noise==1:
                 #logger.info(f"before add enhance, ref_speech shape: {ref_speech.shape}")
-                ref_speech = self.add_speech_enhance_augment(ref_speech,length=frame_len)
+        #        ref_speech = self.add_speech_enhance_augment_modelscope_model_online(ref_speech,length=frame_len)
+        #        ref_speech = self.add_speech_enhance_augment_sherpa_onnx_online(ref_speech,length=frame_len)
+        if self.enhance_ratio:
+            assert self.enhanced_audio_path is not None, f"But self.enhanced_audio_path is {self.enhanced_audio_path}"
+            enhanced = np.random.choice(2, p=[1 - self.enhance_ratio, self.enhance_ratio])
+            if enhanced==1:
+                ref_speech= self.add_speech_enhance_audio(file, start, stop) 
+
         #logger.info(f"after add enhance, ref_speech shape: {ref_speech.shape}")
         ref_speech = torch.FloatTensor(np.array(ref_speech))
 
@@ -383,8 +420,33 @@ class TSVADDataset(torch.utils.data.Dataset):
         labels = torch.from_numpy(np.array(labels)).float()  # 4, T
         return ref_speech, labels, new_speaker_ids, rc
 
-    def add_speech_enhance_augment(self,ref_speech: np.ndarray, length):
-        #ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base') # require modescope>=1.20 
+    def add_speech_enhance_audio(self,file, start, stop):
+        audio_start = self.sample_rate // self.label_rate * start
+        audio_stop = self.sample_rate // self.label_rate * stop
+        if self.dataset_name == "alimeeting":
+            audio_path = os.path.join(self.enhanced_audio_path, file + "/all.wav")  ## This audio_path is single channel mixer audio,
+                                                                           ## now it is used in alimeeting dataset,and is stored at target_audio directory.
+            ref_speech, rc = self.read_audio_with_resample(
+                audio_path,
+                start=audio_start,
+                length=(audio_stop - audio_start),
+                support_mc=self.support_mc,
+            )
+            if len(ref_speech.shape) == 1:
+                ref_speech = np.expand_dims(np.array(ref_speech), axis=0)
+
+        frame_len = audio_stop - audio_start
+        assert (
+            frame_len - ref_speech.shape[1] <= 100
+        ), f"frame_len {frame_len} ref_speech.shape[1] {ref_speech.shape[1]}"
+        if frame_len - ref_speech.shape[1] > 0:
+            new_ref_speech = np.zeros((ref_speech.shape[0], frame_len))
+            new_ref_speech[:, : ref_speech.shape[1]] = ref_speech
+            ref_speech = new_ref_speech
+        return ref_speech # (1, sample_points)
+
+    def add_speech_enhance_augment_modelscope_model_online(self,ref_speech: np.ndarray, length):
+        #ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base') # require modescope>=1.20
         # I modified the codes ` /maduo/miniconda3/envs/dia_cuda11.8_py311/lib/python3.11/site-packages/modelscope/pipelines/audio/ans_pipeline.py` to support np.arrary input
         # ref_speech is np.float32
         ref_speech = np.squeeze(ref_speech,axis=0)
@@ -397,6 +459,37 @@ class TSVADDataset(torch.utils.data.Dataset):
         pcm_float32_data = np.expand_dims(np.array(pcm_float32_data), axis=0)
         return pcm_float32_data[:, :length] #(1,sample_points)
 
+
+    def add_speech_enhance_augment_sherpa_onnx_online(self,ref_speech: np.ndarray, length):
+        #ans = pipeline(Tasks.acoustic_noise_suppression,model='iic/speech_zipenhancer_ans_multiloss_16k_base') # require modescope>=1.20 
+        # I modified the codes ` /maduo/miniconda3/envs/dia_cuda11.8_py311/lib/python3.11/site-packages/modelscope/pipelines/audio/ans_pipeline.py` to support np.arrary input
+        # ref_speech is np.float32
+        #ref_speech = np.squeeze(ref_speech,axis=0)
+        #result = self.ans(ref_speech)
+        #enhance_bytes = result['output_pcm']
+        #enhance_numpy = np.frombuffer(enhance_bytes, dtype=np.int16 )
+        # convert int16 to float32
+        #pcm_float32_data = enhance_numpy.astype(np.float32) / 32768.0
+
+        #pcm_float32_data = np.expand_dims(np.array(pcm_float32_data), axis=0)
+        #return pcm_float32_data[:, :length] #(1,sample_points)
+        
+        ref_speech = np.squeeze(ref_speech,axis=0) # (1, sample_points) ->(sample_points)
+        samples = np.ascontiguousarray(ref_speech)
+        result = self.ans(samples,self.sample_rate)
+        pcm_float32_data = np.expand_dims(np.array(result.samples), axis=0)
+        return pcm_float32_data[:, :length] #(1,sample_points)
+
+    def add_speech_enhance_augment_sherpa_onnx_online_tensor(self,ref_speech: torch.Tensor):
+        #print(f"ref_speech shape: {ref_speech.shape}, dtype is  in fn add_speech_enhance_augment_tensor") #(sample_points)
+        input_dtype= ref_speech.dtype
+        #print(f"ref_speech shape: {ref_speech.shape}, dtype is {input_dtype} in fn add_speech_enhance_augment_tensor") #(sample_points), dtype is torch.float32
+        ref_speech = ref_speech.numpy()
+        #ref_speech = np.squeeze(ref_speech,axis=0) # (1, sample_points) ->(sample_points)
+        samples = np.ascontiguousarray(ref_speech)
+        result = self.ans(samples,self.sample_rate)
+        #pcm_float32_data = np.expand_dims(np.array(result.samples), axis=0)
+        return torch.from_numpy(np.array(result.samples)).type(input_dtype)
 
     def load_alimeeting_ts_embed(self, file, speaker_ids):
         target_speeches = []
@@ -619,10 +712,24 @@ class TSVADDataset(torch.utils.data.Dataset):
         ref_speech, labels, new_speaker_ids, _ = self.load_rs(
             file, speaker_ids, start, stop
         )
-
+        # it is more slower at here
+        #if self.enhance_ratio:
+        #    add_noise = np.random.choice(2, p=[1 - self.enhance_ratio, self.enhance_ratio])
+        #    if add_noise==1:
+        #        #start = time.time()
+        #        ref_speech = [self.add_speech_enhance_augment_sherpa_onnx_online_tensor(rs) for rs in ref_speech]
+        #        #elapsed_seconds=time.time()-start
+        #        #print("Elapsed seconds: {elapsed_seconds:.3f} on len : len(ref_speech)") 
+        #        #print(f"cousume time: {time.time()-start}")
+        #    else:
+        #        # not add speech enchance augment for train 
+        #        ref_speech = ref_speech
+        #else:
+        #   # for dev and test
+        #    ref_speech = ref_speech
         if self.embed_input:
             ref_speech = self.segment_rs(ref_speech)
-
+        
         if self.fbank_input:
             ref_speech = [self.feature_extractor(rs) for rs in ref_speech]
             ref_speech = torch.stack(ref_speech)
