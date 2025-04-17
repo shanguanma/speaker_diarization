@@ -548,14 +548,14 @@ if [ ${stage} -le 6 ] && [ ${stop_stage} -ge 6 ];then
  label_rate=25
  min_silence=0.32
  min_speech=0.0
- #infer_sets="Eval Test"
+ infer_sets="Eval Test"
  #infer_sets="Test"
- infer_sets="Eval"
+ #infer_sets="Eval"
  rttm_dir=/mntcephfs/lab_data/maduo/model_hub/ts_vad
  sctk_tool_path="./SCTK-2.4.12"
- #collar="0.0 0.25"
+ collar="0.0 0.25"
  #collar=0.0
- collar=0.25
+ #collar=0.25
  # it is used to instance speech encoder of tsvad model base on different pretrain speaker model.
  speech_encoder_type="CAM++"
  speech_encoder_path="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/zh/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
