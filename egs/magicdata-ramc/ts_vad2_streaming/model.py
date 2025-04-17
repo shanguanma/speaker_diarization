@@ -423,22 +423,22 @@ class TSVADModel(nn.Module):
         outputs = []
         offset = 0
         required_cache_size = decoding_chunk_size * num_decoding_left_chunks
-        print(f"xs shape: {xs.shape}, labels shape: {labels.shape}")
+        #print(f"xs shape: {xs.shape}, labels shape: {labels.shape}")
         if xs.size(1) != subsampling*labels.size(-1):
             gap = subsampling*labels.size(-1) - xs.size(1)
             xs = torch.nn.functional.pad(xs.permute(0,2,1),(0,gap))
             xs = xs.permute(0,2,1) # (B,T,80), T=subsampling*label.size(-1)
         num_frames = xs.size(1)
-        print(f"xs shape: {xs.shape}, labels shape: {labels.shape} after pad")
+        #print(f"xs shape: {xs.shape}, labels shape: {labels.shape} after pad")
         # Feed forward overlap input step by step
         #for cur in range(0, num_frames - context + 1, stride):
         for cur in range(0,num_frames ,stride):
             #end = min(cur + decoding_window, num_frames)
             #print(f"cur: {}")
             end = min(cur+stride, num_frames)
-            print(f"cur: {cur}, end: {end}")
+            #print(f"cur: {cur}, end: {end}")
             chunk_xs = xs[:, cur:end, :]
-            print(f"chunk_xs shape: {chunk_xs.shape}")
+            #print(f"chunk_xs shape: {chunk_xs.shape}")
             end_subframe= math.ceil(end/4)
             cur_subframe=math.ceil(cur/4)
             chunk_labels = labels[:,:,cur_subframe:end_subframe]
@@ -510,13 +510,13 @@ class TSVADModel(nn.Module):
         outputs = []
         offset = 0
         required_cache_size = decoding_chunk_size * num_decoding_left_chunks
-        print(f"xs shape: {xs.shape}, labels shape: {labels.shape}")
+        #print(f"xs shape: {xs.shape}, labels shape: {labels.shape}")
         if xs.size(1) != subsampling*labels.size(-1):
             gap = subsampling*labels.size(-1) - xs.size(1)
             xs = torch.nn.functional.pad(xs.permute(0,2,1),(0,gap))
             xs = xs.permute(0,2,1) # (B,T,80), T=subsampling*label.size(-1)
         num_frames = xs.size(1)
-        print(f"xs shape: {xs.shape}, labels shape: {labels.shape} after pad")
+        #print(f"xs shape: {xs.shape}, labels shape: {labels.shape} after pad")
         # Feed forward overlap input step by step
         prev_context = None
         # version1
@@ -529,13 +529,13 @@ class TSVADModel(nn.Module):
             end = min(cur + decoding_window, num_frames)
             #print(f"cur: {}")
             #end = min(cur+stride, num_frames)
-            print(f"cur: {cur}, end: {end}")
+            #print(f"cur: {cur}, end: {end}")
             chunk_xs = xs[:, cur:end, :]
-            print(f"chunk_xs shape: {chunk_xs.shape}")
+            #print(f"chunk_xs shape: {chunk_xs.shape}")
             end_subframe= math.ceil(end/4)
             cur_subframe=math.ceil(cur/4)
             chunk_labels = labels[:,:,cur_subframe:end_subframe]
-            print(f"chunk_labels shape: {chunk_labels.shape}")
+            #print(f"chunk_labels shape: {chunk_labels.shape}")
             # >>> a = torch.randn(1,5,6)
             # >>> a
             # tensor([[[ 1.4701, -0.2330, -0.1054,  0.8062, -0.7554, -1.5689],
@@ -982,11 +982,11 @@ class TSVADModel(nn.Module):
                     decoding_chunk_size=decoding_chunk_size,
                     num_decoding_left_chunks=num_decoding_left_chunks,
                 )
-            print(f"outs shape: {outs.shape} in fn infer_debug")
+            #print(f"outs shape: {outs.shape} in fn infer_debug") #  torch.Size([1, 4, 100])
             if outs.size(-1) < labels.size(-1):
                 gap = labels.size(-1) - outs.size(-1)
                 outs = torch.nn.functional.pad(outs,(0,gap))
-            print(f"pad outs shape: {outs.shape} in fn infer_debug")
+            #print(f"pad outs shape: {outs.shape} in fn infer_debug") #  torch.Size([1, 4, 100])
             loss = calculate_loss(outs=outs, labels=labels, labels_len=labels_len)
             print(f"loss is {loss} in fn infer_debug")
             ## public logger
@@ -1228,7 +1228,7 @@ class PositionalEncoding(torch.nn.Module):
         pos_emb = self.position_encoding(offset, x.size(1), False)
         #print(f"x * self.xscale: {x * self.xscale.shape}")
         x = x * self.xscale
-        print(f"x shape: {x.shape}, pos_emb shape: {pos_emb.shape}")
+        #print(f"x shape: {x.shape}, pos_emb shape: {pos_emb.shape}") # x shape: torch.Size([64, 100, 384]), pos_emb shape: torch.Size([1, 100, 384])
         x = x + pos_emb
         return self.dropout(x), self.dropout(pos_emb)
 
@@ -1340,7 +1340,7 @@ class Subsampling4(nn.Module):
         x = self.speech_encoder(x, get_time_out=True)
         # print(f"x shape: {x.shape}") # B,F',T'
         x = self.speech_down_or_up(x)
-        print(f"x shape {x.shape}") #(64,192,250)
+        #print(f"x shape {x.shape}") #(64,192,250)
 
         #### label offset and match x
         #size = x.size(-1)
@@ -1352,14 +1352,14 @@ class Subsampling4(nn.Module):
         #if offset+size <=250: # 250 means that 10s have 250 frames
         #    labels = labels[:,:,offset:offset+size]
         max_len = labels.size(-1)
-        print(f"x.size(-1) : {x.size(-1)}, max_len: {max_len}")
+        #print(f"x.size(-1) : {x.size(-1)}, max_len: {max_len}") #x.size(-1) : 100, max_len: 100
         assert (
             x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
         ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
         if x.size(-1) - max_len == -1:
             x = nn.functinal.pad(x, (0, 1))
         x = x[:, :, :max_len]  # (B,D,T)
-        print(f"x shape {x.shape} after pad")
+        #print(f"x shape {x.shape} after pad") # x shape torch.Size([64, 192, 100]) after pad
         x = x.transpose(1, 2)  # (B,T,D)
         x_mask = x_mask[:, :, 2::2][:, :, 2::2] # (64,1,248)
         if x_mask.size(-1)!= x.size(-2): # x.size(-2) > x_mask.size(-1)

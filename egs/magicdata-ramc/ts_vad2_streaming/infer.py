@@ -249,6 +249,7 @@ def main(args):
     data_cfg.max_num_speaker = args.max_num_speaker
     data_cfg.rs_len = args.rs_len
     data_cfg.segment_shift = args.segment_shift
+    data_cfg.dataset_name = args.dataset_name
 
     logging.info(f"infer data_cfg: {data_cfg}")
     logging.info(f"currently, it will infer {args.split} set.")

@@ -95,9 +95,10 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
  speech_encoder_path="/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin"
  dataset_name="magicdata-ramc" # dataset name
  # for loading speaker embedding file
- spk_path=/mntcephfs/lab_data/maduo/model_hub/ts_vad/spk_embed/alimeeting/SpeakerEmbedding # store speaker embedding directory
+ spk_path=/data/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
  speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
- data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+ #data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
+ data_dir="/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format"
  for c in $collar;do
   for name in $infer_sets;do
     results_path=$exp_dir/${dataset_name}_collar${c}_decoding_chunk_size${decoding_chunk_size}_num_decoding_left_chunks${num_decoding_left_chunks}_simulate_streaming${simulate_streaming}_${fn_name}
