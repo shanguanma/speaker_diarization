@@ -228,7 +228,7 @@ class TSVADDataset(torch.utils.data.Dataset):
                 pass
             else:
                 filename_set.add(filename)
-                dis = self.label_rate * self.segment_shift
+                dis = int(self.label_rate * self.segment_shift)
                 chunk_size = self.label_rate * self.rs_len
                 folder = self.audio_path + "/" + filename + "/*.wav" # target speaker wavform
 
