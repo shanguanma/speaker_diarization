@@ -145,22 +145,24 @@ def postprocess(res_dict_all, args):
             ]
         )
         out = out.decode("utf-8")
-        DER, MS, FA, SC = (
-            float(out.split("/")[0]),
-            float(out.split("/")[1]),
-            float(out.split("/")[2]),
-            float(out.split("/")[3]),
-        )
-
-        print(
-            "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
-            % (threshold, DER, MS, FA, SC)
-        )
-        print(
-            "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
-            % (threshold, DER, MS, FA, SC),
-            file=der_write,
-        )
+        #DER, MS, FA, SC = (
+        #    float(out.split("/")[0]),
+        #    float(out.split("/")[1]),
+        #    float(out.split("/")[2]),
+        #    float(out.split("/")[3]),
+        #)
+        
+        #print(
+        #    "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
+        #    % (threshold, DER, MS, FA, SC)
+        #)
+        #print(
+        #    "Eval for threshold %2.2f: DER %2.2f%%, MS %2.2f%%, FA %2.2f%%, SC %2.2f%%\n"
+        #    % (threshold, DER, MS, FA, SC),
+        #    file=der_write,
+        #)
+        print(f"Eval for threshold {threshold} {out}\n")
+        print(f"Eval for threshold {threshold} {out}\n",file=der_write)
     der_write.close()
 
 
