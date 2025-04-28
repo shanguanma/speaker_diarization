@@ -3,9 +3,11 @@ scipy
 tensorboard
 yamlargparse
 #numpy==1.22.0
-numpy==1.23.5
-modescope==1.7.1
-onnxruntime-gpu==1.17 # support cuda11.8,cudnn8.* # you can see https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements
+#numpy==1.23.5
+numpy==1.24.2
+#modelscope==1.7.1
+modelscope==1.20.0
+onnxruntime-gpu==1.17 # support cuda11.8,cudnn8.* # you can see https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements , require  numpy>=1.24.2
 transformers==4.46.2
 tqdm
 librosa==0.10.2
