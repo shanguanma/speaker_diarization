@@ -680,7 +680,7 @@ def train_one_epoch(
                 f"[Train] - Epoch {params.cur_epoch}, "
                 f"batch_idx_train: {params.batch_idx_train-1}, num_updates: {num_updates}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
-                f"lr: {cur_lr:.2e}, "
+                f"lr: {cur_lr}, "
             )
         # log end-of-epoch stats
         if batch_idx == len(train_dl) - 1:
@@ -691,7 +691,7 @@ def train_one_epoch(
                 f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
                 f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
-                f"lr: {cur_lr:.2e}, "
+                f"lr: {cur_lr}, "
             )
         if batch_idx > 0 and batch_idx % params.valid_interval == 0:
             logging.info("Computing validation loss")
