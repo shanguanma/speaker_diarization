@@ -77,8 +77,8 @@ def postprocess(res_dict_all, args):
     der_write = open(f"{eval_dir}/der_result", "a")
     rttm_path = eval_dir + "/res_rttm"
     rttms = {}
-    #for threshold in [0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9]:
-    for threshold in [0.9]:
+    for threshold in [0.2, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9]:
+    #for threshold in [0.9]:
         rttms[threshold] = open(f"{rttm_path}_{threshold}", "w")
 
     frame_len = 1 / args.label_rate
