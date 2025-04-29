@@ -11,6 +11,7 @@ onnxruntime-gpu==1.17 # support cuda11.8,cudnn8.* # you can see https://onnxrunt
 transformers==4.46.2
 tqdm
 librosa==0.10.2
+pyannote.core # for cder
 h5py     # for infer file
 textgrid #  for prepared ground truth rttm
 onnxruntime # for umap_cluster
