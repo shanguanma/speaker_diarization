@@ -27,6 +27,7 @@ from cam_pplus_wespeaker import (
     CAMPPlus,
 )
 
+from ERes2NetV2 import ERes2NetV2
 
 class FBank(object):
     def __init__(
@@ -58,7 +59,7 @@ class FBank(object):
         return feat
 
 
-def init_speaker_encoder(pretrained_model):
+def init_speaker_encoder(pretrained_model, model_name:str="cam++"):
 
     if torch.cuda.is_available():
         msg = "Using gpu for inference."
@@ -68,10 +69,19 @@ def init_speaker_encoder(pretrained_model):
         msg = "No cuda device is detected. Using cpu."
         logging.info(f"{msg}")
         device = torch.device("cpu")
+    if model_name=="cam++":
+        pretrained_state = torch.load(pretrained_model, map_location=device)
+        model = CAMPPlus(embedding_size=192, feat_dim=80)
+        model.load_state_dict(pretrained_state, strict=False)
+    elif model_name=="ERes2NetV2_COMMON":
+        pretrained_state = torch.load(pretrained_model, map_location=device)
+        model = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=26, scale=2, expansion=2)
+        model.load_state_dict(pretrained_state, strict=False)
+    elif model_name=="ERes2NetV2_w24s4ep4_COMMON":
+        pretrained_state = torch.load(pretrained_model, map_location=device)
+        model = ERes2NetV2(feat_dim=80, embedding_size=192, m_channels=64, baseWidth=24, scale=4, expansion=4)
+        model.load_state_dict(pretrained_state, strict=False)
 
-    pretrained_state = torch.load(pretrained_model, map_location=device)
-    model = CAMPPlus(embedding_size=192, feat_dim=80)
-    model.load_state_dict(pretrained_state, strict=False)
     model.to(device)
     model.eval()
     return model
@@ -274,7 +284,7 @@ def get_speech_speaker_embedding(
             vad_seg_dict[wav_file] = []
 
         for start_seconds, end_seconds in vad_dict[wav_file]:
-            # logging.info(f"start_seconds: {start_seconds}, end_seconds: {end_seconds}")
+            logging.info(f"start_seconds: {start_seconds}, end_seconds: {end_seconds}")
             start_frames = int(start_seconds * 16000)
             end_frames = int(end_seconds * 16000)
 
@@ -734,6 +744,7 @@ def get_argparse():
     )
     parser.add_argument("--chunk_size", type=float, default=3, help="")
     parser.add_argument("--step_size", type=float, default=None, help="")
+    parser.add_argument("--model_name", type=str, default="cam++", help="speaker model name")
     return parser
 
 
@@ -758,7 +769,7 @@ if __name__ == "__main__":
     parser = get_argparse()
     args = parser.parse_args()
     test_set_dir = args.test_set_dir
-    uttids = set(line.split()[1] for line in open(f"{test_set_dir}/rttm").readlines())
+    uttids = set(line.split()[1] for line in open(f"{test_set_dir}/rttm_debug_nog0").readlines())
     vad_threshold = args.vad_threshold
 
     vad_dict = get_vad_dict(
@@ -769,7 +780,7 @@ if __name__ == "__main__":
     )
 
     pretrain_speaker_model_ckpt = args.pretrain_speaker_model_ckpt
-    model = init_speaker_encoder(pretrain_speaker_model_ckpt)
+    model = init_speaker_encoder(pretrain_speaker_model_ckpt,args.model_name)
 
     vad_seg_dict, emb_dict = get_speech_speaker_embedding(
         vad_dict=vad_dict,
