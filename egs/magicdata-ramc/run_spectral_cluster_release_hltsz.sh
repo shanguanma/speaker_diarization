@@ -13,8 +13,8 @@ if [ ${stage} -le 100 ] && [ ${stop_stage} -ge 100 ];then
     vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
     #vad_threshold="0.31 0.32 0.34 0.36 0.38"
     vad_type="transformer_vad"
-    chunk_size=3
-    step_size=3
+    chunk_size=2
+    step_size=2
     skip_chunk_size=0.93
     pretrain_speaker_model_ckpt=/data/maduo/model_hub/speaker_pretrain_model/en_zh/modelscope/speech_campplus_sv_zh_en_16k-common_advanced/campplus_cn_en_common.pt
     #for sub in dev test;do
@@ -47,8 +47,8 @@ if [ ${stage} -le 101 ] && [ ${stop_stage} -ge 101 ];then
    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
    vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
    vad_type="transformer_vad"
-   chunk_size=3
-   step_size=3
+   chunk_size=2
+   step_size=2
    skip_chunk_size=0.93
    testset="cssd_testset"
    #. path_for_nn_vad.sh
@@ -71,8 +71,8 @@ if [ ${stage} -le 102 ] && [ ${stop_stage} -ge 102 ];then
     vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
     #vad_threshold="0.31 0.32 0.34 0.36 0.38"
     vad_type="transformer_vad"
-    chunk_size=3
-    step_size=3
+    chunk_size=2
+    step_size=2
     skip_chunk_size=0.93
     pretrain_speaker_model_ckpt=/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin
     #for sub in dev test;do
@@ -105,8 +105,8 @@ if [ ${stage} -le 103 ] && [ ${stop_stage} -ge 103 ];then
    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
    vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
    vad_type="transformer_vad"
-   chunk_size=3
-   step_size=3
+   chunk_size=2
+   step_size=2
    skip_chunk_size=0.93
    testset="cssd_testset"
    #. path_for_nn_vad.sh
@@ -128,8 +128,8 @@ if [ ${stage} -le 104 ] && [ ${stop_stage} -ge 104 ];then
     vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
     #vad_threshold="0.31 0.32 0.34 0.36 0.38"
     vad_type="transformer_vad"
-    chunk_size=3
-    step_size=3
+    chunk_size=2
+    step_size=2
     skip_chunk_size=0.93
     pretrain_speaker_model_ckpt=/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2_sv_zh-cn_16k-common/pretrained_eres2netv2.ckpt
     #for sub in dev test;do
@@ -162,8 +162,8 @@ if [ ${stage} -le 105 ] && [ ${stop_stage} -ge 105 ];then
    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
    vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
    vad_type="transformer_vad"
-   chunk_size=3
-   step_size=3
+   chunk_size=2
+   step_size=2
    skip_chunk_size=0.93
    testset="cssd_testset"
    #. path_for_nn_vad.sh
@@ -186,8 +186,8 @@ if [ ${stage} -le 106 ] && [ ${stop_stage} -ge 106 ];then
     vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
     #vad_threshold="0.31 0.32 0.34 0.36 0.38"
     vad_type="transformer_vad"
-    chunk_size=3
-    step_size=3
+    chunk_size=2
+    step_size=2
     skip_chunk_size=0.93
     pretrain_speaker_model_ckpt=/data/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_eres2netv2w24s4ep4_sv_zh-cn_16k-common/pretrained_eres2netv2w24s4ep4.ckpt
     #for sub in dev test;do
@@ -220,8 +220,8 @@ if [ ${stage} -le 107 ] && [ ${stop_stage} -ge 107 ];then
    #vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91 0.92"
    vad_threshold="0.1 0.2 0.22 0.24 0.25 0.27 0.28 0.29 0.30 0.31 0.32 0.34 0.36 0.38 0.4 0.45 0.46 0.47 0.5 0.51 0.52 0.53 0.6 0.7 0.8 0.9 0.91"
    vad_type="transformer_vad"
-   chunk_size=3
-   step_size=3
+   chunk_size=2
+   step_size=2
    skip_chunk_size=0.93
    testset="cssd_testset"
    #. path_for_nn_vad.sh
