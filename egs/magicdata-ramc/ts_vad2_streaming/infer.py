@@ -281,7 +281,7 @@ def main(args):
     #)  # only for speech_encoder_type=="WavLm"
     #model_cfg.wavlm_fuse_feat_post_norm = args.wavlm_fuse_feat_post_norm # only for self.speech_encoder_type == "WavLM_weight_sum"
     #model_cfg.speech_encoder_config = args.speech_encoder_config # only for w2v-bert2 ssl model
-    #model_cfg.single_backend_type=args.single_backend_type
+    model_cfg.single_backend_type=args.single_backend_type
     #model_cfg.multi_backend_type=args.multi_backend_type
     model_cfg.num_transformer_layer=args.num_transformer_layer
     #model_cfg.d_state = args.d_state

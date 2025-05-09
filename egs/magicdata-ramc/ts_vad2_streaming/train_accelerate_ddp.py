@@ -915,7 +915,7 @@ def main(args):
     #    params.wavlm_fuse_feat_post_norm
     #)  # only for self.speech_encoder_type == "WavLM_weight_sum"
     #model_cfg.speech_encoder_config=params.speech_encoder_config # only for wav-bert2 ssl model
-    #model_cfg.single_backend_type=params.single_backend_type
+    model_cfg.single_backend_type=params.single_backend_type
     #model_cfg.multi_backend_type=params.multi_backend_type
     #model_cfg.num_transformer_layer=params.num_transformer_layer
     #model_cfg.d_state = params.d_state

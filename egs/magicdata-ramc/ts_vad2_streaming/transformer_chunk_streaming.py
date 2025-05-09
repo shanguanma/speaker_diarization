@@ -493,14 +493,18 @@ class TransformerEncoderLayer(nn.Module):
 
         """
         residual = x
+        #print(f"input norm1 shape: {x.shape}") 
         if self.normalize_before:
             x = self.norm1(x)
+
         x_att, new_att_cache = self.self_attn(x,
                                               x,
                                               x,
                                               mask,
                                               cache=att_cache)
+        #print(f"ouput att shape: {x_att.shape}")
         x = residual + self.dropout(x_att)
+        #print(f"residual shape: {x.shape}")
         if not self.normalize_before:
             x = self.norm1(x)
 

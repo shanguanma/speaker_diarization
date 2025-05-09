@@ -28,6 +28,11 @@ from mask import make_pad_mask
 from mask import mask_to_bias
 from mask import add_optional_chunk_mask
 
+try:
+    from ts_vad2_streaming.mamba import Mamba2BlockV2
+except ImportError:
+    Mamba2BlockV2 = None
+
 #from train_accelerate_ddp import calculate_loss
 logger = logging.getLogger(__name__)
 
@@ -76,6 +81,11 @@ class TSVADConfig:
     single_backend_type: str = "transformer"
     """single backend type choices from `transformer or mamba or mamba_v2`"""
 
+    d_state: int = 128
+    """d_state of mamba2 """
+    expand: int = 4
+    """expand of mamba2"""
+
 model_cfg = TSVADConfig()
 from datasets import TSVADDataConfig
 
@@ -105,34 +115,60 @@ class TSVADModel(nn.Module):
         self.max_num_speaker = cfg.max_num_speaker
         self.speech_encoder_type = cfg.speech_encoder_type
         self.speech_encoder_path = cfg.speech_encoder_path
+        self.single_backend_type = cfg.single_backend_type
         # warp cam++ and 1d conv downsample
         self.embed = Subsampling4(
             speech_encoder_path=cfg.speech_encoder_path,
             idim=80,  # fbank feature dimention
             odim=cfg.speaker_embed_dim,
         )
-
-        self.single_backend = torch.nn.ModuleList(
-            [
-                TransformerEncoderLayer(
-                    cfg.transformer_embed_dim,
-                    MultiHeadedAttention(
-                        cfg.num_attention_head, cfg.transformer_embed_dim, cfg.dropout
-                    ),
-                    PositionwiseFeedForward(
+        if self.single_backend_type == "transformer":
+            self.single_backend = torch.nn.ModuleList(
+                [
+                    TransformerEncoderLayer(
                         cfg.transformer_embed_dim,
-                        cfg.transformer_ffn_embed_dim,
+                        MultiHeadedAttention(
+                            cfg.num_attention_head, cfg.transformer_embed_dim, cfg.dropout
+                        ),
+                        PositionwiseFeedForward(
+                            cfg.transformer_embed_dim,
+                            cfg.transformer_ffn_embed_dim,
+                            cfg.dropout,
+                        ),
+                        LayerNorm,
                         cfg.dropout,
+                    )
+                    for _ in range(cfg.num_transformer_layer)
+                ]
+            )
+            self.backend_down= torch.nn.Sequential(
+                    nn.Conv1d(
+                        cfg.transformer_embed_dim * self.max_num_speaker,
+                        cfg.transformer_embed_dim,
+                        5,
+                        stride=1,
+                        padding=2,
                     ),
-                    LayerNorm,
-                    cfg.dropout,
-                )
-                for _ in range(cfg.num_transformer_layer)
-            ]
-        )
-        self.backend_down= torch.nn.Sequential(
+                    BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                    nn.ReLU(),
+            )
+            self.pos_encoder = PositionalEncoding(cfg.transformer_embed_dim, cfg.dropout)
+        
+        elif self.single_backend_type == "mamba2":
+            self.pos_encoder = PositionalEncoding(cfg.transformer_embed_dim, cfg.dropout)
+            # causal_conv1d  channel must be multiples of 8  , So I select 384=192*2 as model dimension.
+            self.single_backend = Mamba2BlockV2(
+                cfg.transformer_embed_dim,
+                n_layer=cfg.num_transformer_layer,
+                d_state=cfg.d_state,
+                d_conv=4,
+                expand=cfg.expand,
+                bidirectional=True,
+            )
+
+            self.backend_down = nn.Sequential(
                 nn.Conv1d(
-                    cfg.transformer_embed_dim * self.max_num_speaker,
+                    2 * cfg.transformer_embed_dim * self.max_num_speaker,
                     cfg.transformer_embed_dim,
                     5,
                     stride=1,
@@ -140,8 +176,9 @@ class TSVADModel(nn.Module):
                 ),
                 BatchNorm1D(num_features=cfg.transformer_embed_dim),
                 nn.ReLU(),
-        )
-        self.pos_encoder = PositionalEncoding(cfg.transformer_embed_dim, cfg.dropout)
+            )
+        
+
         self.multi_backend = torch.nn.ModuleList(
             [
                 TransformerEncoderLayer(
@@ -277,10 +314,13 @@ class TSVADModel(nn.Module):
             # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
 
             cat_embed, _ = self.pos_encoder(cat_embed)  # (B,T',2D)
-            for single_layer in self.single_backend:
-                cat_embed, chunk_masks, _ = single_layer(
-                    cat_embed, chunk_masks
-                )  # (B,T',F) ,F=2D
+            if self.single_backend_type == "transformer":
+                for single_layer in self.single_backend:
+                    cat_embed, chunk_masks, _ = single_layer(
+                        cat_embed, chunk_masks
+                    )  # (B,T',F) ,F=2D
+            elif self.single_backend_type == "mamba2":
+                cat_embed = self.single_backend(cat_embed)  # (B,T',F) ,F=2D
             # cat_embed = self.single_backend(cat_embed)  # T, B, F
             # cat_embed = cat_embed.transpose(0, 1)  # B, T, F
             cat_embeds.append(cat_embed)
@@ -292,13 +332,14 @@ class TSVADModel(nn.Module):
         # cat multi forward
         B, _, T = cat_embeds.size()
         # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
+        
         cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
 
         # Transformer for multiple speakers
         # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
         cat_embeds, _ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
         for multi_layer in self.multi_backend:
-            cat_embed, chunk_masks, _ = multi_layer(cat_embed, chunk_masks)  # (B,T',F)
+            cat_embeds, chunk_masks, _ = multi_layer(cat_embeds, chunk_masks)  # (B,T',F)
         outs = self.fc(cat_embeds)  # B T' 4
         outs = outs.transpose(1, 2)  # B,4,T'
         return outs
@@ -339,10 +380,13 @@ class TSVADModel(nn.Module):
             # cat_embed = cat_embed.transpose(0, 1)  # T, B, 2D
 
             cat_embed, _ = self.pos_encoder(cat_embed)  # (B,T',2D)
-            for single_layer in self.single_backend:
-                cat_embed, chunk_masks, _ = ckpt.checkpoint(
-                    single_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
-                )  # (B,T',F)
+            if self.single_backend_type == "transformer":
+                for single_layer in self.single_backend:
+                    cat_embed, chunk_masks, _ = ckpt.checkpoint(
+                        single_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
+                    )  # (B,T',F)
+            elif self.single_backend_type == "mamba2":
+                cat_embed =  ckpt.checkpoint(self.single_backend.__call__,cat_embed, use_reentrant=False)
             # cat_embed = self.single_backend(cat_embed)  # T, B, F
             # cat_embed = cat_embed.transpose(0, 1)  # B, T, F
             cat_embeds.append(cat_embed)
@@ -350,18 +394,22 @@ class TSVADModel(nn.Module):
         cat_embeds = torch.permute(cat_embeds, (1, 0, 3, 2))  # B,4,F,T'
         # Combine the outputs
         cat_embeds = cat_embeds.reshape(B, -1, T)  # B, 4 * F, T'
-
+        
         # cat multi forward
         B, _, T = cat_embeds.size()
-        # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
-        cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
 
+        # project layer, currently setting conv1d (kernel=5, strid=1, padding=2), it no downsample and just a dimension change
+        #logger.info(f"before self.backend_down cat_embeds shape: {cat_embeds.shape}")
+        cat_embeds = self.backend_down(cat_embeds)  # (B, 4 * F, T')->(B, F, T')
+        #logger.info(f"after self.backend_down cat_embeds shape: {cat_embeds.shape}")
         # Transformer for multiple speakers
         # cat_embeds = self.pos_encoder(torch.permute(cat_embeds, (2, 0, 1)))
         cat_embeds, _ = self.pos_encoder(torch.permute(cat_embeds, (0, 2, 1)))
+        #logger.info(f"after self.pos_encoder cat_embeds shape: {cat_embeds.shape}")
+        #logger.info(f"chunk_masks shape: {chunk_masks.shape}")
         for multi_layer in self.multi_backend:
-            cat_embed, chunk_masks, _ = ckpt.checkpoint(
-                multi_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
+            cat_embeds, chunk_masks, _ = ckpt.checkpoint(
+                multi_layer.__call__, cat_embeds, chunk_masks, use_reentrant=False
             )  # (B,T',F)
         outs = self.fc(cat_embeds)  # B T' 4
         outs = outs.transpose(1, 2)  # B,4,T'
