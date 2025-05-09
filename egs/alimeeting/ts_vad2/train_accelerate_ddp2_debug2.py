@@ -223,7 +223,7 @@ def get_parser():
         """,
     )
     parser.add_argument("--lr", type=float, default=2e-4, help="adamw init lr rate.")
-    parser.add_argument("--lr-type", type=str, default="PolynomialDecayLR", help="scheduler type of adamw, choise from `PolynomialDecayLR`, `CosineAnnealingLR`, `ReduceLROnPlateau`".)
+    parser.add_argument("--lr-type", type=str, default="PolynomialDecayLR", help="scheduler type of adamw, choise from `PolynomialDecayLR`, `CosineAnnealingLR`, `ReduceLROnPlateau`.")
     parser.add_argument(
         "--average-period",
         type=int,

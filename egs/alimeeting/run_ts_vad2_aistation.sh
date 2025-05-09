@@ -1558,7 +1558,7 @@ done
 fi
 
 
-# compared with stage172-173, stage176-177 will increase dropout rate and 
+# compared with stage172-173, stage176-177 will increase dropout rate 
 if [ ${stage} -le 176 ] && [ ${stop_stage} -ge 176 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is cam++ 200k speaker model
@@ -1582,28 +1582,29 @@ if [ ${stage} -le 176 ] && [ ${stop_stage} -ge 176 ];then
     speaker_embedding_name_dir="cam++_en_zh_advanced_feature_dir"
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
-    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/alimeeting_wo_sil/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch20_front_fix_seed_lr2e4_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8_lr_type_ReduceLROnPlateau_dropout0.3
-    mkdir -p $exp_dir
     data_dir="/maduo/datasets/alimeeting_wo_sil" # oracle target audio , mix audio and labels path
     rs_len=8
     segment_shift=0.8
-    lr_type="ReduceLROnPlateau" # default PolynomialDecayLR`,  `CosineAnnealingLR`, `ReduceLROnPlateau` 
+    lr=2e-4
+    lr_type="PolynomialDecayLR" # default PolynomialDecayLR`,  `CosineAnnealingLR`, `ReduceLROnPlateau` 
     dropout=0.3
     single_backend_type="transformer"
     multi_backend_type="transformer"
     num_transformer_layer=2
+    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/alimeeting_wo_sil/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch20_front_fix_seed_lr${lr}_single_backend_${single_backend_type}_multi_backend_${multi_backend_type}_rs_len${rs_len}_shift${segment_shift}_lr_type_${lr_type}_dropout${dropout}
+    mkdir -p $exp_dir
     CUDA_VISIABLE_DEVICES=0,1 \
     NCCL_ASYNC_ERROR_HANDLING=1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15215 \
    ts_vad2/train_accelerate_ddp2_debug2.py \
     --world-size 2 \
     --num-epochs 20\
-    --start-epoch 10\
+    --start-epoch 1\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 2e-4\
+    --lr $lr\
     --lr-type $lr_type\
     --dropout $dropout\
     --musan-path $musan_path \
@@ -1624,12 +1625,15 @@ if [ ${stage} -le 176 ] && [ ${stop_stage} -ge 176 ];then
 fi
 
 if [ ${stage} -le 177 ] && [ ${stop_stage} -ge 177 ];then
- exp_dir=/maduo/exp/speaker_diarization/ts_vad2/alimeeting_wo_sil/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch20_front_fix_seed_lr2e4_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8_lr_type_ReduceLROnPlateau_dropout0.3
- model_file=$exp_dir/best-valid-der.pt
  rs_len=8
  segment_shift=0.8
  single_backend_type="transformer"
  multi_backend_type="transformer"
+ lr=2e-4
+ lr_type="PolynomialDecayLR" # default PolynomialDecayLR`,  `CosineAnnealingLR`, `ReduceLROnPlateau`
+ dropout=0.3
+ exp_dir=/maduo/exp/speaker_diarization/ts_vad2/alimeeting_wo_sil/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch20_front_fix_seed_lr${lr}_single_backend_${single_backend_type}_multi_backend_${multi_backend_type}_rs_len${rs_len}_shift${segment_shift}_lr_type_${lr_type}_dropout${dropout}
+ model_file=$exp_dir/best-valid-der.pt
  num_transformer_layer=2
  label_rate=25
  min_silence=0.32
