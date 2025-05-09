@@ -72,7 +72,9 @@ class TSVADConfig:
     use_sdpa: bool = False
 
     max_num_speaker: int = 4
-
+    
+    single_backend_type: str = "transformer"
+    """single backend type choices from `transformer or mamba or mamba_v2`"""
 
 model_cfg = TSVADConfig()
 from datasets import TSVADDataConfig
