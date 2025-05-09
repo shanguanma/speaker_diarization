@@ -129,7 +129,7 @@ def main(args):
 
         # read mixture audio
         wav_file = audio_wavform
-        orig_audio, _ = soundfile.read(wav_file)
+        orig_audio, _ = soundfile.read(wav_file,dtype="float32",always_2d=True)
         orig_audio = orig_audio[:, 0]
         length = len(orig_audio)
 

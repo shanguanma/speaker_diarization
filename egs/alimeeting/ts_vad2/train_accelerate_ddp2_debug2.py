@@ -50,7 +50,7 @@ import torch
 import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch import distributed as dist
 # from torch.nn.utils import clip_grad_norm_
 
 
@@ -223,6 +223,7 @@ def get_parser():
         """,
     )
     parser.add_argument("--lr", type=float, default=2e-4, help="adamw init lr rate.")
+    parser.add_argument("--lr-type", type=str, default="PolynomialDecayLR", help="scheduler type of adamw, choise from `PolynomialDecayLR`, `CosineAnnealingLR`, `ReduceLROnPlateau`".)
     parser.add_argument(
         "--average-period",
         type=int,
@@ -346,6 +347,7 @@ def add_model_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("--d-state",type=int,default=64,help="""d_state of mamba2 network""")
     parser.add_argument("--expand",type=int,default=4,help="""expand of mamba2 network""")
     parser.add_argument("--ots-vad-style", type=str, default="", help="choice it from `v1`")
+    parser.add_argument("--dropout", type=float, default=0.1, help="dropout rate in model")
     return parser
 
 
@@ -419,12 +421,22 @@ def get_optimizer_scheduler(params, model, world_size):
         eps=1e-08,
         weight_decay=0.01,
     )
-    # optimizer = AdamW(model.parameters(),lr=5e-5,betas=(0.9, 0.98)) # same as fairseq2
-    from polynomial import PolynomialDecayLR
+    if params.lr_type=="PolynomialDecayLR":
+        # optimizer = AdamW(model.parameters(),lr=5e-5,betas=(0.9, 0.98)) # same as fairseq2
+        from polynomial import PolynomialDecayLR
 
-    scheduler = PolynomialDecayLR(
-        optimizer, params.max_updates, params.warmup_updates, power=1.0
-    )
+        scheduler = PolynomialDecayLR(
+            optimizer, params.max_updates, params.warmup_updates, power=1.0
+        )
+    elif params.lr_type=="CosineAnnealingLR":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=100, eta_min=1e-6
+        )
+    elif params.lr_type=="ReduceLROnPlateau":
+        # 或在损失平台期重置学习率
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode='min', factor=0.5, patience=2
+        )
     return optimizer, scheduler
 
 
@@ -705,7 +717,7 @@ def train_one_epoch(
                 f"[Train] - Epoch {params.cur_epoch}, "
                 f"batch_idx_train: {params.batch_idx_train-1}, num_updates: {num_updates}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
-                f"lr: {cur_lr:.2e}, "
+                f"lr: {cur_lr}, "
             )
         # log end-of-epoch stats
         if batch_idx == len(train_dl) - 1:
@@ -716,7 +728,7 @@ def train_one_epoch(
                 f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
                 f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
-                f"lr: {cur_lr:.2e}, "
+                f"lr: {cur_lr}, "
             )
         if batch_idx > 0 and batch_idx % params.valid_interval == 0:
             logging.info("Computing validation loss")
@@ -951,6 +963,7 @@ def main(args):
     model_cfg.d_state = params.d_state
     model_cfg.expand = params.expand
     model_cfg.ots_vad_style = params.ots_vad_style
+    model_cfg.dropout = params.dropout
 
 
 
@@ -1078,7 +1091,9 @@ def main(args):
         #    logging.info(f"batch_idx_train >= {params.max_updates}, stop training")
         #    break
     logging.info("Done!")
-
+    if world_size > 1:
+        torch.distributed.barrier()
+        dist.destroy_process_group()
 
 if __name__ == "__main__":
     parser = get_parser()

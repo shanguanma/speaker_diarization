@@ -95,7 +95,7 @@ def load_dataset(
     cfg,
     split: str,
 ):
-
+    enhanced_audio_path: str=None
     if cfg.dataset_name == "alimeeting":
         if split == "Test" or split == "Eval":
             spk_path = f"{cfg.spk_path}/{split}/{cfg.speaker_embedding_name_dir}"  ## speaker embedding directory
