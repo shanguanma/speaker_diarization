@@ -181,7 +181,7 @@ def add_optional_chunk_mask(xs: torch.Tensor,
         elif decoding_chunk_size > 0:
             chunk_size = decoding_chunk_size
             num_left_chunks = num_decoding_left_chunks
-            print(f"decoding_chunk_size: {decoding_chunk_size}, num_decoding_left_chunks: {num_decoding_left_chunks},chunk_size: {chunk_size}")
+            #print(f"decoding_chunk_size: {decoding_chunk_size}, num_decoding_left_chunks: {num_decoding_left_chunks},chunk_size: {chunk_size}")
         else:
             # for streaming train stage
             # chunk size is either [1, max_chunk_size] or full context(max_len).
@@ -201,13 +201,13 @@ def add_optional_chunk_mask(xs: torch.Tensor,
                                             num_left_chunks,
                                             xs.device)  # (L, L)
         chunk_masks = chunk_masks.unsqueeze(0)  # (1, L, L)
-        print(f"befor chunk_masks shape: {chunk_masks.shape}")
+        #print(f"befor chunk_masks shape: {chunk_masks.shape}") #torch.Size([1, 200, 200])
         # maduo add
         #print(f"chunk_masks shape: {chunk_masks.shape}, masks shape: {masks.shape} in fn add_optional_chunk_mask")
         #if masks.size(-1) != chunk_masks.size(-1):
         #    chunk_masks = chunk_masks[:,:masks.size(-1),:masks.size(-1)]
         chunk_masks = masks & chunk_masks  # (B, L, L)
-        print(f"after chunk_masks shape: {chunk_masks.shape}")
+        #print(f"after chunk_masks shape: {chunk_masks.shape}")
     elif static_chunk_size > 0:
         num_left_chunks = num_decoding_left_chunks
         chunk_masks = subsequent_chunk_mask(xs.size(1), static_chunk_size,

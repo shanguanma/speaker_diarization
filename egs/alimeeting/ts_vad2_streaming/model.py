@@ -1228,7 +1228,7 @@ class PositionalEncoding(torch.nn.Module):
         pos_emb = self.position_encoding(offset, x.size(1), False)
         #print(f"x * self.xscale: {x * self.xscale.shape}")
         x = x * self.xscale
-        print(f"x shape: {x.shape}, pos_emb shape: {pos_emb.shape}")
+        #print(f"x shape: {x.shape}, pos_emb shape: {pos_emb.shape}")
         x = x + pos_emb
         return self.dropout(x), self.dropout(pos_emb)
 
@@ -1340,7 +1340,7 @@ class Subsampling4(nn.Module):
         x = self.speech_encoder(x, get_time_out=True)
         # print(f"x shape: {x.shape}") # B,F',T'
         x = self.speech_down_or_up(x)
-        print(f"x shape {x.shape}") #(64,192,250)
+        #print(f"x shape {x.shape}") #(64,192,250)
 
         #### label offset and match x
         #size = x.size(-1)
@@ -1352,14 +1352,14 @@ class Subsampling4(nn.Module):
         #if offset+size <=250: # 250 means that 10s have 250 frames
         #    labels = labels[:,:,offset:offset+size]
         max_len = labels.size(-1)
-        print(f"x.size(-1) : {x.size(-1)}, max_len: {max_len}")
+        #print(f"x.size(-1) : {x.size(-1)}, max_len: {max_len}") #x.size(-1) : 200, max_len: 200
         assert (
             x.size(-1) - max_len <= 2 and x.size(-1) - max_len >= -1
         ), f"label and ref_speech(mix speech) diff: {x.size(-1)-max_len}"
         if x.size(-1) - max_len == -1:
             x = nn.functinal.pad(x, (0, 1))
         x = x[:, :, :max_len]  # (B,D,T)
-        print(f"x shape {x.shape} after pad")
+        #print(f"x shape {x.shape} after pad") # x shape torch.Size([64, 192, 200])
         x = x.transpose(1, 2)  # (B,T,D)
         x_mask = x_mask[:, :, 2::2][:, :, 2::2] # (64,1,248)
         if x_mask.size(-1)!= x.size(-2): # x.size(-2) > x_mask.size(-1)

@@ -306,7 +306,7 @@ def add_data_model_common_arguments(parser: argparse.ArgumentParser):
     )
     parser.add_argument(
         "--segment-shift",
-        type=int,
+        type=float,
         default=1,
         help="mix audio segment shift stride of per sample in ts vad model",
     )
