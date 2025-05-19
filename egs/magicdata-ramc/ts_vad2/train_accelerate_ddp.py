@@ -50,7 +50,7 @@ import torch
 import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch import distributed as dist
 # from torch.nn.utils import clip_grad_norm_
 
 
@@ -752,6 +752,7 @@ def train_one_epoch(
             logging.info(
                 f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
             )
+            
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -763,7 +764,7 @@ def train_one_epoch(
     if der_value < params.best_train_der:
         params.best_train_epoch = params.cur_epoch
         params.best_train_der = der_value
-
+     
 
 def load_model_params(
     ckpt: str, model: nn.Module, init_modules: List[str] = None, strict: bool = True
@@ -1057,6 +1058,7 @@ def main(args):
     logging.info(f"start training from epoch {params.start_epoch}")
     logging.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
 
+
     # fix_random_seed(params.seed) # fairseq1 seed=1337 # this may be not correct at here.
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
@@ -1089,7 +1091,9 @@ def main(args):
         #    logging.info(f"batch_idx_train >= {params.max_updates}, stop training")
         #    break
     logging.info("Done!")
-
+    if world_size > 1:
+        torch.distributed.barrier()
+        dist.destroy_process_group()
 
 if __name__ == "__main__":
     parser = get_parser()
