@@ -5096,13 +5096,13 @@ if [ ${stage} -le 137 ] && [ ${stop_stage} -ge 137 ];then
    oracle_rttm_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
    infer_sets="dev test cssd_testset"
    c=0.0
-   rs_len=16
-   segment_shift=0.8
+   #rs_len=16
+   #segment_shift=0.8
    dataset_name="magicdata-ramc"
    for name in $infer_sets;do
     for thres in $threshold;do
      echo "currently, compute $name set in $thres threshold mode"
-     python3 cder/score.py -s $predict_rttm_dir/${dataset_name}_${name}_collar${c}_infer_rs_len${rs_len}_shift_${segment_shift}/${name}/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+     python3 cder/score.py -s $predict_rttm_dir/${dataset_name}_${name}_collar${c}/${name}/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
     done
    done
 fi
@@ -5243,13 +5243,13 @@ if [ ${stage} -le 140 ] && [ ${stop_stage} -ge 140 ];then
    oracle_rttm_dir=/data/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
    infer_sets="dev test cssd_testset"
    c=0.0
-   rs_len=6
-   segment_shift=0.4
+   #rs_len=6
+   #segment_shift=0.4
    dataset_name="magicdata-ramc"
    for name in $infer_sets;do
     for thres in $threshold;do
      echo "currently, compute $name set in $thres threshold mode"
-     python3 cder/score.py -s $predict_rttm_dir/${dataset_name}_${name}_collar${c}_infer_rs_len${rs_len}_shift_${segment_shift}/${name}/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
+     python3 cder/score.py -s $predict_rttm_dir/${dataset_name}_${name}_collar${c}/${name}/res_rttm_${thres}  -r $oracle_rttm_dir/$name/rttm_debug_nog0
     done
    done
 fi
