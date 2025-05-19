@@ -321,6 +321,7 @@ def main(args):
                 speaker_ids=batch["net_input"]["speaker_ids"],
                 start=batch["net_input"]["start"],
             )
+            #print(f"res_dict: {res_dict}!!!")
         for filename in res_dict:
             for time_step in res_dict[filename]:
                 res_dict_all[filename][time_step].extend(res_dict[filename][time_step])
