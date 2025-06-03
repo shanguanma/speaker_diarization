@@ -1156,7 +1156,9 @@ fi
 #Eval for threshold 0.70: DER 6.80%, MS 6.21%, FA 0.29%, SC 0.31%
 #Eval for threshold 0.80: DER 8.84%, MS 8.46%, FA 0.17%, SC 0.21%
 
-
+# lr=5e-5
+#end of epoch 4, batch_idx: 3909 batch_idx_train: 15639, {'loss': nan, 'DER': 1.0,
+# will reduce lr and try again
 if [ ${stage} -le 168 ] && [ ${stop_stage} -ge 168 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is cam++ 200k speaker model
@@ -1185,7 +1187,7 @@ if [ ${stage} -le 168 ] && [ ${stop_stage} -ge 168 ];then
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
     #exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr1e4_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8 #
-    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_real_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr5e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8
+    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_real_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr2e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8
     mkdir -p $exp_dir
     data_dir="/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
     rs_len=8
@@ -1204,7 +1206,7 @@ if [ ${stage} -le 168 ] && [ ${stop_stage} -ge 168 ];then
     --keep-last-epoch 1\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 5e-5\
+    --lr 2e-5\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --speech-encoder-type $speech_encoder_type\
@@ -1225,7 +1227,7 @@ fi
 
 if [ ${stage} -le 169 ] && [ ${stop_stage} -ge 169 ];then
  #exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr1e4_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8
- exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_real_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr5e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8
+ exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_real_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr2e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8
  model_file=$exp_dir/best-valid-der.pt
  rs_len=8
  segment_shift=0.8
@@ -1287,6 +1289,49 @@ if [ ${stage} -le 169 ] && [ ${stop_stage} -ge 169 ];then
  done
 done
 fi
+#grep -r Eval  logs/run_ts_vad2_aistation_stage168-169_lr2e-5.log
+#Eval for threshold 0.20: DER 16.75%, MS 2.60%, FA 13.05%, SC 1.10%
+#Eval for threshold 0.30: DER 13.76%, MS 4.00%, FA 8.54%, SC 1.21%
+#Eval for threshold 0.35: DER 12.99%, MS 4.76%, FA 7.01%, SC 1.22%
+#Eval for threshold 0.40: DER 12.58%, MS 5.52%, FA 5.86%, SC 1.20%
+#Eval for threshold 0.45: DER 12.36%, MS 6.33%, FA 4.86%, SC 1.16%
+#Eval for threshold 0.50: DER 12.40%, MS 7.26%, FA 4.04%, SC 1.10%
+#Eval for threshold 0.55: DER 12.62%, MS 8.25%, FA 3.35%, SC 1.02%
+#Eval for threshold 0.60: DER 13.02%, MS 9.31%, FA 2.81%, SC 0.90%
+#Eval for threshold 0.70: DER 14.53%, MS 11.93%, FA 1.93%, SC 0.68%
+#Eval for threshold 0.80: DER 17.23%, MS 15.58%, FA 1.20%, SC 0.45%
+#Eval for threshold 0.20: DER 18.68%, MS 2.60%, FA 15.08%, SC 1.00%
+#Eval for threshold 0.30: DER 14.95%, MS 4.14%, FA 9.58%, SC 1.23%
+#Eval for threshold 0.35: DER 14.07%, MS 4.97%, FA 7.81%, SC 1.29%
+#Eval for threshold 0.40: DER 13.58%, MS 5.89%, FA 6.35%, SC 1.34%
+#Eval for threshold 0.45: DER 13.41%, MS 6.90%, FA 5.12%, SC 1.39%
+#Eval for threshold 0.50: DER 13.52%, MS 8.03%, FA 4.11%, SC 1.38%
+#Eval for threshold 0.55: DER 13.92%, MS 9.30%, FA 3.29%, SC 1.33%
+#Eval for threshold 0.60: DER 14.60%, MS 10.71%, FA 2.66%, SC 1.23%
+#Eval for threshold 0.70: DER 16.86%, MS 14.17%, FA 1.73%, SC 0.96%
+#Eval for threshold 0.80: DER 20.69%, MS 19.05%, FA 1.00%, SC 0.63%
+#2025-06-01 15:48:08,084 (infer2:255) INFO: currently, it will infer Eval set.
+#Eval for threshold 0.20: DER 6.63%, MS 0.95%, FA 5.37%, SC 0.31%
+#Eval for threshold 0.30: DER 4.83%, MS 1.46%, FA 3.04%, SC 0.33%
+#Eval for threshold 0.35: DER 4.44%, MS 1.76%, FA 2.33%, SC 0.35%
+#Eval for threshold 0.40: DER 4.28%, MS 2.10%, FA 1.81%, SC 0.36%
+#Eval for threshold 0.45: DER 4.25%, MS 2.46%, FA 1.43%, SC 0.36%
+#Eval for threshold 0.50: DER 4.35%, MS 2.88%, FA 1.12%, SC 0.35%
+#Eval for threshold 0.55: DER 4.61%, MS 3.38%, FA 0.90%, SC 0.33%
+#Eval for threshold 0.60: DER 4.99%, MS 3.96%, FA 0.75%, SC 0.28%
+#Eval for threshold 0.70: DER 6.09%, MS 5.37%, FA 0.54%, SC 0.18%
+#Eval for threshold 0.80: DER 8.05%, MS 7.55%, FA 0.39%, SC 0.11%
+#Eval for threshold 0.20: DER 9.89%, MS 1.12%, FA 8.41%, SC 0.36%
+#Eval for threshold 0.30: DER 6.99%, MS 1.80%, FA 4.72%, SC 0.47%
+#Eval for threshold 0.35: DER 6.32%, MS 2.18%, FA 3.60%, SC 0.54%
+#Eval for threshold 0.40: DER 5.91%, MS 2.61%, FA 2.66%, SC 0.64%
+#Eval for threshold 0.45: DER 5.77%, MS 3.15%, FA 1.90%, SC 0.73%
+#Eval for threshold 0.50: DER 5.85%, MS 3.75%, FA 1.32%, SC 0.78%
+#Eval for threshold 0.55: DER 6.15%, MS 4.50%, FA 0.90%, SC 0.76%
+#Eval for threshold 0.60: DER 6.72%, MS 5.41%, FA 0.62%, SC 0.69%
+#Eval for threshold 0.70: DER 8.59%, MS 7.78%, FA 0.33%, SC 0.48%
+#Eval for threshold 0.80: DER 11.73%, MS 11.33%, FA 0.17%, SC 0.24%
+
 
 if [ ${stage} -le 170 ] && [ ${stop_stage} -ge 170 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
@@ -2261,7 +2306,7 @@ fi
 
 
 
-
+#  Epoch 15, batch_idx_train: 120285, num_updates: 108000, {'loss': nan, 'DER': 1.0, 'ACC': 0.680859375, 'MI': 1.0, 'FA': 0.0, 'CF': 0.0}, when lr=5e-5 
 if [ ${stage} -le 182 ] && [ ${stop_stage} -ge 182 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is cam++ 200k speaker model
@@ -2290,7 +2335,8 @@ if [ ${stage} -le 182 ] && [ ${stop_stage} -ge 182 ];then
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
     #exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr1e4_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8 #
-    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr5e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.4
+    #exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr5e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.4
+    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr2e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.4
     mkdir -p $exp_dir
     data_dir="/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
     rs_len=8
@@ -2299,7 +2345,7 @@ if [ ${stage} -le 182 ] && [ ${stop_stage} -ge 182 ];then
     multi_backend_type="transformer"
     num_transformer_layer=2
     CUDA_VISIABLE_DEVICES=0,1 \
-    NCCL_ASYNC_ERROR_HANDLING=1\
+    TORCH_NCCL_ASYNC_ERROR_HANDLING=1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 16115 \
    ts_vad2/train_accelerate_ddp2_debug2.py \
     --world-size 2 \
@@ -2309,7 +2355,7 @@ if [ ${stage} -le 182 ] && [ ${stop_stage} -ge 182 ];then
     --keep-last-epoch 1\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 5e-5\
+    --lr 2e-5\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --speech-encoder-type $speech_encoder_type\
@@ -2330,7 +2376,7 @@ fi
 
 if [ ${stage} -le 183 ] && [ ${stop_stage} -ge 183 ];then
  #exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr1e4_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.8
- exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr5e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.4
+ exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_wav-bert2.0_epoch20_front_fix_seed_lr2e5_single_backend_transformer_multi_backend_transformer_rs_len8_shift0.4
  model_file=$exp_dir/best-valid-der.pt
  rs_len=8
  segment_shift=0.4
