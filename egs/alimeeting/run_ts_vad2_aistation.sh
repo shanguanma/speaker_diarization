@@ -1294,7 +1294,7 @@ fi
 #Eval for threshold 0.30: DER 13.76%, MS 4.00%, FA 8.54%, SC 1.21%
 #Eval for threshold 0.35: DER 12.99%, MS 4.76%, FA 7.01%, SC 1.22%
 #Eval for threshold 0.40: DER 12.58%, MS 5.52%, FA 5.86%, SC 1.20%
-#Eval for threshold 0.45: DER 12.36%, MS 6.33%, FA 4.86%, SC 1.16%
+#Eval for threshold 0.45: DER 12.36%, MS 6.33%, FA 4.86%, SC 1.16% as report
 #Eval for threshold 0.50: DER 12.40%, MS 7.26%, FA 4.04%, SC 1.10%
 #Eval for threshold 0.55: DER 12.62%, MS 8.25%, FA 3.35%, SC 1.02%
 #Eval for threshold 0.60: DER 13.02%, MS 9.31%, FA 2.81%, SC 0.90%
@@ -1304,7 +1304,7 @@ fi
 #Eval for threshold 0.30: DER 14.95%, MS 4.14%, FA 9.58%, SC 1.23%
 #Eval for threshold 0.35: DER 14.07%, MS 4.97%, FA 7.81%, SC 1.29%
 #Eval for threshold 0.40: DER 13.58%, MS 5.89%, FA 6.35%, SC 1.34%
-#Eval for threshold 0.45: DER 13.41%, MS 6.90%, FA 5.12%, SC 1.39%
+#Eval for threshold 0.45: DER 13.41%, MS 6.90%, FA 5.12%, SC 1.39% as report
 #Eval for threshold 0.50: DER 13.52%, MS 8.03%, FA 4.11%, SC 1.38%
 #Eval for threshold 0.55: DER 13.92%, MS 9.30%, FA 3.29%, SC 1.33%
 #Eval for threshold 0.60: DER 14.60%, MS 10.71%, FA 2.66%, SC 1.23%
@@ -1315,7 +1315,7 @@ fi
 #Eval for threshold 0.30: DER 4.83%, MS 1.46%, FA 3.04%, SC 0.33%
 #Eval for threshold 0.35: DER 4.44%, MS 1.76%, FA 2.33%, SC 0.35%
 #Eval for threshold 0.40: DER 4.28%, MS 2.10%, FA 1.81%, SC 0.36%
-#Eval for threshold 0.45: DER 4.25%, MS 2.46%, FA 1.43%, SC 0.36%
+#Eval for threshold 0.45: DER 4.25%, MS 2.46%, FA 1.43%, SC 0.36% as report
 #Eval for threshold 0.50: DER 4.35%, MS 2.88%, FA 1.12%, SC 0.35%
 #Eval for threshold 0.55: DER 4.61%, MS 3.38%, FA 0.90%, SC 0.33%
 #Eval for threshold 0.60: DER 4.99%, MS 3.96%, FA 0.75%, SC 0.28%
@@ -1324,7 +1324,7 @@ fi
 #Eval for threshold 0.20: DER 9.89%, MS 1.12%, FA 8.41%, SC 0.36%
 #Eval for threshold 0.30: DER 6.99%, MS 1.80%, FA 4.72%, SC 0.47%
 #Eval for threshold 0.35: DER 6.32%, MS 2.18%, FA 3.60%, SC 0.54%
-#Eval for threshold 0.40: DER 5.91%, MS 2.61%, FA 2.66%, SC 0.64%
+#Eval for threshold 0.40: DER 5.91%, MS 2.61%, FA 2.66%, SC 0.64% as report
 #Eval for threshold 0.45: DER 5.77%, MS 3.15%, FA 1.90%, SC 0.73%
 #Eval for threshold 0.50: DER 5.85%, MS 3.75%, FA 1.32%, SC 0.78%
 #Eval for threshold 0.55: DER 6.15%, MS 4.50%, FA 0.90%, SC 0.76%
@@ -2350,7 +2350,7 @@ if [ ${stage} -le 182 ] && [ ${stop_stage} -ge 182 ];then
    ts_vad2/train_accelerate_ddp2_debug2.py \
     --world-size 2 \
     --num-epochs 20\
-    --start-epoch 1\
+    --start-epoch 13\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --freeze-updates 4000\
@@ -2438,4 +2438,45 @@ if [ ${stage} -le 183 ] && [ ${stop_stage} -ge 183 ];then
  done
 done
 fi
-
+#grep -r Eval  logs/run_ts_vad2_aistation_stage182-183_1r2e-5_from_epoch13.log
+#Eval for threshold 0.20: DER 15.24%, MS 2.61%, FA 11.83%, SC 0.80%
+#Eval for threshold 0.30: DER 12.92%, MS 3.81%, FA 8.15%, SC 0.95%
+#Eval for threshold 0.35: DER 12.31%, MS 4.43%, FA 6.90%, SC 0.98%
+#Eval for threshold 0.40: DER 11.95%, MS 5.10%, FA 5.88%, SC 0.98%
+#Eval for threshold 0.45: DER 11.76%, MS 5.79%, FA 5.00%, SC 0.97% as report
+#Eval for threshold 0.50: DER 11.72%, MS 6.52%, FA 4.27%, SC 0.94%
+#Eval for threshold 0.55: DER 11.89%, MS 7.37%, FA 3.66%, SC 0.87%
+#Eval for threshold 0.60: DER 12.16%, MS 8.23%, FA 3.14%, SC 0.79%
+#Eval for threshold 0.70: DER 13.18%, MS 10.37%, FA 2.19%, SC 0.62%
+#Eval for threshold 0.80: DER 15.33%, MS 13.45%, FA 1.43%, SC 0.45%
+#Eval for threshold 0.20: DER 14.98%, MS 2.69%, FA 11.46%, SC 0.83%
+#Eval for threshold 0.30: DER 12.84%, MS 3.95%, FA 7.91%, SC 0.98%
+#Eval for threshold 0.35: DER 12.29%, MS 4.57%, FA 6.69%, SC 1.03%
+#Eval for threshold 0.40: DER 12.04%, MS 5.32%, FA 5.64%, SC 1.07%
+#Eval for threshold 0.45: DER 11.96%, MS 6.10%, FA 4.78%, SC 1.08% as report
+#Eval for threshold 0.50: DER 12.04%, MS 6.93%, FA 4.06%, SC 1.06%
+#Eval for threshold 0.55: DER 12.29%, MS 7.86%, FA 3.42%, SC 1.00%
+#Eval for threshold 0.60: DER 12.70%, MS 8.85%, FA 2.90%, SC 0.96%
+#Eval for threshold 0.70: DER 13.96%, MS 11.16%, FA 2.00%, SC 0.80%
+#Eval for threshold 0.80: DER 16.37%, MS 14.50%, FA 1.26%, SC 0.61%
+#2025-06-08 13:09:49,597 (infer2:255) INFO: currently, it will infer Eval set.
+#Eval for threshold 0.20: DER 5.93%, MS 0.89%, FA 4.86%, SC 0.18%
+#Eval for threshold 0.30: DER 4.56%, MS 1.31%, FA 3.02%, SC 0.23%
+#Eval for threshold 0.35: DER 4.26%, MS 1.55%, FA 2.46%, SC 0.25%
+#Eval for threshold 0.40: DER 4.08%, MS 1.82%, FA 2.02%, SC 0.24%
+#Eval for threshold 0.45: DER 3.95%, MS 2.09%, FA 1.63%, SC 0.23% as report
+#Eval for threshold 0.50: DER 3.97%, MS 2.43%, FA 1.32%, SC 0.23%
+#Eval for threshold 0.55: DER 4.09%, MS 2.80%, FA 1.09%, SC 0.20%
+#Eval for threshold 0.60: DER 4.27%, MS 3.19%, FA 0.90%, SC 0.17%
+#Eval for threshold 0.70: DER 5.06%, MS 4.31%, FA 0.64%, SC 0.12%
+#Eval for threshold 0.80: DER 6.57%, MS 6.03%, FA 0.45%, SC 0.09%
+#Eval for threshold 0.20: DER 6.31%, MS 1.13%, FA 4.92%, SC 0.27%
+#Eval for threshold 0.30: DER 4.95%, MS 1.64%, FA 2.97%, SC 0.34%
+#Eval for threshold 0.35: DER 4.61%, MS 1.88%, FA 2.36%, SC 0.37%
+#Eval for threshold 0.40: DER 4.46%, MS 2.22%, FA 1.85%, SC 0.39%
+#Eval for threshold 0.45: DER 4.40%, MS 2.58%, FA 1.43%, SC 0.39% as report
+#Eval for threshold 0.50: DER 4.49%, MS 2.98%, FA 1.11%, SC 0.40%
+#Eval for threshold 0.55: DER 4.68%, MS 3.45%, FA 0.85%, SC 0.37%
+#Eval for threshold 0.60: DER 4.99%, MS 3.98%, FA 0.66%, SC 0.35%
+#Eval for threshold 0.70: DER 5.95%, MS 5.29%, FA 0.38%, SC 0.28%
+#Eval for threshold 0.80: DER 7.63%, MS 7.22%, FA 0.22%, SC 0.20%
