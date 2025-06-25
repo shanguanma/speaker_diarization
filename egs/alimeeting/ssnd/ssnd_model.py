@@ -1,57 +1,102 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from wenet.transformer.encoder import ConformerEncoder  # 集成Conformer
-from pytorch_metric_learning.losses import ArcFaceLoss  # 集成ArcFace
+from torchaudio.models import Conformer  # 使用torchaudio的Conformer
+from torch.utils.checkpoint import checkpoint
+from typing import Any, Callable   
 
-# 1. ResNet-based Extractor（简化版，可替换为ResNet34等）
-class ResNetExtractor(nn.Module):
-    def __init__(self, in_dim=80, out_dim=256):
+from resnet_wespeaker import ResNetWithGSP, BasicBlock
+class BatchNorm1D(nn.Module):
+    def __init__(self, *args, **kwargs):
         super().__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.AdaptiveAvgPool2d((None, 1))
+        self.bn = nn.BatchNorm1d(*args, **kwargs)
+
+    def forward(self, input):
+        if torch.sum(torch.isnan(input)) == 0:
+            output = self.bn(input)
+        else:
+            output = input
+        return output
+    
+class SpeechFeatUpsample2(nn.Module):
+    def __init__(self, speaker_embed_dim: int, upsample: int, model_dim: int = 2560):
+        super(SpeechFeatUpsample2, self).__init__()
+        self.speaker_embed_dim = speaker_embed_dim
+        # here model_dim means it is feature dimension  before pool layer of resnet34_wespeaker or samresnet model dimension
+        self.up = nn.ConvTranspose1d(
+            model_dim,
+            speaker_embed_dim,
+            5,
+            stride=upsample,
+            padding=2,
+            output_padding=1,
         )
-        self.proj = nn.Linear(64, out_dim)
+        self.batchnorm = BatchNorm1D(num_features=speaker_embed_dim)
+        self.act = nn.ReLU()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.up(x)  # (B,F,T) -> (B,D,2T)
+        x = self.batchnorm(x)
+        x = self.act(x)
+        return x  # (B,D,2T)
+    
+# 1. ResNet-based Extractor
+class ResNetExtractor(nn.Module):
+    def __init__(self, in_dim=80, out_dim=256, extractor_model_type='resnet34_32ch'):
+        super().__init__()
+         # they are same as the version from `Sequence-to-Sequence Neural Diarization with Automatic Speaker Detection and Representation`
+        if extractor_model_type == 'resnet34_32ch': # 5.454688 M parameters
+            self.resnet = ResNetWithGSP(BasicBlock,[3, 4, 6, 3],m_channels=32, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+
+        elif extractor_model_type == 'resnet34_64ch': # 21.53824 M parameters
+            self.resnet = ResNetWithGSP(BasicBlock,[3, 4, 6, 3],m_channels=64, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+        elif extractor_model_type == 'resnet152': # 58.140096 M parameters
+            self.resnet = ResNetWithGSP(BasicBlock,[3, 8, 36, 3],m_channels=64, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+        else:
+            raise ValueError(f"Unknown model_type: {extractor_model_type}")
+        
+        # input of resnet model is fbank, means that 1s has 100 frames
+        # we set target label rate is 25, means that 1s has 25 frames
+        # resnet34_wespeaker model downsample scale is 8, so frame rate  is 12.5, so I should set stride equal to 2.
+        upsample = 2
+        ## the input shape of self.speech_up except is (B,F,T)
+        self.speech_up = SpeechFeatUpsample2(
+            speaker_embed_dim=out_dim,
+            upsample=upsample,
+            model_dim=out_dim,
+        )   
+        
 
     def forward(self, x):
         # x: [B, T, F]
-        x = x.unsqueeze(1)  # [B, 1, T, F]
-        x = self.conv(x)    # [B, 64, T, 1]
-        x = x.squeeze(-1).transpose(1, 2)  # [B, T, 64]
-        x = self.proj(x)    # [B, T, out_dim]
-        return x
+        out = self.resnet(x)  # [B, T/8, D]
+        out = out.permute(0,2,1) # [B, D, T/8]
+        out = self.speech_up(out) # [B,D,T/4]
+        out = out.permute(0,2,1) # [B,T/4, D]
+        return out
 
-# 2. Conformer Encoder（集成wenet实现）
+# 2. Conformer Encoder（使用torchaudio实现）
 class SSNDConformerEncoder(nn.Module):
-    def __init__(self, in_dim=256, d_model=256, num_layers=4, nhead=8, d_ff=512):
+    def __init__(self, in_dim=256, d_model=256, num_layers=4, nhead=8, d_ff=512, cnn_kernel_size=15):
         super().__init__()
         self.input_proj = nn.Linear(in_dim, d_model)
-        self.encoder = ConformerEncoder(
-            input_size=d_model,
-            output_size=d_model,
-            attention_heads=nhead,
-            linear_units=d_ff,
-            num_blocks=num_layers,
-            dropout_rate=0.1,
-            positional_dropout_rate=0.1,
-            attention_dropout_rate=0.0,
-            input_layer="linear",
-            pos_enc_layer_type="rel_pos",
-            normalize_before=True,
-            cnn_module_kernel=15,
+        self.encoder = Conformer(
+            input_dim=d_model,
+            num_heads=nhead,
+            ffn_dim=d_ff,
+            num_layers=num_layers,
+            depthwise_conv_kernel_size=cnn_kernel_size,
+            dropout=0.1,
         )
+    # conformer has not downsample
     def forward(self, x):
         # x: [B, T, in_dim]
+        #print(f"conformer input shape: {x.shape}")
         x = self.input_proj(x)
-        # ConformerEncoder需要xs, xs_lens
-        xs_lens = torch.full((x.size(0),), x.size(1), dtype=torch.long, device=x.device)
-        x, _ = self.encoder(x, xs_lens)  # [B, T, d_model]
+        # torchaudio.models.Conformer需要input, lengths
+        lengths = torch.full((x.size(0),), x.size(1), dtype=torch.long, device=x.device)
+        x, _ = self.encoder(x, lengths)  # 返回 (output, output_lengths)
+        #print(f"conformer output shape: {x.shape}")
         return x
 
 # ========== 新增：Fq/Fk融合、Detection/Representation Decoder ==========
@@ -104,8 +149,14 @@ class SWDecoderBlockV2(nn.Module):
         # x_dec: [B, N, D], x_fea: [B, T, D], q_aux: [B, N, D_aux], k_pos: [B, T, D_pos]
         Q = self.fq(x_dec, q_aux) if self.fq is not None else x_dec
         K = self.fk(x_fea, k_pos) if self.fk is not None else x_fea
-        # Cross-attention: Q attends to K
-        x2, _ = self.cross_attn(Q, K, K)
+        V = x_fea  # V 直接用 feature emb
+
+        #print(f'Q shape: {Q.shape}')  # [B, N, D]
+        #print(f'K shape: {K.shape}')  # [B, T, D]
+        #print(f'V shape: {V.shape}')  # [B, T, D]
+
+        # Cross-attention: Q attends to K, V
+        x2, _ = self.cross_attn(Q, K, V)
         x = self.norm1(x_dec + x2)
         # Self-attention
         x2, _ = self.self_attn(x, x, x)
@@ -113,65 +164,80 @@ class SWDecoderBlockV2(nn.Module):
         # FFN
         x2 = self.ffn(x)
         x = self.norm3(x + x2)
+        #print(f'Output x shape: {x.shape}')  # [B, N, D]
         return x
-
+    
 class DetectionDecoder(nn.Module):
     """
     Detection Decoder: 输入decoder emb, feature emb, aux query（L2归一化），pos emb，输出VAD
     """
-    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_dim):
+    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len):
         super().__init__()
+        #self.input_proj = nn.Linear(d_feat, d_model)
         self.layers = nn.ModuleList([
             SWDecoderBlockV2(d_model, nhead, d_ff, d_aux=d_aux, d_pos=d_pos)
             for _ in range(num_layers)
         ])
-        self.out_proj = nn.Linear(d_model, out_dim)
+        self.out_proj = nn.Linear(d_model, out_vad_len)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
+        # x_dec:[B,N,D], it is setting to 0, it applys on query, D is equal to speaker embedding dim(S) in the paper.
+        #                                                        it is also d_model 
+        # x_fea:[B,T,D], it is ouput of encoder and it applys on value
+        # q_aux:[B,N,D'], it is speaker embedding and it applys on query
+        # pos_emb:[B,T,D'], it is postion embedding and it applys on key
         # L2 normalize auxiliary queries
         q_aux = F.normalize(q_aux, p=2, dim=-1)
         for layer in self.layers:
             x_dec = layer(x_dec, x_fea, q_aux, k_pos)
-        out = self.out_proj(x_dec)  # [B, N, T]
+        out = self.out_proj(x_dec)  # [B,N,D]->[B, N, T]
         return out
 
 class RepresentationDecoder(nn.Module):
     """
     Representation Decoder: 输入decoder emb, feature emb, aux query（VAD），pos emb，输出speaker emb
     """
-    def __init__(self, d_model, d_feat, nhead, d_ff, num_layers, d_aux, d_pos, out_dim):
+    def __init__(self, d_model, d_feat, nhead, d_ff, num_layers, d_aux, d_pos, speaker_embed_dim):
         super().__init__()
-        self.input_proj = nn.Linear(d_feat, d_model)
-        self.qaux_proj = nn.Linear(1, d_aux)  # 新增：将池化后的q_aux投影到d_aux
+        self.input_proj = nn.Linear(d_feat, d_model)  # [B, T, F] -> [B, T, D]
+        self.xdec_proj = nn.Linear(1, d_model)        # [B, N, 1] -> [B, N, D]
+        self.qaux_proj = nn.Linear(1, d_aux)          # [B, N, 1] -> [B, N, d_aux]
         self.layers = nn.ModuleList([
             SWDecoderBlockV2(d_model, nhead, d_ff, d_aux=d_aux, d_pos=d_pos)
             for _ in range(num_layers)
         ])
-        self.out_proj = nn.Linear(d_model, out_dim)
+        self.out_proj = nn.Linear(d_model, speaker_embed_dim)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
-        x_fea = self.input_proj(x_fea) # feat dim: F-> D
-        # q_aux: [B, N, T] -> [B, N, 1] -> [B, N, d_aux]
-        q_aux_pooled = q_aux.mean(-1, keepdim=True)
-        q_aux_vec = self.qaux_proj(q_aux_pooled)
+        # x_dec: [B, N, T]
+        # x_fea: [B, T, F]
+        # q_aux: [B, N, T]
+        # k_pos: [B, T, D_pos]
+        x_fea = self.input_proj(x_fea)  # [B, T, D]
+        x_dec_pooled = x_dec.mean(-1, keepdim=True)  # [B, N, 1]
+        x_dec_proj = self.xdec_proj(x_dec_pooled)    # [B, N, D]
+        q_aux_pooled = q_aux.mean(-1, keepdim=True)  # [B, N, 1]
+        q_aux_proj = self.qaux_proj(q_aux_pooled)    # [B, N, d_aux]
         for layer in self.layers:
-            x_dec = layer(x_dec, x_fea, q_aux_vec, k_pos)
-        out = self.out_proj(x_dec)  # [B, N, S]
+            x_dec_proj = layer(x_dec_proj, x_fea, q_aux_proj, k_pos)
+        out = self.out_proj(x_dec_proj)  # [B, N, speaker_embed_dim]
         return out
 
-# 5. SSND整体模型，集成Conformer和ArcFace
+# 5. SSND整体模型，集成Conformer
 class SSNDModel(nn.Module):
     def __init__(
         self,
         feat_dim=80,
-        emb_dim=256,
+        emb_dim=256, # speaker embedding dim and hidden_dim
+        q_det_aux_dim=256, # query dim, in detection decoder, it is speaker embedding dim,
+        q_rep_aux_dim=256,#  in representation decoder, it is vad lenght
         d_model=256,
         nhead=8,
         d_ff=512,
         num_layers=4,
         max_speakers=30,
         vad_out_len=100,  # 由block/chunk长度决定
-        arcface_num_classes=None,  # 说话人总数
+        #arcface_num_classes=None,  # 说话人总数
         arcface_margin=0.2,
         arcface_scale=32.0,
         pos_emb_dim=256,   # 新增：位置编码维度
@@ -183,8 +249,9 @@ class SSNDModel(nn.Module):
         super().__init__()
         self.extractor = ResNetExtractor(feat_dim, emb_dim)
         self.encoder = SSNDConformerEncoder(emb_dim, d_model, num_layers, nhead, d_ff)
-        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, emb_dim, pos_emb_dim, vad_out_len)
-        self.rep_decoder = RepresentationDecoder(d_model, emb_dim, nhead, d_ff, num_layers, emb_dim, pos_emb_dim, emb_dim)
+        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len)
+        self.rep_decoder = RepresentationDecoder(d_model,emb_dim, nhead, d_ff, num_layers, q_rep_aux_dim, pos_emb_dim,emb_dim)
+        self.d_model = d_model
         self.max_speakers = max_speakers
         self.emb_dim = emb_dim
         self.pos_emb_dim = pos_emb_dim
@@ -199,13 +266,34 @@ class SSNDModel(nn.Module):
         self.e_pse = nn.Parameter(torch.randn(1, emb_dim))
         # 可学习non-speech embedding e_non [1, S]
         self.e_non = nn.Parameter(torch.randn(1, emb_dim))
-        # ArcFace损失
-        self.arcface_loss = ArcFaceLoss(
-            num_classes=n_all_speakers,
-            embedding_size=emb_dim,
-            margin=arcface_margin,
-            scale=arcface_scale,
-        )
+        # 保存 arcface margin/scale
+        self.arcface_margin = arcface_margin
+        self.arcface_scale = arcface_scale
+        self.gradient_checkpointing = False
+
+    def compute_arcface_loss(self, spk_emb_pred, spk_labels):
+        """
+        严格按照 ArcFace 论文公式实现，分母为所有类别 margin 后的 logit。
+        spk_emb_pred: [num_valid, emb_dim]
+        spk_labels: [num_valid]
+        """
+        spk_emb_norm = F.normalize(spk_emb_pred, p=2, dim=-1)  # [num_valid, emb_dim]
+        E_all_norm = F.normalize(self.E_all, p=2, dim=-1)      # [n_all_speakers, emb_dim]
+        logits = torch.matmul(spk_emb_norm, E_all_norm.t()).clamp(-1+1e-7, 1-1e-7)  # [num_valid, n_all_speakers]
+        labels = spk_labels  # [num_valid]
+        margin = self.arcface_margin
+        scale = self.arcface_scale
+        # 先算 theta
+        theta = torch.acos(logits)
+        # 对正类加 margin
+        theta_m = theta.clone()
+        theta_m[torch.arange(theta.size(0)), labels] += margin
+        # 再转回 cos
+        logits_arc = torch.cos(theta_m)
+        # 乘 scale
+        logits_arc = logits_arc * scale
+        loss = F.cross_entropy(logits_arc, labels)
+        return loss
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
         """
@@ -217,13 +305,20 @@ class SSNDModel(nn.Module):
         B, T, _ = feats.shape
         N_loc = spk_label_idx.shape[1]
         device = feats.device
-        # 1. 查表获得输入speaker embedding
+        
+        # 1. 查表获得输入speaker embedding (one-hot lookup as described in the paper)
         spk_label_idx_safe = spk_label_idx.clone()
-        spk_label_idx_safe[spk_label_idx_safe < 0] = 0
-        speaker_embs = torch.matmul(
-            F.one_hot(spk_label_idx_safe, num_classes=self.n_all_speakers).float(),
-            self.E_all
-        )  # [B, N_loc, S]
+        unknown_mask = spk_label_idx < 0
+        spk_label_idx_safe[unknown_mask] = 0 # Temporarily set to 0 for one-hot
+        
+        # One-hot lookup
+        one_hot_vectors = F.one_hot(spk_label_idx_safe, num_classes=self.n_all_speakers).float()
+        speaker_embs = torch.matmul(one_hot_vectors, self.E_all)
+
+        # Overwrite unknown speakers with pseudo-speaker embedding
+        if unknown_mask.any():
+            speaker_embs[unknown_mask] = self.e_pse.to(speaker_embs.dtype)
+
         # 2. Mask策略（训练时）
         mask_info = None
         if self.training_mode:
@@ -232,17 +327,19 @@ class SSNDModel(nn.Module):
                 if torch.rand(1).item() < self.mask_prob and N_loc > 0:
                     mask_idx = torch.randint(0, N_loc, (1,)).item()
                     # 用e_pse替换
-                    speaker_embs[b, mask_idx] = self.e_pse
+                    #print(f"mask_idx: {mask_idx}, speaker_embs[b,mask_idx]: {speaker_embs[b, mask_idx].shape}， self.e_pse: {self.e_pse.shape}")
+                    speaker_embs[b, mask_idx] = self.e_pse.to(speaker_embs.dtype)
                     # VAD标签分配给伪说话人
                     # 记录mask位置，后续loss用
+                    #print(f"(b, mask_idx, spk_label_idx[b, mask_idx].item()): {(b, mask_idx, spk_label_idx[b, mask_idx].item())}")
                     mask_info.append((b, mask_idx, spk_label_idx[b, mask_idx].item()))
         # 3. Padding策略
         N = self.max_speakers
         if N_loc < N:
             pad_num = N - N_loc
             # 用e_non填充，VAD全0
-            pad_embs = self.e_non.expand(B, pad_num, self.emb_dim)
-            pad_vad = torch.zeros(B, pad_num, T, device=device)
+            pad_embs = self.e_non.to(speaker_embs.dtype).expand(B, pad_num, self.emb_dim)
+            pad_vad = torch.zeros(B, pad_num, vad_labels.shape[2], device=device)
             speaker_embs = torch.cat([speaker_embs, pad_embs], dim=1)  # [B, N, S]
             vad_labels = torch.cat([vad_labels, pad_vad], dim=1)       # [B, N, T]
             if spk_labels is not None:
@@ -259,9 +356,28 @@ class SSNDModel(nn.Module):
         _, T_enc, _ = enc_out.shape
         pos_emb = self.pos_emb[:, :T_enc, :].expand(B, T_enc, self.pos_emb_dim)  # [B, T, D_pos]
         # 5. DetectionDecoder
-        vad_pred = self.det_decoder(speaker_embs, enc_out, speaker_embs, pos_emb)  # [B, N, T]
-        # 6. RepresentationDecoder (修正：x_dec用speaker_embs，q_aux用vad_pred)
-        spk_emb_pred = self.rep_decoder(speaker_embs, enc_out, vad_pred, pos_emb)      # [B, N, S]
+        # x_dec:[B,N,D],use x_det_dec, it is setting to 0, it applys on query
+        # x_fea:[B,T,D], it is ouput of encoder and it applys on value
+        # q_aux:[B,N,D'], it is speaker embedding and it applys on query
+        # pos_emb:[B,T,D'], it is postion embedding and it applys on key
+        #print(f"speaker_embs shape: {speaker_embs.shape}")
+        x_det_dec = torch.zeros((B,N,self.d_model),device=device)
+        #print(f"x_det_dec shape: {x_det_dec.shape}, enc_out shape: {enc_out.shape}")
+        #print(f"speaker_embs shape: {speaker_embs.shape}, pos_emb shape: {pos_emb.shape}")
+        # x_det_dec shape: torch.Size([16, 30, 256]), enc_out shape: torch.Size([16, 200, 256])
+        # speaker_embs shape: torch.Size([16, 30, 256]), pos_emb shape: torch.Size([16, 200, 256])
+        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)  # [B, N, T]
+        # 6. RepresentationDecoder (训练时q_aux用vad_labels)
+        # x_dec:[B,N,T'] , use x_rep_dec, it is setting to 0, it applys on query
+        # x_fea:[B,T,F], it is output of extrator and it applys on value
+        # q_aux:[B,N,T'], it is vad ground-truth label and it applys on query
+        # pos_emb:[B,T,F'] ,its length is equal to x_fea and it applys on key
+        x_rep_dec = torch.zeros((B,N,vad_labels.shape[2]),device=device)
+        #
+        #print(f"x_rep_dec shape: {x_rep_dec.shape}, x shape: {x.shape}")
+        #print(f"vad_labels shape: {vad_labels.shape}, pos_emb shape: {pos_emb.shape}")
+        # torch.Size([16, 30, 200]), pos_emb shape: torch.Size([16, 200, 256])
+        spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, reduction='mean')
@@ -271,11 +387,13 @@ class SSNDModel(nn.Module):
             # mask掉填充的-1
             valid = (spk_labels >= 0)
             if valid.sum() > 0:
-                arcface_loss = self.arcface_loss(
-                    spk_emb_pred[valid],
-                    spk_labels[valid]
-                )
-        return vad_pred, spk_emb_pred, bce_loss, arcface_loss, mask_info
+                arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
+        
+        loss = bce_loss
+        if arcface_loss is not None:
+            loss = loss + arcface_loss
+            
+        return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
     def infer(self, feats, speaker_embs):
         """
@@ -290,7 +408,552 @@ class SSNDModel(nn.Module):
         x = self.extractor(feats)              # [1, T, emb_dim]
         enc_out = self.encoder(x)              # [1, T, d_model]
         B, T, _ = enc_out.shape
+        _,N,S = speaker_embs.shape
+        device = feats.device
         pos_emb = self.pos_emb[:, :T, :].expand(B, T, self.pos_emb_dim)  # [1, T, D_pos]
-        vad_pred = self.det_decoder(speaker_embs, enc_out, speaker_embs, pos_emb)  # [1, N, T']
-        emb_pred = self.rep_decoder(vad_pred, enc_out, vad_pred, pos_emb)          # [1, N, S]
+        x_det_dec = torch.zeros((B,N,self.d_model),device=device)
+        x_rep_dec = torch.zeros((B,N,T),device=device)
+        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)  # [1, N, T']
+        emb_pred = self.rep_decoder(x_rep_dec, x, vad_pred, pos_emb)          # [1, N, S]
         return vad_pred, emb_pred 
+
+    def offline_diarization(self, feats, threshold=0.5):
+        """
+        离线推理接口，输入整段音频特征，输出每帧说话人标签。
+        feats: [T, F] or [1, T, F]
+        threshold: VAD概率阈值
+        返回:
+            diarization_result: [N, T] 0/1矩阵，N为最大说话人数
+            vad_prob: [N, T] 概率
+        """
+        self.eval()
+        with torch.no_grad():
+            if feats.ndim == 2:
+                feats = feats.unsqueeze(0)  # [1, T, F]
+            B, T, F = feats.shape
+            N = self.max_speakers
+            device = feats.device
+            # 用E_all前N个作为初始speaker_embs
+            speaker_embs = self.E_all[:N].unsqueeze(0).expand(B, N, self.emb_dim).to(device)
+            # 推理
+            vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
+            vad_prob = torch.sigmoid(vad_pred)  # [1, N, T]
+            diarization_result = (vad_prob > threshold).long().squeeze(0)  # [N, T]
+            return diarization_result, vad_prob.squeeze(0) 
+    @torch.no_grad()
+    def online_infer(
+        self,
+        blocks,# 8s
+        l_c,# 0.64s
+        l_r,# 0.16s
+        t1=0.5,
+        t2=0.5,
+        device=None
+    ):
+        """
+        SSND在线推理接口，严格按照论文伪代码和流程图实现。
+        blocks: List[Tensor] or List[np.ndarray], 每块 shape [chunk_size, feat_dim]
+        l_c: 当前块输出帧数
+        l_r: 右上下文帧数
+        t1: 伪说话人embedding权重阈值
+        t2: 注册说话人embedding权重阈值
+        返回:
+            dia_result: dict, {spk_id: [帧标签]}
+        """
+        dia_result = {}  # {spk_id: [帧标签]}
+        emb_buffer = {}  # {spk_id: [(embedding, weight), ...]}
+        num_frames = 0
+        S = self.emb_dim
+        N = self.max_speakers
+        e_pse = self.e_pse.squeeze(0)  # [S]
+        e_non = self.e_non.squeeze(0)  # [S]
+        if device is None:
+            device = e_pse.device
+        # 初始化伪说话人id
+        pse_id = 0
+        for block in blocks:
+            if not torch.is_tensor(block):
+                block = torch.tensor(block, dtype=torch.float32, device=device)
+            T, F = block.shape
+            # 1. 构造 emb_list, spk_list
+            emb_list = [e_pse]
+            spk_list = [pse_id]
+            # 2. 已注册说话人embedding加权平均
+            for spk_id in emb_buffer.keys():
+                e_sum = torch.zeros(S, device=device)
+                w_sum = 0.0
+                for e, w in emb_buffer[spk_id]:
+                    e_sum += e * w
+                    w_sum += w
+                if w_sum > 0:
+                    e_mean = e_sum / w_sum
+                else:
+                    e_mean = e_non
+                emb_list.append(e_mean)
+                spk_list.append(spk_id)
+            # 3. pad 到 N
+            while len(emb_list) < N:
+                emb_list.append(e_non)
+                spk_list.append(-1)
+            emb_tensor = torch.stack(emb_list)  # [N, S]
+            emb_tensor = emb_tensor.unsqueeze(0)  # [1, N, S]
+            # 4. 前向推理
+            block = block.unsqueeze(0)  # [1, T, F]
+            vad_pred, spk_emb_pred = self.infer(block, emb_tensor)
+            vad_prob = torch.sigmoid(vad_pred)[0]  # [N, T]
+            # 5. 伪说话人处理
+            y_pse = vad_prob[0]  # [T]
+            e_pse_new = spk_emb_pred[0, 0]  # [S]
+            v_pse = y_pse.mean().item()  # embedding weight
+            # 只保留当前块的目标帧
+            print(f"l_c: {l_c}, l_r: {l_r}")
+            print(f"y_pse shape: {y_pse.shape}")
+            print(f"y_pse[-(l_c+l_r):-l_r]: {y_pse[-(l_c+l_r):-l_r]}")
+            current_y = y_pse[-(l_c + l_r):-l_r] if l_r > 0 else y_pse[-l_c:]
+            # 拼接输出
+            if pse_id not in dia_result:
+                dia_result[pse_id] = torch.zeros(num_frames, device=device)
+            dia_result[pse_id] = torch.cat([dia_result[pse_id], current_y.cpu()])
+            # 更新buffer
+            if v_pse > t1:
+                emb_buffer[pse_id] = [(e_pse_new.detach(), v_pse)]
+            # 6. 已注册说话人处理
+            for n in range(1, N):
+                if spk_list[n] == -1:
+                    continue
+                y_n = vad_prob[n]  # [T]
+                e_n = spk_emb_pred[0, n]  # [S]
+                v_n = y_n.mean().item()
+                current_y_n = y_n[-(l_c + l_r):-l_r] if l_r > 0 else y_n[-l_c:]
+                if spk_list[n] not in dia_result:
+                    dia_result[spk_list[n]] = torch.zeros(num_frames, device=device)
+                dia_result[spk_list[n]] = torch.cat([dia_result[spk_list[n]], current_y_n.cpu()])
+                if v_n > t2:
+                    if spk_list[n] not in emb_buffer:
+                        emb_buffer[spk_list[n]] = []
+                    emb_buffer[spk_list[n]].append((e_n.detach(), v_n))
+            num_frames += l_c
+        # 转为numpy输出
+        for k in dia_result:
+            dia_result[k] = dia_result[k].cpu().numpy()
+        return dia_result
+    
+    def offline_rescore(self,
+        blocks,
+        l_c,
+        l_r,
+        t1=0.5,
+        t2=0.5,
+        threshold=0.5,
+        device=None
+    ):
+        """
+        论文式offline推理：先online收集全局emb_buffer，再re-decode。
+        blocks: List[Tensor] or List[np.ndarray]
+        l_c, l_r, t1, t2: 同online_infer
+        threshold: VAD概率阈值
+        返回:
+            diarization_result: [N, T] 0/1矩阵
+        """
+        # 1. 先跑online_infer，收集全局emb_buffer
+        dia_result = {}  # 不用
+        emb_buffer = {}  # {spk_id: [(embedding, weight), ...]}
+        num_frames = 0
+        S = self.emb_dim
+        N = self.max_speakers
+        e_pse = self.e_pse.squeeze(0)
+        e_non = self.e_non.squeeze(0)
+        if device is None:
+            device = e_pse.device
+        pse_id = 0
+        # 先收集全局buffer
+        for block in blocks:
+            if not torch.is_tensor(block):
+                block = torch.tensor(block, dtype=torch.float32, device=device)
+            T, F = block.shape
+            emb_list = [e_pse]
+            spk_list = [pse_id]
+            for spk_id in emb_buffer.keys():
+                e_sum = torch.zeros(S, device=device)
+                w_sum = 0.0
+                for e, w in emb_buffer[spk_id]:
+                    e_sum += e * w
+                    w_sum += w
+                if w_sum > 0:
+                    e_mean = e_sum / w_sum
+                else:
+                    e_mean = e_non
+                emb_list.append(e_mean)
+                spk_list.append(spk_id)
+            while len(emb_list) < N:
+                emb_list.append(e_non)
+                spk_list.append(-1)
+            emb_tensor = torch.stack(emb_list).unsqueeze(0)
+            block = block.unsqueeze(0)
+            vad_pred, spk_emb_pred = self.infer(block, emb_tensor)
+            vad_prob = torch.sigmoid(vad_pred)[0]
+            # 伪说话人
+            y_pse = vad_prob[0]
+            e_pse_new = spk_emb_pred[0, 0]
+            v_pse = y_pse.mean().item()
+            if v_pse > t1:
+                emb_buffer[pse_id] = [(e_pse_new.detach(), v_pse)]
+            # 已注册说话人
+            for n in range(1, N):
+                if spk_list[n] == -1:
+                    continue
+                y_n = vad_prob[n]
+                e_n = spk_emb_pred[0, n]
+                v_n = y_n.mean().item()
+                if v_n > t2:
+                    if spk_list[n] not in emb_buffer:
+                        emb_buffer[spk_list[n]] = []
+                    emb_buffer[spk_list[n]].append((e_n.detach(), v_n))
+        # 2. 构造全局embedding列表
+        global_emb_list = [e_pse]
+        global_spk_list = [pse_id]
+        for spk_id in emb_buffer.keys():
+            e_sum = torch.zeros(S, device=device)
+            w_sum = 0.0
+            for e, w in emb_buffer[spk_id]:
+                e_sum += e * w
+                w_sum += w
+            if w_sum > 0:
+                e_mean = e_sum / w_sum
+            else:
+                e_mean = e_non
+            global_emb_list.append(e_mean)
+            global_spk_list.append(spk_id)
+        while len(global_emb_list) < N:
+            global_emb_list.append(e_non)
+            global_spk_list.append(-1)
+        global_emb_tensor = torch.stack(global_emb_list).unsqueeze(0)  # [1, N, S]
+        # 3. 用全局embedding对所有块重新推理
+        diarization_result = []  # [N, T]
+        for block in blocks:
+            if not torch.is_tensor(block):
+                block = torch.tensor(block, dtype=torch.float32, device=device)
+            block = block.unsqueeze(0)
+            vad_pred, _ = self.infer(block, global_emb_tensor)
+            vad_prob = torch.sigmoid(vad_pred)[0]  # [N, T]
+            diarization_result.append((vad_prob > threshold).long())
+        diarization_result = torch.cat(diarization_result, dim=1)  # [N, T_total]
+        return diarization_result.cpu().numpy(), global_spk_list
+    
+    def extract_sentence_timestamps_and_embeddings(
+        self,
+        feats,
+        vad_threshold=0.5,
+        min_speech_duration_ms=200,
+        min_silence_duration_ms=500,
+        frame_shift_ms=10,
+    ):
+        """
+        Offline extracts sentence-level timestamps and speaker embeddings.
+        A sentence is a continuous speech segment from a single speaker.
+
+        Args:
+            feats (Tensor): Input features [T, F] or [1, T, F].
+            vad_threshold (float): VAD probability threshold.
+            min_speech_duration_ms (int): Minimum duration for a speech segment.
+            min_silence_duration_ms (int): Minimum duration of silence to break sentences.
+            frame_shift_ms (int): Frame shift in milliseconds.
+
+        Returns:
+            list: A list of dicts, each with 'start_ms', 'end_ms', 'speaker_id', 'embedding'.
+        """
+        self.eval()
+        if not torch.is_tensor(feats):
+            feats = torch.tensor(feats, dtype=torch.float32)
+        device = self.E_all.device
+        feats = feats.to(device)
+
+        min_speech_frames = min_speech_duration_ms // frame_shift_ms
+        min_silence_frames = min_silence_duration_ms // frame_shift_ms
+
+        with torch.no_grad():
+            if feats.ndim == 2:
+                feats = feats.unsqueeze(0)
+            
+            B, T, F = feats.shape
+            N = self.max_speakers
+            
+            speaker_embs = self.E_all[:N].unsqueeze(0).expand(B, N, self.emb_dim).to(device)
+            vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
+            
+            vad_prob = torch.sigmoid(vad_pred).squeeze(0)
+            spk_emb_pred = spk_emb_pred.squeeze(0)
+
+            max_probs, speaker_indices = torch.max(vad_prob, dim=0)
+            speech_frames = (max_probs > vad_threshold).long()
+
+            sentences = []
+            in_speech = False
+            start_frame = 0
+            
+            for i in range(T):
+                if not in_speech and speech_frames[i]:
+                    in_speech = True
+                    start_frame = i
+                elif in_speech and not speech_frames[i]:
+                    if i - start_frame >= min_speech_frames:
+                        # Find dominant speaker in the segment
+                        dom_spk = torch.mode(speaker_indices[start_frame:i])[0].item()
+                        sentences.append({'start': start_frame, 'end': i, 'spk': dom_spk})
+                    in_speech = False
+                elif in_speech and i > start_frame:
+                    # Check for speaker change
+                    current_speaker = speaker_indices[i]
+                    prev_speaker = speaker_indices[i-1]
+                    if current_speaker != prev_speaker:
+                         if i - start_frame >= min_speech_frames:
+                            dom_spk = torch.mode(speaker_indices[start_frame:i])[0].item()
+                            sentences.append({'start': start_frame, 'end': i, 'spk': dom_spk})
+                         start_frame = i
+
+            if in_speech:
+                if T - start_frame >= min_speech_frames:
+                    dom_spk = torch.mode(speaker_indices[start_frame:T])[0].item()
+                    sentences.append({'start': start_frame, 'end': T, 'spk': dom_spk})
+
+            # Merge consecutive segments from the same speaker
+            if not sentences:
+                return []
+
+            merged_sentences = [sentences[0]]
+            for i in range(1, len(sentences)):
+                last_sent = merged_sentences[-1]
+                curr_sent = sentences[i]
+                # Check for silence gap
+                silence_gap = curr_sent['start'] - last_sent['end']
+                if curr_sent['spk'] == last_sent['spk'] and silence_gap < min_silence_frames:
+                    merged_sentences[-1]['end'] = curr_sent['end']
+                else:
+                    merged_sentences.append(curr_sent)
+            
+            results = []
+            for sent in merged_sentences:
+                spk_id = sent['spk']
+                results.append({
+                    'start_ms': sent['start'] * frame_shift_ms,
+                    'end_ms': sent['end'] * frame_shift_ms,
+                    'speaker_id': spk_id,
+                    'embedding': spk_emb_pred[spk_id].cpu().numpy()
+                })
+
+            return results
+    
+    def get_sentences_from_diarization_output(
+        self,
+        vad_prob,
+        spk_embeddings,
+        vad_threshold=0.5,
+        min_speech_duration_ms=200,
+        min_silence_duration_ms=500,
+        frame_shift_ms=10,
+    ):
+        """
+        Extracts sentence-level timestamps and speaker embeddings from diarization model output.
+        This is a post-processing function that operates on model predictions.
+
+        Args:
+            vad_prob (Tensor): VAD probabilities for each speaker [N, T].
+            spk_embeddings (Tensor): Speaker embeddings for each speaker [N, S].
+            vad_threshold (float): VAD probability threshold.
+            min_speech_duration_ms (int): Minimum duration for a speech segment.
+            min_silence_duration_ms (int): Minimum duration of silence to break sentences.
+            frame_shift_ms (int): Frame shift in milliseconds.
+
+        Returns:
+            list: A list of dicts, each with 'start_ms', 'end_ms', 'speaker_id', 'embedding'.
+        """
+        if not torch.is_tensor(vad_prob):
+            vad_prob = torch.from_numpy(vad_prob)
+        if not torch.is_tensor(spk_embeddings):
+            spk_embeddings = torch.from_numpy(spk_embeddings)
+        
+        device = spk_embeddings.device
+        vad_prob = vad_prob.to(device)
+
+        min_speech_frames = min_speech_duration_ms // frame_shift_ms
+        min_silence_frames = min_silence_duration_ms // frame_shift_ms
+        
+        N, T = vad_prob.shape
+
+        max_probs, speaker_indices = torch.max(vad_prob, dim=0)
+        speech_frames = (max_probs > vad_threshold).long()
+
+        sentences = []
+        in_speech = False
+        start_frame = 0
+        
+        for t in range(T):
+            is_speech_now = speech_frames[t] == 1
+            if in_speech:
+                speaker_changed = t > 0 and speaker_indices[t] != speaker_indices[t-1]
+                if not is_speech_now or speaker_changed:
+                    if t - start_frame >= min_speech_frames:
+                        dom_spk = torch.mode(speaker_indices[start_frame:t])[0].item()
+                        sentences.append({'start': start_frame, 'end': t, 'spk': dom_spk})
+                    if is_speech_now and speaker_changed:
+                        start_frame = t
+                    else:
+                        in_speech = False
+            if not in_speech and is_speech_now:
+                in_speech = True
+                start_frame = t
+
+        if in_speech and T - start_frame >= min_speech_frames:
+            dom_spk = torch.mode(speaker_indices[start_frame:T])[0].item()
+            sentences.append({'start': start_frame, 'end': T, 'spk': dom_spk})
+
+        if not sentences:
+            return []
+
+        merged_sentences = [sentences[0]]
+        for i in range(1, len(sentences)):
+            last_sent = merged_sentences[-1]
+            curr_sent = sentences[i]
+            silence_gap = curr_sent['start'] - last_sent['end']
+            if curr_sent['spk'] == last_sent['spk'] and silence_gap < min_silence_frames:
+                merged_sentences[-1]['end'] = curr_sent['end']
+            else:
+                merged_sentences.append(curr_sent)
+        
+        results = []
+        for sent in merged_sentences:
+            spk_id = sent['spk']
+            results.append({
+                'start_ms': sent['start'] * frame_shift_ms,
+                'end_ms': sent['end'] * frame_shift_ms,
+                'speaker_id': spk_id,
+                'embedding': spk_embeddings[spk_id].cpu().numpy()
+            })
+
+        return results
+    def gradient_checkpointing_enable(self, gradient_checkpointing_kwargs=None):
+        """                                                                                                                                                                                               Activates gradient checkpointing for the current model.
+
+        Note that in other frameworks this feature can be referred to as "activation checkpointing" or "checkpoint
+        activations".
+
+        We pass the `__call__` method of the modules instead of `forward` because `__call__` attaches all the hooks of
+        the module. https://discuss.pytorch.org/t/any-different-between-model-input-and-model-forward-input/3690/2
+
+        Args:
+            gradient_checkpointing_kwargs (dict, *optional*):
+                Additional keyword arguments passed along to the `torch.utils.checkpoint.checkpoint` function.
+        """
+        # if not self.supports_gradient_checkpointing:
+        #    raise ValueError(f"{self.__class__.__name__} does not support gradient checkpointing.")
+
+        if gradient_checkpointing_kwargs is None:
+            gradient_checkpointing_kwargs = {"use_reentrant": True}
+        import functools
+
+        gradient_checkpointing_func = functools.partial(
+            checkpoint, **gradient_checkpointing_kwargs
+        )
+
+        # For old GC format (transformers < 4.35.0) for models that live on the Hub
+        # we will fall back to the overwritten `_set_gradient_checkpointing` method
+        # _is_using_old_format = "value" in inspect.signature(self._set_gradient_checkpointing).parameters
+
+        # if not _is_using_old_format:
+        self._set_gradient_checkpointing(
+            enable=True, gradient_checkpointing_func=gradient_checkpointing_func
+        )
+    def _set_gradient_checkpointing(
+        self, enable: bool = True, gradient_checkpointing_func: Callable = checkpoint
+    ):
+        is_gradient_checkpointing_set = False
+
+        # Apply it on the top-level module in case the top-level modules supports it
+        # for example, LongT5Stack inherits from `PreTrainedModel`.
+        if hasattr(self, "gradient_checkpointing"):
+            self._gradient_checkpointing_func = gradient_checkpointing_func
+            self.gradient_checkpointing = enable
+            is_gradient_checkpointing_set = True
+
+        for module in self.modules():
+            if hasattr(module, "gradient_checkpointing"):
+                module._gradient_checkpointing_func = gradient_checkpointing_func
+                module.gradient_checkpointing = enable
+                is_gradient_checkpointing_set = True
+
+        if not is_gradient_checkpointing_set:
+            raise ValueError(
+                f"{self.__class__.__name__} is not compatible with gradient checkpointing. Make sure all the architecture support it by setting a boolean attribute"
+                " `gradient_checkpointing` to modules of the model that uses checkpointing."
+            )
+    
+    def calc_diarization_error(self, outs_prob, labels, labels_len):
+        """
+        计算说话人分离的相关指标，包括DER、FA、MI、CF、ACC。
+        outs_prob: [B, N, T]，概率输出
+        labels: [B, N, T]，标签
+        labels_len: [B]，每个batch的有效长度
+        """
+        import numpy as np
+        batch_size, n_spk, max_len = labels.shape
+        # mask padding部分
+        mask = np.zeros((batch_size, n_spk, max_len))
+        for i in range(batch_size):
+            mask[i, :, :labels_len[i]] = 1
+        label_np = labels.data.cpu().numpy().astype(int)
+        pred_np = (outs_prob > 0.5).astype(int)
+        label_np = label_np * mask
+        pred_np = pred_np * mask
+        length = labels_len.data.cpu().numpy()
+        # 计算speech activity detection error
+        n_ref = np.sum(label_np, axis=1)  # [B, T]
+        n_sys = np.sum(pred_np, axis=1)  # [B, T]
+        speech_scored = float(np.sum(n_ref > 0))
+        speech_miss = float(np.sum(np.logical_and(n_ref > 0, n_sys == 0)))
+        speech_falarm = float(np.sum(np.logical_and(n_ref == 0, n_sys > 0)))
+        # 计算speaker diarization error
+        speaker_scored = float(np.sum(n_ref))
+        speaker_miss = float(np.sum(np.maximum(n_ref - n_sys, 0)))
+        speaker_falarm = float(np.sum(np.maximum(n_sys - n_ref, 0)))
+        n_map = np.sum(np.logical_and(label_np == 1, pred_np == 1), axis=1)
+        speaker_error = float(np.sum(np.minimum(n_ref, n_sys) - n_map))
+        correct = float(1.0 * np.sum((label_np == pred_np) * mask) / n_spk)
+        num_frames = np.sum(length)
+        return (
+            correct,
+            num_frames,
+            speech_scored,
+            speech_miss,
+            speech_falarm,
+            speaker_scored,
+            speaker_miss,
+            speaker_falarm,
+            speaker_error,
+        )
+
+    def calc_diarization_result(self, outs_prob, labels, labels_len):
+        """
+        计算DER等相关指标，返回mi, fa, cf, acc, der。
+        """
+        (
+            correct,
+            num_frames,
+            speech_scored,
+            speech_miss,
+            speech_falarm,
+            speaker_scored,
+            speaker_miss,
+            speaker_falarm,
+            speaker_error,
+        ) = self.calc_diarization_error(outs_prob, labels, labels_len)
+
+        if speech_scored == 0 or speaker_scored == 0:
+            print("All labels are zero")
+            return 0, 0, 0, 0, 0
+        mi = speech_miss / speech_scored
+        fa = speech_falarm / speech_scored
+        cf = speaker_error / speaker_scored
+        acc = correct / num_frames
+        der = (speaker_miss + speaker_falarm + speaker_error) / speaker_scored
+        return mi, fa, cf, acc, der
+    

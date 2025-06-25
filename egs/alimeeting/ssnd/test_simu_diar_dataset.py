@@ -143,7 +143,7 @@ def test():
     #        os.remove(fname) 
 
 
-def test2():
+def test_wo_feat_wo_aug():
     fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4")
 
     def vad_func(wav, sr):
@@ -242,7 +242,7 @@ def test2():
     # 批量测试
     batch = [mixer.sample() for _ in range(4)]
     print("batch:",batch)
-    mix_pad, label_pad, spk_ids_list = SimuDiarMixer.collate_fn(batch)
+    mix_pad, label_pad, spk_ids_list = SimuDiarMixer.collate_fn_wo_feat(batch)
     print('batch mix_pad shape:', mix_pad.shape)
     print('batch label_pad shape:', label_pad.shape)
     print('batch spk_ids_list:', spk_ids_list)
@@ -295,7 +295,7 @@ def plot_wav_and_check(mix, label, spk_ids,name="clean"):
     # 用法
     plot_mix_and_labels(mix, label,spk_ids, sr=16000)
     
-def test3():
+def test_wo_feats_in_batch():
     from simu_diar_dataset import SimuDiarMixer
     import torch
     from ssnd_model import SSNDModel
@@ -317,6 +317,7 @@ def test3():
         'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
         'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
         'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
+        'spk5':["/data/maduo/datasets/test_wavs/en.wav"],
     }
     spk2chunks=defaultdict(list)
     for spk_id in spk2wav.keys():
@@ -346,10 +347,11 @@ def test3():
     plot_wav_and_check(mix,label,spk_ids, name="clean")
 
     #batch = [mixer.sample() for _ in range(4)]
-    batch = [mixer.sample_post() for _ in range(4)]
-    mix_pad, label_pad, spk_ids_list = SimuDiarMixer.collate_fn(batch)
+    batch = [mixer.sample_post() for _ in range(2)]
+    mix_pad, label_pad, spk_ids_list = mixer.collate_fn_wo_feat(batch)
     # 3. 构造spk_label_idx
-    all_spk = sorted({spk for spk_ids in spk_ids_list for spk in spk_ids if spk is not None})
+    #all_spk = sorted({spk for spk_ids in spk_ids_list for spk in spk_ids if spk is not None})
+    all_spk = sorted({spk for spk, _ in spk2wav.items()})
     spk2idx = {spk: i for i, spk in enumerate(all_spk)}
     B, N, T = label_pad.shape
     spk_label_idx = torch.full((B, N), fill_value=-1, dtype=torch.long)
@@ -402,12 +404,14 @@ def test3():
         feat_dim=80,
         emb_dim=32,
         d_model=32,
+        q_det_aux_dim=32, # query dim, in detection decoder, it is speaker embedding dim,
+        q_rep_aux_dim=32,
         nhead=4,
         d_ff=64,
         num_layers=2,
         max_speakers=N,
         vad_out_len=max_frames,
-        arcface_num_classes=len(all_spk),
+        #arcface_num_classes=len(all_spk),
         pos_emb_dim=32,
         max_seq_len=max_frames,
         n_all_speakers=len(all_spk),
@@ -426,8 +430,250 @@ def test3():
     print('arcface_loss:', arcface_loss.item() if arcface_loss is not None else None)
     print('mask_info:', mask_info)
 
+def test_w_feats_in_batch():
+    from simu_diar_dataset import SimuDiarMixer
+    import torch
+    from ssnd_model import SSNDModel
+    import soundfile as sf
+    from collections import defaultdict
+    import librosa
+    import torchaudio
+    # 1. 构造真实 spk2chunks
+    def vad_func(wav, sr):
+        from funasr import AutoModel
+        fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4",disable_update=True)
+        if wav.dtype != np.int16:
+            wav = (wav * 32767).astype(np.int16)
+        result = fsmn_vad_model.generate(wav, fs=sr)
+        time_stamp = result[0]['value']
+        return time_stamp
+    spk2wav={
+        "spk1":["/data/maduo/datasets/test_wavs/3-sichuan.wav"],
+        'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
+        'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
+        'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
+        'spk5':["/data/maduo/datasets/test_wavs/en.wav"],
+    }
+    spk2chunks=defaultdict(list)
+    for spk_id in spk2wav.keys():
+        for wav_path in spk2wav[spk_id]:
+            wav, sr = sf.read(wav_path)
+            if sr != 16000:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            time_stamp_list = vad_func(wav,sr=16000)
+            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+            spk2chunks[spk_id].extend(speech_chunks)
+    # 2. 采样batch
+    
+    mixer = SimuDiarMixer(
+        spk2chunks,
+        sample_rate=16000,
+        max_mix_len=15.0,
+        min_silence=0.0,
+        max_silence=4.0,
+        target_overlap=0.2,
+        #musan_path="/data/maduo/datasets/musan",
+        #rir_path="/data/maduo/datasets/RIRS_NOISES",
+    )
+    
+   
+    # plot and check
+    mix, label,spk_ids = mixer.sample_post()
+    plot_wav_and_check(mix,label,spk_ids, name="clean")
+
+    #batch = [mixer.sample() for _ in range(4)]
+    batch = [mixer.sample_post() for _ in range(2)]
+    mix_pad, label_pad, spk_ids_list,feats = mixer.collate_fn(batch)
+    # 3. 构造spk_label_idx
+    #all_spk = sorted({spk for spk_ids in spk_ids_list for spk in spk_ids if spk is not None})
+    all_spk = sorted({spk for spk, _ in spk2wav.items()})
+    spk2idx = {spk: i for i, spk in enumerate(all_spk)}
+    B, N, T = label_pad.shape
+    spk_label_idx = torch.full((B, N), fill_value=-1, dtype=torch.long)
+    for b, spk_ids in enumerate(spk_ids_list):
+        for n, spk in enumerate(spk_ids):
+            if spk is not None:
+                spk_label_idx[b, n] = spk2idx[spk]
+    spk_labels = spk_label_idx.clone()
+    max_frames = feats.size(1)
+    # 5. 实例化模型
+    model = SSNDModel(
+        feat_dim=80,
+        emb_dim=32,
+        d_model=32,
+        q_det_aux_dim=32, # query dim, in detection decoder, it is speaker embedding dim,
+        q_rep_aux_dim=32,
+        nhead=4,
+        d_ff=64,
+        num_layers=2,
+        max_speakers=N,
+        vad_out_len=max_frames,
+        #arcface_num_classes=len(all_spk),
+        pos_emb_dim=32,
+        max_seq_len=max_frames,
+        n_all_speakers=len(all_spk),
+        mask_prob=0.5,
+        training=True,
+    )
+    # 6. 前向传播
+    vad_labels = label_pad  # [B, N, max_frames]
+    #feats = feats_pad  # [B, max_frames, 80]
+    vad_pred, spk_emb_pred, bce_loss, arcface_loss, mask_info = model(
+        feats, spk_label_idx, vad_labels, spk_labels
+    )
+    print('vad_pred shape:', vad_pred.shape)
+    print('spk_emb_pred shape:', spk_emb_pred.shape)
+    print('bce_loss:', bce_loss.item())
+    print('arcface_loss:', arcface_loss.item() if arcface_loss is not None else None)
+    print('mask_info:', mask_info)
+
+
+def test_inference():
+    from simu_diar_dataset import SimuDiarMixer
+    import torch
+    from ssnd_model import SSNDModel
+    import soundfile as sf
+    from collections import defaultdict
+    import librosa
+    import torchaudio
+    # 1. 构造真实 spk2chunks
+    def vad_func(wav, sr):
+        from funasr import AutoModel
+        fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4",disable_update=True)
+        if wav.dtype != np.int16:
+            wav = (wav * 32767).astype(np.int16)
+        result = fsmn_vad_model.generate(wav, fs=sr)
+        time_stamp = result[0]['value']
+        return time_stamp
+    spk2wav={
+        "spk1":["/data/maduo/datasets/test_wavs/3-sichuan.wav"],
+        'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
+        'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
+        'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
+        'spk5':["/data/maduo/datasets/test_wavs/en.wav"],
+    }
+    spk2chunks=defaultdict(list)
+    for spk_id in spk2wav.keys():
+        for wav_path in spk2wav[spk_id]:
+            wav, sr = sf.read(wav_path)
+            if sr != 16000:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            time_stamp_list = vad_func(wav,sr=16000)
+            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+            spk2chunks[spk_id].extend(speech_chunks)
+    # 2. 采样batch
+    mixer = SimuDiarMixer(
+        spk2chunks,
+        sample_rate=16000,
+        max_mix_len=15.0,
+        min_silence=0.0,
+        max_silence=4.0,
+        target_overlap=0.2,
+    )
+    # 采样一条混合音频
+    mix, label, spk_ids = mixer.sample_post()
+    # 3. 特征提取
+    wav_tensor = torch.tensor(mix, dtype=torch.float32)
+    win_length = int(0.025 * 16000)
+    hop_length = int(0.01 * 16000)
+    fbank = torchaudio.compliance.kaldi.fbank(
+        wav_tensor.unsqueeze(0),
+        num_mel_bins=80,
+        frame_length=25,
+        frame_shift=10,
+        sample_frequency=16000,
+        use_log_fbank=True,
+        dither=1.0,
+        window_type='hamming'
+    ).squeeze(0)  # [num_frames, 80]
+    print(f"fbank: {fbank}, its shape: {fbank.shape}")
+    # 4. 切分为blocks
+    block_size = int(8*100) # 8s has 800frames , per frames is 10ms
+    cur_chunk= int(0.64*100) #64 frames
+    right_ctx = int(0.16*100) #16 frame
+    blocks = []
+    for start in range(0, fbank.shape[0], block_size):
+        end = int(min(start + block_size + right_ctx, fbank.shape[0]))
+        print(f"end: {end}")
+        blocks.append(fbank[start:end])
+    # 5. 实例化模型
+    N = label.shape[0]
+    model = SSNDModel(
+        feat_dim=80,
+        emb_dim=256,
+        d_model=256,
+        q_det_aux_dim=256, # query dim, in detection decoder, it is speaker embedding dim,
+        q_rep_aux_dim=256,
+        nhead=8,
+        d_ff=512,
+        num_layers=4,
+        max_speakers=N,
+        vad_out_len=int(block_size+right_ctx),
+        pos_emb_dim=256,
+        max_seq_len=int(block_size+right_ctx),
+        n_all_speakers=10,
+        mask_prob=0.0,
+        training=False,
+    )
+    print(f"model: {model}")
+    num_params = sum(p.numel() for p in model.parameters())
+    print("model has {} M parameters".format(num_params / 1e6))
+    # 6. online_infer
+    print("=== Online Infer ===")
+    dia_result_online = model.online_infer(blocks, l_c=block_size, l_r=right_ctx, t1=0.5, t2=0.5)
+    for spk_id, act in dia_result_online.items():
+        print(f"Online spk_id {spk_id}: {act.shape}")
+    # 7. offline_rescore
+    print("=== Offline Rescore ===")
+    diarization_result_offline, spk_id_list = model.offline_rescore(blocks, l_c=int(block_size), l_r=int(right_ctx), t1=0.5, t2=0.5, threshold=0.5)
+    print(f"Offline diarization_result shape: {diarization_result_offline.shape}, spk_id_list: {spk_id_list}")
+    # 8. 可视化对比
+    import matplotlib.pyplot as plt
+    num_frames = fbank.shape[0]
+    t = np.arange(label.shape[1]) / 16000
+
+    # --- Plot 1: GT vs Offline ---
+    plt.figure(figsize=(12, 6))
+    for i in range(label.shape[0]):
+        plt.plot(t, label[i][:len(t)], label=f"GT Speaker {spk_ids[i]}")
+
+    diarization_result_offline_trimmed = diarization_result_offline[:, :num_frames]
+    diarization_result_offline_upsampled = np.repeat(diarization_result_offline_trimmed, hop_length, axis=1)
+
+    for i, spk_id in enumerate(spk_id_list):
+        if spk_id == -1:
+            continue
+        y = diarization_result_offline_upsampled[i]
+        y_padded = np.pad(y, (0, len(t) - len(y)), 'constant')
+        plt.plot(t, y_padded, '--', label=f"Offline Spk {spk_id}")
+
+    plt.legend()
+    plt.xlabel('Time (s)')
+    plt.title('Diarization GT vs Offline Rescore')
+    plt.savefig("./test4_diarization_compare_offline.jpg")
+    plt.show()
+
+    # --- Plot 2: GT vs Online ---
+    plt.figure(figsize=(12, 6))
+    for i in range(label.shape[0]):
+        plt.plot(t, label[i][:len(t)], label=f"GT Speaker {spk_ids[i]}")
+
+    for spk_id, act in dia_result_online.items():
+        act_trimmed = act[:num_frames]
+        act_upsampled = np.repeat(act_trimmed, hop_length)
+        y_padded = np.pad(act_upsampled, (0, len(t) - len(act_upsampled)), 'constant')
+        plt.plot(t, y_padded, ':', label=f"Online Spk {spk_id}")
+
+    plt.legend()
+    plt.xlabel('Time (s)')
+    plt.title('Diarization GT vs Online Inference')
+    plt.savefig("./test4_diarization_compare_online.jpg")
+    plt.show()
+
+
 if __name__== "__main__":
-    fix_random_seed2(43)
-    #test() 
-    #test2()
-    test3()
+    fix_random_seed2(43) 
+    #test_wo_feat_wo_aug()
+    test_wo_feats_in_batch()
+    test_w_feats_in_batch()
+    test_inference()

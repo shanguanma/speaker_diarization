@@ -12,6 +12,9 @@ class SimuDiarMixer:
     def __init__(self,
                  spk2chunks: Dict[str, List[np.ndarray]],
                  sample_rate: int = 16000,
+                 frame_length: float = 0.025, # 25ms
+                 frame_shift: float = 0.01, # 10ms
+                 num_mel_bins: int = 80,
                  max_mix_len: float = 30.0,
                  min_silence: float = 0.0,
                  max_silence: float = 4.0,
@@ -31,6 +34,9 @@ class SimuDiarMixer:
         """
         self.spk2chunks = spk2chunks
         self.sr = sample_rate
+        self.frame_length = frame_length
+        self.frame_shift = frame_shift
+        self.num_mel_bins = num_mel_bins
         self.max_mix_len = max_mix_len
         self.min_silence = min_silence
         self.max_silence = max_silence
@@ -163,37 +169,101 @@ class SimuDiarMixer:
         return regions
 
     @staticmethod
-    def collate_fn(batch):
+    def extract_fbank(wav, sample_rate=16000, num_mel_bins=80, frame_length=0.025, frame_shift=0.01):
         """
-        batch: [(mix, label, spk_ids), ...]
-        - mix: [T_i]
-        - label: [N_i, T_i]
-        - spk_ids: [N_i] (str or None)
-        返回：
-        - mix_pad: [B, T_max]
-        - label_pad: [B, N_max, T_max]
-        - spk_ids_list: [B, N_max]（不足用None填充）
+        提取 kaldi 风格的 fbank 特征。
+        wav: numpy array, 1D
+        sample_rate: 采样率
+        num_mel_bins: 梅尔滤波器组数
+        frame_length: 帧长(s)
+        frame_shift: 帧移(s)
+        返回: [num_frames, num_mel_bins] 的 torch.Tensor
         """
         import torch
-        batch_size = len(batch)
-        mix_lens = [x[0].shape[0] for x in batch]
-        label_n = [x[1].shape[0] for x in batch]
-        T_max = max(mix_lens)
-        N_max = max(label_n)
-        # pad mix
-        mix_pad = torch.zeros(batch_size, T_max)
-        label_pad = torch.zeros(batch_size, N_max, T_max)
+        import torchaudio
+        if isinstance(wav, np.ndarray):
+            wav_tensor = torch.tensor(wav, dtype=torch.float32)
+        else:
+            wav_tensor = wav.float()
+        if wav_tensor.dim() == 2:
+            wav_tensor = wav_tensor[:, 0]  # 只取第一通道
+        fbank = torchaudio.compliance.kaldi.fbank(
+            wav_tensor.unsqueeze(0),
+            num_mel_bins=num_mel_bins,
+            frame_length=int(frame_length*1000),
+            frame_shift=int(frame_shift*1000),
+            sample_frequency=sample_rate,
+            use_log_fbank=True,
+            dither=1.0,
+            window_type='hamming'
+        ).squeeze(0)  # [num_frames, num_mel_bins]
+        return fbank
+
+    def collate_fn(self, batch):
+        # batch: list of (mix, label, spk_ids)
+        max_len = max([len(x[0]) for x in batch])
+        # 先提取所有fbank帧数，确定max_frames
+        fbanks = []
+        fbank_lens = []
+        for mix, _, _ in batch:
+            fbank = self.extract_fbank(mix, sample_rate=self.sr, num_mel_bins=getattr(self, 'num_mel_bins', 80), frame_length=self.frame_length, frame_shift=self.frame_shift)
+            fbanks.append(fbank)
+            fbank_lens.append(fbank.shape[0])
+        max_frames = max(fbank_lens)
+        max_spks = max([x[1].shape[0] for x in batch])
+        wavs = []
+        labels = []
         spk_ids_list = []
-        for i, (mix, label, spk_ids) in enumerate(batch):
-            mix_pad[i, :mix.shape[0]] = torch.from_numpy(mix) if isinstance(mix, np.ndarray) else mix
-            label_pad[i, :label.shape[0], :label.shape[1]] = torch.from_numpy(label) if isinstance(label, np.ndarray) else label
-            # pad spk_ids
-            if spk_ids is not None:
-                padded_ids = list(spk_ids) + [None] * (N_max - len(spk_ids))
-            else:
-                padded_ids = [None] * N_max
-            spk_ids_list.append(padded_ids)
-        return mix_pad, label_pad, spk_ids_list
+        fbanks_pad = []
+        for (mix, label, spk_ids), fbank in zip(batch, fbanks):
+            pad_wav = np.pad(mix, (0, max_len - len(mix)), 'constant')
+            wavs.append(pad_wav)
+            pad_spk_ids = list(spk_ids) + [None] * (max_spks - len(spk_ids))
+            spk_ids_list.append(pad_spk_ids)
+            # fbank pad
+            pad_fbank = np.pad(fbank, ((0, max_frames - fbank.shape[0]), (0, 0)), 'constant')
+            fbanks_pad.append(pad_fbank)
+            # label对齐到fbank帧
+            N, T_sample = label.shape
+            T_fbank = fbank.shape[0]
+            aligned_label = np.zeros((N, T_fbank), dtype=np.float32)
+            win_length = int(self.frame_length * self.sr)
+            hop_length = int(self.frame_shift * self.sr)
+            for n in range(N):
+                for t in range(T_fbank):
+                    start = t * hop_length
+                    end = min(start + win_length, T_sample)
+                    aligned_label[n, t] = label[n, start:end].max()
+            pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
+            pad_label[:aligned_label.shape[0], :aligned_label.shape[1]] = aligned_label
+            labels.append(pad_label)
+        import torch
+        wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
+        labels = torch.tensor(np.stack(labels), dtype=torch.float32)
+        fbanks = torch.tensor(np.stack(fbanks_pad), dtype=torch.float32)
+        return wavs, labels, spk_ids_list, fbanks
+
+    def collate_fn_wo_feat(self, batch):
+        # batch: list of (mix, label, spk_ids)
+        # 只做padding，不提取特征
+        max_len = max([len(x[0]) for x in batch])
+        max_frames = max([x[1].shape[1] for x in batch])
+        max_spks = max([x[1].shape[0] for x in batch])
+        wavs = []
+        labels = []
+        spk_ids_list = []
+        for mix, label, spk_ids in batch:
+            pad_wav = np.pad(mix, (0, max_len - len(mix)), 'constant')
+            pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
+            pad_label[:label.shape[0], :label.shape[1]] = label
+            wavs.append(pad_wav)
+            labels.append(pad_label)
+            pad_spk_ids = list(spk_ids) + [None] * (max_spks - len(spk_ids))
+            spk_ids_list.append(pad_spk_ids)
+        import torch
+        wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
+        labels = torch.tensor(np.stack(labels), dtype=torch.float32)
+        return wavs, labels, spk_ids_list
 
     def sample(self) -> Tuple[np.ndarray, np.ndarray, List[str]]:
         """
