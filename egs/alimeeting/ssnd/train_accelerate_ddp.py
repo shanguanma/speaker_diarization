@@ -366,6 +366,12 @@ def compute_validation_loss(
         tot_loss_valid = tot_loss_valid + loss_info["loss"]
         tot_loss = tot_loss + loss_info
 
+        if batch_idx == 0:
+            fbanks, labels, spk_label_idx, labels_len = batch
+            print(f'[VAL DIAG] labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}')
+            print(f'[VAL DIAG] labels[0, :, :10]: {labels[0, :, :10]}')
+            print(f'[VAL DIAG] spk_label_idx[0]: {spk_label_idx[0]}')
+
     for item in tot_loss.keys():
         tot_loss[item] = tot_loss[item] / len(batch_nums)
 
@@ -719,24 +725,24 @@ def load_checkpoint_if_available(
 
     return saved_params
 
-def build_spk2int(textgrid_dir: str):
+def build_spk2int(*textgrid_dirs: str):
     """
     统计给定TextGrid目录下的说话人，生成spk2int。
+    支持多个目录联合统计。
     """
     spk_ids = set()
-    tg_dir = Path(textgrid_dir)
-    for tg_file in tg_dir.glob('*.TextGrid'):
-        try:
-            tg = textgrid.TextGrid.fromFile(str(tg_file))
-            for tier in tg:
-                if tier.name.strip():
-                    spk_ids.add(tier.name[-9:]) # because alimeeting has the speaker name dependent on the audio name
-                                                # i.e.: R0015_M0126_F_SPK0255, 
-                                                # so it should be remove the R0015_M0126_ prefix  
-        except Exception as e:
-            logging.warning(f"Could not process {tg_file}: {e}")
+    for textgrid_dir in textgrid_dirs:
+        tg_dir = Path(textgrid_dir)
+        for tg_file in tg_dir.glob('*.TextGrid'):
+            try:
+                tg = textgrid.TextGrid.fromFile(str(tg_file))
+                for tier in tg:
+                    if tier.name.strip():
+                        spk_ids.add(tier.name[-9:]) # 保证和AlimeetingDiarDataset一致
+            except Exception as e:
+                logging.warning(f"Could not process {tg_file}: {e}")
     spk2int = {spk: i for i, spk in enumerate(sorted(list(spk_ids)))}
-    logging.info(f"Found {len(spk2int)} unique speakers in the training set.")
+    logging.info(f"Found {len(spk2int)} unique speakers in the provided set.")
     return spk2int
 
 def build_train_dl(args, spk2int): 
@@ -856,8 +862,8 @@ def main():
         project_dir=args.exp_dir,
     )
 
-    # 构建spk2int (只用训练集)
-    spk2int = build_spk2int(args.train_textgrid_dir)
+    # 构建spk2int (用训练集和验证集联合)
+    spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
     params.n_all_speakers = len(spk2int)
 
     # build train/valid dataloader
