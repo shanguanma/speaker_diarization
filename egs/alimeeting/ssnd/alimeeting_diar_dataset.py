@@ -62,7 +62,7 @@ class AlimeetingDiarDataset(Dataset):
         tg = textgrid.TextGrid.fromFile(item['tg'])
         spk2intervals = {}
         for tier in tg:
-            spk = tier.name
+            spk = tier.name[-9:]  # 保证和spk2int一致
             intervals = []
             for interval in tier:
                 if interval.mark.strip():

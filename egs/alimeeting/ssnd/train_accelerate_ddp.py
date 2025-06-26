@@ -305,6 +305,11 @@ def compute_loss(
     with torch.set_grad_enabled(is_training):
         fbanks, labels, spk_label_idx, labels_len = batch  # [B, T, F], [B, N, T], [B, N], [B]
         B, N, T = labels.shape
+        # 诊断：打印输入shape和部分内容
+        if is_training and B > 0:
+            print(f"[DIAG] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
+            print(f"[DIAG] labels[0, :, :10]: {labels[0, :, :10]}")
+            print(f"[DIAG] spk_label_idx[0]: {spk_label_idx[0]}")
         # forward
         (
             vad_pred,
@@ -315,6 +320,12 @@ def compute_loss(
             mask_info,
             padded_vad_labels,
         ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx)
+        # 诊断：打印模型输出和标签
+        if is_training and B > 0:
+            print(f"[DIAG] vad_pred.shape: {vad_pred.shape}, padded_vad_labels.shape: {padded_vad_labels.shape}")
+            print(f"[DIAG] vad_pred[0, :, :10]: {vad_pred[0, :, :10].detach().cpu().numpy()}")
+            print(f"[DIAG] padded_vad_labels[0, :, :10]: {padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
+            print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
         mi, fa, cf, acc, der = model.module.calc_diarization_result(
@@ -587,6 +598,12 @@ def train_one_epoch(
             logging.info(
                 f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
             )
+        # 诊断：打印dataloader输出的shape和部分内容
+        if batch_idx == 0:
+            fbanks, labels, spk_label_idx, labels_len = batch
+            print(f"[DIAG] Dataloader batch[0] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
+            print(f"[DIAG] Dataloader batch[0] labels[0, :, :10]: {labels[0, :, :10]}")
+            print(f"[DIAG] Dataloader batch[0] spk_label_idx[0]: {spk_label_idx[0]}")
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
