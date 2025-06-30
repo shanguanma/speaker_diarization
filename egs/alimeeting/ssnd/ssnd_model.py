@@ -179,7 +179,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, -4.0)
+        torch.nn.init.constant_(self.out_proj.bias, -2.0)
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
         # x_fea:[B,T,D], it is ouput of encoder and it applys on value
@@ -381,7 +381,7 @@ class SSNDModel(nn.Module):
         # BCE loss
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, reduction='mean')
         # ArcFace loss（只对有效说话人）
-        arcface_loss = None
+        arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None:
             # mask掉填充的-1
             valid = (spk_labels >= 0)
@@ -389,7 +389,7 @@ class SSNDModel(nn.Module):
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
         
         loss = bce_loss
-        if arcface_loss is not None:
+        if arcface_loss.item() > 0:
             loss = loss + 0.1 * arcface_loss
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
@@ -909,6 +909,10 @@ class SSNDModel(nn.Module):
         sys_speech = np.sum(pred_np, axis=1)   # [B, T]
         miss = np.sum((ref_speech > 0) & (sys_speech == 0))
         fa = np.sum((ref_speech == 0) & (sys_speech > 0))
+        # old 
+        #n_map = np.sum(np.logical_and(label_np == 1, pred_np == 1), axis=1)
+        #conf = float(np.sum(np.minimum(ref_speech, sys_speech) - n_map))
+        # new
         conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
         correct = np.sum((label_np == pred_np) * mask) / n_spk
         return correct, num_frames, miss, fa, conf
