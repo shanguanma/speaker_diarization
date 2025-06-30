@@ -91,7 +91,7 @@ def get_parser():
         help="""The experiment dir.""",
     )
     parser.add_argument(
-        "--lr", type=float, default=1e-4, help="learning rate."
+        "--lr", type=float, default=5e-4, help="learning rate."
     )
     parser.add_argument("--lr-type", type=str, default="PolynomialDecayLR", help="scheduler type of adamw, choise from `PolynomialDecayLR`, `CosineAnnealingLR`, `ReduceLROnPlateau`.")
     parser.add_argument(
@@ -142,7 +142,7 @@ def get_parser():
     parser.add_argument(
         "--warmup-updates",
         type=int,
-        default=4000,
+        default=400,
         help="number warmup iters of training ",
     )
     parser.add_argument(
@@ -322,9 +322,9 @@ def compute_loss(
         ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx)
         # 诊断：打印模型输出和标签
         if is_training and B > 0:
-            print(f"[DIAG] vad_pred.shape: {vad_pred.shape}, padded_vad_labels.shape: {padded_vad_labels.shape}")
-            print(f"[DIAG] vad_pred[0, :, :10]: {vad_pred[0, :, :10].detach().cpu().numpy()}")
-            print(f"[DIAG] padded_vad_labels[0, :, :10]: {padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
+            print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
+            print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
+            print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
             print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
