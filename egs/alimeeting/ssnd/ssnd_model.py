@@ -181,8 +181,7 @@ class DetectionDecoder(nn.Module):
         self.out_proj = nn.Linear(d_model, out_vad_len)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
-        # x_dec:[B,N,D], it is setting to 0, it applys on query, D is equal to speaker embedding dim(S) in the paper.
-        #                                                        it is also d_model 
+        # x_dec:[B,N,D], it is setting to 0, it applys on query
         # x_fea:[B,T,D], it is ouput of encoder and it applys on value
         # q_aux:[B,N,D'], it is speaker embedding and it applys on query
         # pos_emb:[B,T,D'], it is postion embedding and it applys on key
@@ -888,15 +887,8 @@ class SSNDModel(nn.Module):
             )
     
     def calc_diarization_error(self, outs_prob, labels, labels_len):
-        """
-        计算说话人分离的相关指标，包括DER、FA、MI、CF、ACC。
-        outs_prob: [B, N, T]，概率输出
-        labels: [B, N, T]，标签
-        labels_len: [B]，每个batch的有效长度
-        """
         import numpy as np
         batch_size, n_spk, max_len = labels.shape
-        # mask padding部分
         mask = np.zeros((batch_size, n_spk, max_len))
         for i in range(batch_size):
             mask[i, :, :labels_len[i]] = 1
@@ -905,28 +897,24 @@ class SSNDModel(nn.Module):
         label_np = label_np * mask
         pred_np = pred_np * mask
         length = labels_len.data.cpu().numpy()
-        num_frames = np.sum(length)  # 总帧数
-
-        # 逐帧统计
-        ref_speech = np.sum(label_np, axis=1)  # [B, T]
-        sys_speech = np.sum(pred_np, axis=1)   # [B, T]
-
-        # 统计每一帧的错误
+        num_frames = np.sum(length)
+        ref_speech = np.sum(label_np, axis=1)
+        sys_speech = np.sum(pred_np, axis=1)
         miss = np.sum((ref_speech > 0) & (sys_speech == 0))
         fa = np.sum((ref_speech == 0) & (sys_speech > 0))
         conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
         correct = np.sum((label_np == pred_np) * mask) / n_spk
-
-        # DER = (miss + fa + conf) / 总帧数
-        der = (miss + fa + conf) / num_frames if num_frames > 0 else 0.0
-
-        return correct, num_frames, miss, fa, conf, der
+        return correct, num_frames, miss, fa, conf
 
     def calc_diarization_result(self, outs_prob, labels, labels_len):
-        """
-        计算DER等相关指标，返回mi, fa, cf, acc, der。
-        """
-        correct, num_frames, miss, fa, conf, der = self.calc_diarization_error(outs_prob, labels, labels_len)
+        correct, num_frames, miss, fa, conf = self.calc_diarization_error(outs_prob, labels, labels_len)
         acc = correct / num_frames if num_frames > 0 else 0.0
-        return miss / num_frames if num_frames > 0 else 0.0, fa / num_frames if num_frames > 0 else 0.0, conf / num_frames if num_frames > 0 else 0.0, acc, der
+        der = (miss + fa + conf) / num_frames if num_frames > 0 else 0.0
+        return (
+            miss / num_frames if num_frames > 0 else 0.0,
+            fa / num_frames if num_frames > 0 else 0.0,
+            conf / num_frames if num_frames > 0 else 0.0,
+            acc,
+            der
+        )
     

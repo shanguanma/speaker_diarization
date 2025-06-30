@@ -180,6 +180,7 @@ class AlimeetingDiarDataset(Dataset):
             dither=1.0,
             window_type='hamming'
         ).squeeze(0)  # [num_frames, num_mel_bins]
+        fbank = (fbank - fbank.mean(dim=0)) / fbank.std(dim=0).clamp(min=1e-8)
         return fbank
 
     def load_musan_or_rirs(self, musan_path, rir_path):
