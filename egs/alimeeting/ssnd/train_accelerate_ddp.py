@@ -336,12 +336,18 @@ def compute_loss(
         
     info = {
         "loss": loss.detach().cpu().item(),
+        "bce_loss": bce_loss.detach().cpu().item(),
+        "arcface_loss": arcface_loss.detach().cpu().item(),
         "DER": der,
         "ACC": acc,
         "MI": mi,
         "FA": fa,
         "CF": cf,
     }
+    if is_training:
+        info["log_s_bce"] = model.module.log_s_bce.item()
+        info["log_s_arcface"] = model.module.log_s_arcface.item()
+
     return loss, info
 
 def compute_validation_loss(

@@ -179,7 +179,8 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, 0.0)
+        torch.nn.init.constant_(self.out_proj.bias, 0.0) # bias is very import 
+
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
         # x_fea:[B,T,D], it is ouput of encoder and it applys on value
@@ -269,7 +270,7 @@ class SSNDModel(nn.Module):
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
         self.gradient_checkpointing = False
-        # For learnable loss weights
+        # For learnable loss weights， it is very important for begin of training
         self.log_s_bce = nn.Parameter(torch.tensor(0.0))
         self.log_s_arcface = nn.Parameter(torch.tensor(2.3026)) # ln(10)=2.3026
 
