@@ -179,7 +179,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, -2.0)
+        torch.nn.init.constant_(self.out_proj.bias, 0.0)
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
         # x_fea:[B,T,D], it is ouput of encoder and it applys on value
@@ -269,6 +269,10 @@ class SSNDModel(nn.Module):
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
         self.gradient_checkpointing = False
+        # For learnable loss weights
+        self.log_s_bce = nn.Parameter(torch.tensor(0.0))
+        self.log_s_arcface = nn.Parameter(torch.tensor(0.0))
+
 
     def compute_arcface_loss(self, spk_emb_pred, spk_labels):
         """
@@ -388,9 +392,9 @@ class SSNDModel(nn.Module):
             if valid.sum() > 0:
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
         
-        loss = bce_loss
+        loss = torch.exp(-self.log_s_bce) * bce_loss + self.log_s_bce
         if arcface_loss.item() > 0:
-            loss = loss + 0.1 * arcface_loss
+            loss = loss + (torch.exp(-self.log_s_arcface) * arcface_loss + self.log_s_arcface)
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
