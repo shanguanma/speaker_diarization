@@ -907,7 +907,7 @@ class SSNDModel(nn.Module):
         length = labels_len.data.cpu().numpy()
         # 计算speech activity detection error
         n_ref = np.sum(label_np, axis=1)  # [B, T]
-        n_sys = np.sum(pred_np, axis=1)  # [B, T]
+        n_sys = np.sum(pred_np, axis=1)   # [B, T]
         speech_scored = float(np.sum(n_ref > 0))
         speech_miss = float(np.sum(np.logical_and(n_ref > 0, n_sys == 0)))
         speech_falarm = float(np.sum(np.logical_and(n_ref == 0, n_sys > 0)))
@@ -935,25 +935,7 @@ class SSNDModel(nn.Module):
         """
         计算DER等相关指标，返回mi, fa, cf, acc, der。
         """
-        (
-            correct,
-            num_frames,
-            speech_scored,
-            speech_miss,
-            speech_falarm,
-            speaker_scored,
-            speaker_miss,
-            speaker_falarm,
-            speaker_error,
-        ) = self.calc_diarization_error(outs_prob, labels, labels_len)
-
-        if speech_scored == 0 or speaker_scored == 0:
-            print("All labels are zero")
-            return 0, 0, 0, 0, 0
-        mi = speech_miss / speech_scored
-        fa = speech_falarm / speech_scored
-        cf = speaker_error / speaker_scored
-        acc = correct / num_frames
-        der = (speaker_miss + speaker_falarm + speaker_error) / speaker_scored
-        return mi, fa, cf, acc, der
+        correct, num_frames, miss, fa, conf, der = self.calc_diarization_error(outs_prob, labels, labels_len)
+        acc = correct / num_frames if num_frames > 0 else 0.0
+        return miss / num_frames, fa / num_frames, conf / num_frames, acc, der
     
