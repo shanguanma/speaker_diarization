@@ -356,6 +356,19 @@ def compute_validation_loss(
     batch_nums = []
     tot_loss_valid = 0
     for batch_idx, batch in enumerate(valid_dl):
+        # 新增详细打印和断言
+        try:
+            fbanks, labels, spk_label_idx, labels_len = batch
+            print(f"[VAL DIAG] batch_idx={batch_idx}, fbanks.shape={getattr(fbanks, 'shape', None)}, labels.shape={getattr(labels, 'shape', None)}, spk_label_idx.shape={getattr(spk_label_idx, 'shape', None)}, labels_len={labels_len}")
+            print(f"[VAL DIAG] batch_idx={batch_idx}, labels_len.sum()={labels_len.sum().item() if hasattr(labels_len, 'sum') else labels_len}")
+            print(f"[VAL DIAG] batch_idx={batch_idx}, labels[0, :, :10]={labels[0, :, :10] if hasattr(labels, 'shape') and labels.shape[0] > 0 else 'N/A'}")
+            print(f"[VAL DIAG] batch_idx={batch_idx}, spk_label_idx[0]={spk_label_idx[0] if hasattr(spk_label_idx, 'shape') and spk_label_idx.shape[0] > 0 else 'N/A'}")
+            assert fbanks is not None and labels is not None and spk_label_idx is not None and labels_len is not None, f"Batch {batch_idx} has None values!"
+            assert hasattr(labels_len, 'sum') and labels_len.sum().item() > 0, f"Batch {batch_idx} has zero valid frames! labels_len={labels_len}"
+            assert hasattr(labels, 'shape') and labels.shape[0] > 0, f"Batch {batch_idx} labels is empty!"
+        except Exception as e:
+            print(f"[VAL ERROR] batch_idx={batch_idx}, error: {e}")
+            raise
         loss, loss_info = compute_loss(
             model=model,
             batch=batch,
