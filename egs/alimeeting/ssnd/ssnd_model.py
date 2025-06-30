@@ -905,31 +905,22 @@ class SSNDModel(nn.Module):
         label_np = label_np * mask
         pred_np = pred_np * mask
         length = labels_len.data.cpu().numpy()
-        # 计算speech activity detection error
-        n_ref = np.sum(label_np, axis=1)  # [B, T]
-        n_sys = np.sum(pred_np, axis=1)   # [B, T]
-        speech_scored = float(np.sum(n_ref > 0))
-        speech_miss = float(np.sum(np.logical_and(n_ref > 0, n_sys == 0)))
-        speech_falarm = float(np.sum(np.logical_and(n_ref == 0, n_sys > 0)))
-        # 计算speaker diarization error
-        speaker_scored = float(np.sum(n_ref))
-        speaker_miss = float(np.sum(np.maximum(n_ref - n_sys, 0)))
-        speaker_falarm = float(np.sum(np.maximum(n_sys - n_ref, 0)))
-        n_map = np.sum(np.logical_and(label_np == 1, pred_np == 1), axis=1)
-        speaker_error = float(np.sum(np.minimum(n_ref, n_sys) - n_map))
-        correct = float(1.0 * np.sum((label_np == pred_np) * mask) / n_spk)
-        num_frames = np.sum(length)
-        return (
-            correct,
-            num_frames,
-            speech_scored,
-            speech_miss,
-            speech_falarm,
-            speaker_scored,
-            speaker_miss,
-            speaker_falarm,
-            speaker_error,
-        )
+        num_frames = np.sum(length)  # 总帧数
+
+        # 逐帧统计
+        ref_speech = np.sum(label_np, axis=1)  # [B, T]
+        sys_speech = np.sum(pred_np, axis=1)   # [B, T]
+
+        # 统计每一帧的错误
+        miss = np.sum((ref_speech > 0) & (sys_speech == 0))
+        fa = np.sum((ref_speech == 0) & (sys_speech > 0))
+        conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
+        correct = np.sum((label_np == pred_np) * mask) / n_spk
+
+        # DER = (miss + fa + conf) / 总帧数
+        der = (miss + fa + conf) / num_frames if num_frames > 0 else 0.0
+
+        return correct, num_frames, miss, fa, conf, der
 
     def calc_diarization_result(self, outs_prob, labels, labels_len):
         """
@@ -937,5 +928,5 @@ class SSNDModel(nn.Module):
         """
         correct, num_frames, miss, fa, conf, der = self.calc_diarization_error(outs_prob, labels, labels_len)
         acc = correct / num_frames if num_frames > 0 else 0.0
-        return miss / num_frames, fa / num_frames, conf / num_frames, acc, der
+        return miss / num_frames if num_frames > 0 else 0.0, fa / num_frames if num_frames > 0 else 0.0, conf / num_frames if num_frames > 0 else 0.0, acc, der
     
