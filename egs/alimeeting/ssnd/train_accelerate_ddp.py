@@ -340,9 +340,13 @@ def compute_loss(
         mi, fa, cf, acc, der = model.module.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
-        
+    # 只用BCE loss训练
+    if not use_arcface:
+        total_loss = torch.exp(-model.module.log_s_bce) * bce_loss + model.module.log_s_bce
+    else:
+        total_loss = loss
     info = {
-        "loss": loss.detach().cpu().item(),
+        "loss": total_loss.detach().cpu().item(),
         "bce_loss": bce_loss.detach().cpu().item(),
         "arcface_loss": arcface_loss.detach().cpu().item(),
         "DER": der,
@@ -354,8 +358,8 @@ def compute_loss(
     if is_training:
         info["log_s_bce"] = model.module.log_s_bce.item()
         info["log_s_arcface"] = model.module.log_s_arcface.item()
-
-    return loss, info
+    return total_loss, info
+# 训练一段时间后，可将use_arcface = True，恢复arcface loss参与训练。
 
 def compute_validation_loss(
     params: AttributeDict,
@@ -482,6 +486,7 @@ def do_save_and_remove_once(
         out_dir=params.exp_dir,
         topk=params.keep_last_epoch,
     )
+
 def train_one_epoch(
     params: AttributeDict,
     model: nn.Module,
@@ -524,6 +529,7 @@ def train_one_epoch(
     #    profile_memory=True,
     #    with_stack=True,)
     #prof.start()
+    global use_arcface
     for batch_idx, batch in enumerate(train_dl):
         #prof.step()
         params.batch_idx_train += 1
@@ -638,6 +644,12 @@ def train_one_epoch(
             print(f"[DIAG] Dataloader batch[0] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
             print(f"[DIAG] Dataloader batch[0] labels[0, :, :10]: {labels[0, :, :10]}")
             print(f"[DIAG] Dataloader batch[0] spk_label_idx[0]: {spk_label_idx[0]}")
+        # 自动切换arcface loss
+        if (not use_arcface and (
+            params.batch_idx_train >= arcface_switch_step or
+            loss_info["bce_loss"] <= arcface_switch_bce)):
+            use_arcface = True
+            logging.info(f"[AutoSwitch] ArcFace loss enabled at step {params.batch_idx_train}, bce_loss={loss_info['bce_loss']}")
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -930,9 +942,15 @@ def main():
         mask_prob=params.mask_prob,
         training=True
     )
-    #logging.info("Overriding DetectionDecoder output bias to 0.0")
-    #with torch.no_grad():
-    #    model.det_decoder.out_proj.bias.fill_(0.0)
+    # 强制初始化DetectionDecoder输出层bias为0
+    with torch.no_grad():
+        model.det_decoder.out_proj.bias.fill_(0.0)
+
+    # 控制是否使用arcface loss
+    use_arcface = False  # 只用BCE loss训练，后续可动态切换
+    arcface_switch_step = 1000  # 达到多少step后自动切换
+    arcface_switch_bce = 0.2    # bce_loss低于该值自动切换
+
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
     logging.info(f"Number of model parameters: {num_param/1e6} M")
