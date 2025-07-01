@@ -13,6 +13,8 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
    train_textgrid_dir=/maduo/datasets/alimeeting/Train_Ali_far/textgrid_dir
    valid_wav_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/audio_dir
    valid_textgrid_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/textgrid_dir
+   speaker_pretrain_model_path=/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin
+   extractor_model_type='CAM++_wo_gsp'
    exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_with_musan_rir_lr1e-4_batch64_two_gpus
    CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15915 \
@@ -32,6 +34,8 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --train_wav_dir $train_wav_dir\
     --train_textgrid_dir $train_textgrid_dir\
     --valid_wav_dir $valid_wav_dir\
-    --valid_textgrid_dir $valid_textgrid_dir
+    --valid_textgrid_dir $valid_textgrid_dir\
+    --speaker_pretrain_model_path $speaker_pretrain_model_path\
+    --extractor_model_type $extractor_model_type
      
 fi
