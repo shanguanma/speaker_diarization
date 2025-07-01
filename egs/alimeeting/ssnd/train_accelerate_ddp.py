@@ -298,8 +298,8 @@ def compute_loss(
     model: Union[nn.Module, DDP],
     batch: tuple,
     is_training: bool,
+    use_arcface: bool = False,
 ):
-    global use_arcface
     """
     batch: (fbanks, labels, spk_label_idx, labels_len)
     """
@@ -360,7 +360,6 @@ def compute_loss(
         info["log_s_bce"] = model.module.log_s_bce.item()
         info["log_s_arcface"] = model.module.log_s_arcface.item()
     return total_loss, info
-# 训练一段时间后，可将use_arcface = True，恢复arcface loss参与训练。
 
 def compute_validation_loss(
     params: AttributeDict,
@@ -499,7 +498,10 @@ def train_one_epoch(
     valid_dl: torch.utils.data.DataLoader,
     model_avg: Optional[nn.Module] = None,
     writer: Optional[SummaryWriter] = None,
-) -> None:
+    use_arcface: bool = False,
+    arcface_switch_step: int = 1000,
+    arcface_switch_bce: float = 0.2,
+) -> bool:
     """Train the model for one epoch.
 
     The training loss from the mean of all frames is saved in
@@ -530,7 +532,6 @@ def train_one_epoch(
     #    profile_memory=True,
     #    with_stack=True,)
     #prof.start()
-    global use_arcface
     for batch_idx, batch in enumerate(train_dl):
         #prof.step()
         params.batch_idx_train += 1
@@ -542,6 +543,7 @@ def train_one_epoch(
             model=model,
             batch=batch,
             is_training=True,
+            use_arcface=use_arcface,
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
@@ -663,6 +665,8 @@ def train_one_epoch(
         params.best_train_epoch = params.cur_epoch
         params.best_train_der = der_value
     
+    return use_arcface
+
 def load_model_params(
     ckpt: str, model: nn.Module, init_modules: List[str] = None, strict: bool = True
 ):
@@ -947,11 +951,6 @@ def main():
     with torch.no_grad():
         model.det_decoder.out_proj.bias.fill_(0.0)
 
-    # 控制是否使用arcface loss
-    use_arcface = False  # 只用BCE loss训练，后续可动态切换
-    arcface_switch_step = 1000  # 达到多少step后自动切换
-    arcface_switch_bce = 0.2    # bce_loss低于该值自动切换
-
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
     logging.info(f"Number of model parameters: {num_param/1e6} M")
@@ -998,7 +997,7 @@ def main():
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
         params.cur_epoch = epoch
-        train_one_epoch(
+        use_arcface = train_one_epoch(
             params=params,
             model=model,
             optimizer=optimizer,
