@@ -1040,10 +1040,10 @@ class SSNDModel(nn.Module):
         miss = np.sum((ref_speech > 0) & (sys_speech == 0))
         fa = np.sum((ref_speech == 0) & (sys_speech > 0))
         # old 
-        #n_map = np.sum(np.logical_and(label_np == 1, pred_np == 1), axis=1)
-        #conf = float(np.sum(np.minimum(ref_speech, sys_speech) - n_map))
+        n_map = np.sum(np.logical_and(label_np == 1, pred_np == 1), axis=1)
+        conf = float(np.sum(np.minimum(ref_speech, sys_speech) - n_map))
         # new
-        conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
+        #conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
         correct = np.sum((label_np == pred_np) * mask) / n_spk
         return correct, num_frames, miss, fa, conf
 
