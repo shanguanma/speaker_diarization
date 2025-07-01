@@ -6,6 +6,7 @@ from torch.utils.checkpoint import checkpoint
 from typing import Any, Callable   
 
 from resnet_wespeaker import ResNetWithGSP, BasicBlock
+from cam_pplus_wespeaker import CAMPPlusWithGSP
 class BatchNorm1D(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -39,40 +40,132 @@ class SpeechFeatUpsample2(nn.Module):
         x = self.batchnorm(x)
         x = self.act(x)
         return x  # (B,D,2T)
-    
+class BatchNorm1D(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.bn = nn.BatchNorm1d(*args, **kwargs)
+
+    def forward(self, input):
+        if torch.sum(torch.isnan(input)) == 0:
+            output = self.bn(input)
+        else:
+            output = input
+        return output  
 # 1. ResNet-based Extractor
 class ResNetExtractor(nn.Module):
-    def __init__(self, in_dim=80, out_dim=256, extractor_model_type='resnet34_32ch'):
+    def __init__(self, device, speaker_pretrain_model_path, in_dim=80, out_dim=256, extractor_model_type='CAM++_wo_gsp'):
         super().__init__()
          # they are same as the version from `Sequence-to-Sequence Neural Diarization with Automatic Speaker Detection and Representation`
         if extractor_model_type == 'resnet34_32ch': # 5.454688 M parameters
-            self.resnet = ResNetWithGSP(BasicBlock,[3, 4, 6, 3],m_channels=32, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
-
+            self.speech_encoder = ResNetWithGSP(BasicBlock,[3, 4, 6, 3],m_channels=32, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+            # input of resnet model is fbank, means that 1s has 100 frames
+            # we set target label rate is 25, means that 1s has 25 frames
+            # resnet34_wespeaker model downsample scale is 8, so frame rate  is 12.5, so I should set stride equal to 2.
+            upsample = 2
+            ## the input shape of self.speech_up except is (B,F,T)
+            self.speech_down_or_up = SpeechFeatUpsample2(
+                speaker_embed_dim=out_dim,
+                upsample=upsample,
+                model_dim=out_dim,
+            )   
         elif extractor_model_type == 'resnet34_64ch': # 21.53824 M parameters
-            self.resnet = ResNetWithGSP(BasicBlock,[3, 4, 6, 3],m_channels=64, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+            self.speech_encoder = ResNetWithGSP(BasicBlock,[3, 4, 6, 3],m_channels=64, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+            # input of resnet model is fbank, means that 1s has 100 frames
+            # we set target label rate is 25, means that 1s has 25 frames
+            # resnet34_wespeaker model downsample scale is 8, so frame rate  is 12.5, so I should set stride equal to 2.
+            upsample = 2
+            ## the input shape of self.speech_up except is (B,F,T)
+            self.speech_down_or_up = SpeechFeatUpsample2(
+                speaker_embed_dim=out_dim,
+                upsample=upsample,
+                model_dim=out_dim,
+            )   
         elif extractor_model_type == 'resnet152': # 58.140096 M parameters
-            self.resnet = ResNetWithGSP(BasicBlock,[3, 8, 36, 3],m_channels=64, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+            self.speech_encoder = ResNetWithGSP(BasicBlock,[3, 8, 36, 3],m_channels=64, feat_dim=in_dim,embed_dim=out_dim, out_dim=out_dim)
+            # input of resnet model is fbank, means that 1s has 100 frames
+            # we set target label rate is 25, means that 1s has 25 frames
+            # resnet34_wespeaker model downsample scale is 8, so frame rate  is 12.5, so I should set stride equal to 2.
+            upsample = 2
+            ## the input shape of self.speech_up except is (B,F,T)
+            self.speech_down_or_up= SpeechFeatUpsample2(
+                speaker_embed_dim=out_dim,
+                upsample=upsample,
+                model_dim=out_dim,
+            )   
+        elif extractor_model_type == 'CAM++_wo_gsp':
+            # input of resnet model is fbank, means that 1s has 100 frames
+            # we set target label rate is 25, means that 1s has 25 frames
+            # CAMPPlusWithGSP model downsample scale is 2, so frame rate  is 50, so I should set stride equal to 2.
+            self.speech_encoder=CAMPPlusWithGSP(feat_dim=in_dim,use_gsp=False) # downsample is 2
+            self.speech_encoder.train()
+            self.load_speaker_encoder(speaker_pretrain_model_path, device=device, module_name="speech_encoder")
+            pretrain_speech_encoder_dim = out_dim
+            # downsample is 2
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    out_dim,
+                    5,
+                    stride=2,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=out_dim),
+                nn.ReLU(),
+            )
+        elif extractor_model_type == 'CAM++_gsp':
+            # input of resnet model is fbank, means that 1s has 100 frames
+            # we set target label rate is 25, means that 1s has 25 frames
+            # CAMPPlusWithGSP model downsample scale is 2, so frame rate  is 50, so I should set stride equal to 2.
+            self.speech_encoder=CAMPPlusWithGSP(feat_dim=in_dim,use_gsp=True) # downsample is 2
+            self.speech_encoder.train()
+            self.load_speaker_encoder(speaker_pretrain_model_path, device=device, module_name="speech_encoder")
+            pretrain_speech_encoder_dim = out_dim
+            # downsample is 2
+            self.speech_down_or_up = nn.Sequential(
+                nn.Conv1d(
+                    pretrain_speech_encoder_dim,
+                    out_dim,
+                    5,
+                    stride=2,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=out_dim),
+                nn.ReLU(),
+            )
         else:
             raise ValueError(f"Unknown model_type: {extractor_model_type}")
         
-        # input of resnet model is fbank, means that 1s has 100 frames
-        # we set target label rate is 25, means that 1s has 25 frames
-        # resnet34_wespeaker model downsample scale is 8, so frame rate  is 12.5, so I should set stride equal to 2.
-        upsample = 2
-        ## the input shape of self.speech_up except is (B,F,T)
-        self.speech_up = SpeechFeatUpsample2(
-            speaker_embed_dim=out_dim,
-            upsample=upsample,
-            model_dim=out_dim,
-        )   
-        
+    def load_speaker_encoder(self, model_path, device, module_name="speech_encoder"):
+        loadedState = torch.load(model_path, map_location=device)
+        selfState = self.state_dict()
+        for name, param in loadedState.items():
+            origname = name
+            if (
+                module_name == "speech_encoder"
+                and hasattr(self.speech_encoder, "bn1")
+                and isinstance(self.speech_encoder.bn1, BatchNorm1D)
+                and ".".join(name.split(".")[:-1]) + ".running_mean" in loadedState
+            ):
+                name = ".".join(name.split(".")[:-1]) + ".bn." + name.split(".")[-1]
 
+            name = f"{module_name}." + name
+
+            if name not in selfState:
+                logger.warn("%s is not in the model." % origname)
+                continue
+            if selfState[name].size() != loadedState[origname].size():
+                sys.stderr.write(
+                    "Wrong parameter length: %s, model: %s, loaded: %s"
+                    % (origname, selfState[name].size(), loadedState[origname].size())
+                )
+                continue
+            selfState[name].copy_(param)
     def forward(self, x):
         # x: [B, T, F]
-        out = self.resnet(x)  # [B, T/8, D]
-        out = out.permute(0,2,1) # [B, D, T/8]
-        out = self.speech_up(out) # [B,D,T/4]
-        out = out.permute(0,2,1) # [B,T/4, D]
+        out = self.speech_encoder(x)  # [B, T/8, D], or [B, T/2, D] 
+        out = out.permute(0,2,1) # [B, D, T/8] or [B, D, T/2] 
+        out = self.speech_down_or_up(out) # [B,D,T/4]  
+        out = out.permute(0,2,1) # [B,T/4, D]  
         return out
 
 # 2. Conformer Encoder（使用torchaudio实现）
@@ -227,6 +320,8 @@ class RepresentationDecoder(nn.Module):
 class SSNDModel(nn.Module):
     def __init__(
         self,
+        speaker_pretrain_model_path,
+        extractor_model_type='CAM++_wo_gsp',
         feat_dim=80,
         emb_dim=256, # speaker embedding dim and hidden_dim
         q_det_aux_dim=256, # query dim, in detection decoder, it is speaker embedding dim,
@@ -245,9 +340,10 @@ class SSNDModel(nn.Module):
         n_all_speakers=1000, # 训练集说话人总数
         mask_prob=0.5,      # mask概率
         training=True,      # 是否训练模式
-    ):
+        device=torch.device("cpu")
+    )
         super().__init__()
-        self.extractor = ResNetExtractor(feat_dim, emb_dim)
+        self.extractor = ResNetExtractor(device,speaker_pretrain_model_path, in_dim=feat_dim, out_dim=emb_dim, extractor_model_type=extractor_model_type)
         self.encoder = SSNDConformerEncoder(emb_dim, d_model, num_layers, nhead, d_ff)
         self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len)
         self.rep_decoder = RepresentationDecoder(d_model,emb_dim, nhead, d_ff, num_layers, q_rep_aux_dim, pos_emb_dim,emb_dim)

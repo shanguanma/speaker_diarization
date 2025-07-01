@@ -398,6 +398,135 @@ class CAMPPlus(nn.Module):
             x = self.xvector(x)
         return x
 
+class CAMPPlusWithGSP(nn.Module):
+    def __init__(
+        self,
+        feat_dim=80,
+        #embedding_size=512,
+        embedding_size=192,
+        growth_rate=32,
+        bn_size=4,
+        init_channels=128,
+        config_str="batchnorm-relu",
+        memory_efficient=True,
+        #speech_encoder=False,
+        #speech_encoder=True,
+        segment_length=16,
+        #segment_shift=8,
+        out_dim=256,
+        use_gsp=False,
+    ):
+        super(CAMPPlusWithGSP, self).__init__()
+
+        self.head = FCM(feat_dim=feat_dim)
+        channels = self.head.out_channels
+
+        self.xvector = nn.Sequential(
+            OrderedDict(
+                [
+                    (
+                        "tdnn",
+                        TDNNLayer(
+                            channels,
+                            init_channels,
+                            5,
+                            stride=2,
+                            dilation=1,
+                            padding=-1,
+                            config_str=config_str,
+                        ),
+                    ),
+                ]
+            )
+        )
+        channels = init_channels
+        for i, (num_layers, kernel_size, dilation) in enumerate(
+            zip((12, 24, 16), (3, 3, 3), (1, 2, 2))
+        ):
+            block = CAMDenseTDNNBlock(
+                num_layers=num_layers,
+                in_channels=channels,
+                out_channels=growth_rate,
+                bn_channels=bn_size * growth_rate,
+                kernel_size=kernel_size,
+                dilation=dilation,
+                config_str=config_str,
+                memory_efficient=memory_efficient,
+            )
+            self.xvector.add_module("block%d" % (i + 1), block)
+            channels = channels + num_layers * growth_rate
+            self.xvector.add_module(
+                "transit%d" % (i + 1),
+                TransitLayer(
+                    channels, channels // 2, bias=False, config_str=config_str
+                ),
+            )
+            channels //= 2
+
+        self.xvector.add_module("out_nonlinear", get_nonlinear(config_str, channels))
+
+        self.xvector.add_module("stats", StatsPool())
+        #if not speech_encoder:
+        #    self.xvector.add_module(
+        #       "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
+        #    )
+        self.xvector.add_module(
+            "dense", DenseLayer(channels * 2, embedding_size, config_str="batchnorm_")
+        )
+        for m in self.modules():
+            if isinstance(m, (nn.Conv1d, nn.Linear)):
+                nn.init.kaiming_normal_(m.weight.data)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+        self.use_gsp = use_gsp
+        self.output_proj=nn.Linear(512, out_dim)
+        if self.use_gsp:
+            self.out_dim = out_dim
+            self.segment_length=segment_length
+            self.output_gsp_proj = nn.Linear(out_dim*2, out_dim) #because cat two 'F1'
+
+    def segmental_stat_pooling_time_aligned(self, feat, segment_length):
+        feat = feat.permute(0,2,1) # (B,T,F1) -> (B,F1,T)
+        # feat: [B, F1, T]
+        
+        B, F1, T = feat.shape
+        #print(f"feat shape: {feat.shape}")
+        pooled_seq = []
+        for t in range(T):
+            # 保证每个t都能取到一个segment
+            start = max(0, t - segment_length // 2)
+            end = min(T, start + segment_length)
+            if end - start < segment_length:
+                # 边界补齐
+                start = end - segment_length
+                if start < 0:
+                    start = 0
+                    end = segment_length
+            seg = feat[..., start:end]  # [B, F1, segment_length]
+            seg = seg.reshape(B, F1, -1)  # [B, F1, segment_length]
+            mu = seg.mean(dim=-1)        # [B, F1]
+            sigma = seg.std(dim=-1)      # [B, F1]
+            pooled = torch.cat([mu, sigma], dim=-1)  # [B, 2F1]
+            pooled_seq.append(pooled)
+        # [T, B, 2F1] -> [B, T, 2F1]
+        return torch.stack(pooled_seq, dim=1)
+    
+    def forward(self, x,):
+        x = x.permute(0, 2, 1)  # (B,T,F) => (B,F,T)
+        x = self.head(x)
+     
+        #print(f"self.xvector[:-2]: {self.xvector[:-2]}")
+        #print(f"self.xvector[-1]: {self.xvector[-1]}")
+        x = self.xvector[:-2](x) # (B,F,T) # frame level before pool layer
+        x = x.permute(0,2,1)#(B,F,T) -> (B,T,F)
+        print(f"x: shape: {x.shape}")
+        x = self.output_proj(x)# (B,T,out_dim)
+        if self.use_gsp:
+            x = self.segmental_stat_pooling_time_aligned(
+                x, self.segment_length)  # [B, T, 2F1]
+            x = self.output_gsp_proj(x) # [B, T, out_dim]
+        return x
+
 
 
 if __name__ == '__main__':
@@ -414,6 +543,14 @@ if __name__ == '__main__':
     print(f"out_2 shape: {out_2.shape}") #out_2 shape: torch.Size([10, 192]) #(B,F)
     #print(f"model: {str(model)}")
     #print(out_1.shape) # torch.Size([10, 512])
+    model2 = CAMPPlusWithGSP(feat_dim=80, use_gsp=False)
+    model2.eval()
+    out2 = model2(x)
+    print(f"use_gsp=false, out2 shape: {out2.shape}")
+    model3 = CAMPPlusWithGSP(feat_dim=80, use_gsp=True)
+    model3.eval()
+    out3 = model3(x)
+    print(f"use_gsp=True out3 shape: {out3.shape}")
 
     num_params = sum(param.numel() for param in model.parameters())
     #for name, v in model.state_dict():

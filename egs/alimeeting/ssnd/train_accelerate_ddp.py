@@ -192,6 +192,8 @@ def get_parser():
     parser.add_argument('--window-shift-sec', type=float, default=0.4, help='Window shift in seconds.')
 
     # Model arguments
+    parser.add_argument("--speaker_pretrain_model_path", type=str, required=True, help="speaker pretrained model ckpt")
+    parser.add_argument("--extractor_model_type", type=str, default='CAM++_wo_gsp',help="speaker pretrained model type")
     parser.add_argument('--feat-dim', type=int, default=80)
     parser.add_argument('--emb-dim', type=int, default=256)
     parser.add_argument('--q-det-aux-dim', type=int, default=256)
@@ -298,7 +300,6 @@ def compute_loss(
     model: Union[nn.Module, DDP],
     batch: tuple,
     is_training: bool,
-    use_arcface: bool = False,
 ):
     """
     batch: (fbanks, labels, spk_label_idx, labels_len)
@@ -341,11 +342,8 @@ def compute_loss(
         mi, fa, cf, acc, der = model.module.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
-    # 只用BCE loss训练
-    if not use_arcface:
-        total_loss = torch.exp(-model.module.log_s_bce) * bce_loss + model.module.log_s_bce
-    else:
-        total_loss = loss
+    # 始终返回loss（含两个loss）
+    total_loss = loss
     info = {
         "loss": total_loss.detach().cpu().item(),
         "bce_loss": bce_loss.detach().cpu().item(),
@@ -367,7 +365,6 @@ def compute_validation_loss(
     valid_dl: torch.utils.data.DataLoader,
     batch_idx_train: int = 0,
     writer: Optional[SummaryWriter] = None,
-    use_arcface: bool = False,
 ) -> MetricsTracker:
     """Run the validation process."""
     model.eval()
@@ -393,7 +390,6 @@ def compute_validation_loss(
             model=model,
             batch=batch,
             is_training=False,
-            use_arcface=use_arcface,
         )
         loss = loss.detach()  # 确保无梯度
         batch_nums.append(batch_idx)
@@ -501,9 +497,6 @@ def train_one_epoch(
     valid_dl: torch.utils.data.DataLoader,
     model_avg: Optional[nn.Module] = None,
     writer: Optional[SummaryWriter] = None,
-    use_arcface: bool = False,
-    arcface_switch_step: int = 1000,
-    arcface_switch_bce: float = 0.2,
 ) -> bool:
     """Train the model for one epoch.
 
@@ -527,16 +520,20 @@ def train_one_epoch(
 
     tot_loss = MetricsTracker()
     train_batch_nums = []
-    # only for debug
-    #prof= torch.profiler.profile(
-    #    schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=1),
-    #    on_trace_ready=torch.profiler.tensorboard_trace_handler('./log/ts_vad'),
-    #    record_shapes=True,
-    #    profile_memory=True,
-    #    with_stack=True,)
-    #prof.start()
+    # extrator冻结/解冻逻辑
+    extrator_frozen_steps = 100000
+    extrator_frozen = params.get('extrator_frozen', True)
     for batch_idx, batch in enumerate(train_dl):
-        #prof.step()
+        # 每个batch前判断是否需要冻结/解冻extrator
+        if extrator_frozen and params.batch_idx_train < extrator_frozen_steps:
+            for p in model.module.extractor.speech_encoder.parameters():
+                p.requires_grad = False
+        elif extrator_frozen and params.batch_idx_train >= extrator_frozen_steps:
+            extrator_frozen = False
+            for p in model.module.extractor.speech_encoder.parameters():
+                p.requires_grad = True
+            logging.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
+            params['extrator_frozen'] = False
         params.batch_idx_train += 1
         batch_size = params.batch_size
 
@@ -546,7 +543,6 @@ def train_one_epoch(
             model=model,
             batch=batch,
             is_training=True,
-            use_arcface=use_arcface,
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
@@ -635,7 +631,6 @@ def train_one_epoch(
                 valid_dl=valid_dl,
                 batch_idx_train=params.batch_idx_train,
                 writer=writer,
-                use_arcface=use_arcface,
             )
             model.train()
             logging.info(
@@ -651,12 +646,6 @@ def train_one_epoch(
             print(f"[DIAG] Dataloader batch[0] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
             print(f"[DIAG] Dataloader batch[0] labels[0, :, :10]: {labels[0, :, :10]}")
             print(f"[DIAG] Dataloader batch[0] spk_label_idx[0]: {spk_label_idx[0]}")
-        # 自动切换arcface loss
-        if (not use_arcface and (
-            params.batch_idx_train >= arcface_switch_step or
-            loss_info["bce_loss"] <= arcface_switch_bce)):
-            use_arcface = True
-            logging.info(f"[AutoSwitch] ArcFace loss enabled at step {params.batch_idx_train}, bce_loss={loss_info['bce_loss']}")
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -669,7 +658,7 @@ def train_one_epoch(
         params.best_train_epoch = params.cur_epoch
         params.best_train_der = der_value
     
-    return use_arcface
+    return True
 
 def load_model_params(
     ckpt: str, model: nn.Module, init_modules: List[str] = None, strict: bool = True
@@ -933,6 +922,8 @@ def main():
 
     # Model
     model = SSNDModel(
+        speaker_pretrain_model_path=params.speaker_pretrain_model_path,
+        extractor_model_type=params.extractor_model_type,
         feat_dim=params.feat_dim,
         emb_dim=params.emb_dim,
         q_det_aux_dim=params.q_det_aux_dim,
@@ -998,6 +989,9 @@ def main():
     logging.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
 
     # fix_random_seed(params.seed) # fairseq1 seed=1337 # this may be not correct at here.
+    extrator_frozen_steps = 10000  # 前10000步冻结extrator
+    extrator_frozen = True
+
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
         params.cur_epoch = epoch
@@ -1019,6 +1013,11 @@ def main():
                 optimizer=optimizer,
                 scheduler=scheduler,
             )  
+        if params.batch_idx_train >= extrator_frozen_steps and extrator_frozen:
+            extrator_frozen = False
+            for p in model.module.extractor.parameters():
+                p.requires_grad = True
+            logging.info(f"[Unfreeze] extractor解冻 at step {params.batch_idx_train}")
     if writer:
         writer.close()
     logging.info("Done!")
