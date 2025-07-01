@@ -341,7 +341,7 @@ class SSNDModel(nn.Module):
         mask_prob=0.5,      # mask概率
         training=True,      # 是否训练模式
         device=torch.device("cpu")
-    )
+    ):
         super().__init__()
         self.extractor = ResNetExtractor(device,speaker_pretrain_model_path, in_dim=feat_dim, out_dim=emb_dim, extractor_model_type=extractor_model_type)
         self.encoder = SSNDConformerEncoder(emb_dim, d_model, num_layers, nhead, d_ff)
