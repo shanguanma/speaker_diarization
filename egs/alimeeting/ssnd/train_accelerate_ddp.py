@@ -944,8 +944,8 @@ def main():
         training=True
     )
     # 强制初始化DetectionDecoder输出层bias为0
-    with torch.no_grad():
-        model.det_decoder.out_proj.bias.fill_(0.0)
+    #with torch.no_grad():
+    #    model.det_decoder.out_proj.bias.fill_(0.0)
 
     logging.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
