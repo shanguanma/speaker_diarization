@@ -266,13 +266,17 @@ class SSNDModel(nn.Module):
         self.e_pse = nn.Parameter(torch.randn(1, emb_dim))
         # 可学习non-speech embedding e_non [1, S]
         self.e_non = nn.Parameter(torch.randn(1, emb_dim))
+        # 可学习DetectionDecoder的query embedding [N, D]
+        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model))
+        # 可学习RepresentationDecoder的query embedding [N, T_max]
+        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len))
         # 保存 arcface margin/scale
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
         self.gradient_checkpointing = False
         # For learnable loss weights， it is very important for begin of training
-        self.log_s_bce = nn.Parameter(torch.tensor(0.0))
-        self.log_s_arcface = nn.Parameter(torch.tensor(2.3026)) # ln(10)=2.3026
+        self.log_s_bce = nn.Parameter(torch.tensor(0.0))  # exp(-0.0) = 1.0, BCE weight = 1.0
+        self.log_s_arcface = nn.Parameter(torch.tensor(4.6052)) # ln(100)=4.6052, exp(-4.6052) = 0.01, ArcFace weight = 0.01
 
 
     def compute_arcface_loss(self, spk_emb_pred, spk_labels):
@@ -298,6 +302,28 @@ class SSNDModel(nn.Module):
         logits_arc = logits_arc * scale
         loss = F.cross_entropy(logits_arc, labels)
         return loss
+
+    def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=2.0):
+        """
+        Focal loss for binary classification to handle class imbalance.
+        logits: [B, N, T]
+        targets: [B, N, T]
+        """
+        # 计算sigmoid概率
+        probs = torch.sigmoid(logits)
+        
+        # 计算focal loss
+        pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
+        focal_weight = (1 - pt) ** gamma
+        
+        # 计算BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        
+        # 应用focal weight和alpha weight
+        alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
+        focal_loss = alpha_weight * focal_weight * bce_loss
+        
+        return focal_loss.mean()
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
         """
@@ -365,7 +391,8 @@ class SSNDModel(nn.Module):
         # q_aux:[B,N,D'], it is speaker embedding and it applys on query
         # pos_emb:[B,T,D'], it is postion embedding and it applys on key
         #print(f"speaker_embs shape: {speaker_embs.shape}")
-        x_det_dec = torch.zeros((B,N,self.d_model),device=device)
+        # 使用可学习的query embedding而不是全零向量
+        x_det_dec = self.det_query_emb.unsqueeze(0).expand(B, N, self.d_model)
         #print(f"x_det_dec shape: {x_det_dec.shape}, enc_out shape: {enc_out.shape}")
         #print(f"speaker_embs shape: {speaker_embs.shape}, pos_emb shape: {pos_emb.shape}")
         # x_det_dec shape: torch.Size([16, 30, 256]), enc_out shape: torch.Size([16, 200, 256])
@@ -376,15 +403,16 @@ class SSNDModel(nn.Module):
         # x_fea:[B,T,F], it is output of extrator and it applys on value
         # q_aux:[B,N,T'], it is vad ground-truth label and it applys on query
         # pos_emb:[B,T,F'] ,its length is equal to x_fea and it applys on key
-        x_rep_dec = torch.zeros((B,N,vad_labels.shape[2]),device=device)
+        # 使用可学习的query embedding而不是全零向量
+        x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, vad_labels.shape[2])
         #
         #print(f"x_rep_dec shape: {x_rep_dec.shape}, x shape: {x.shape}")
         #print(f"vad_labels shape: {vad_labels.shape}, pos_emb shape: {pos_emb.shape}")
         # torch.Size([16, 30, 200]), pos_emb shape: torch.Size([16, 200, 256])
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
-        # BCE loss
-        bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, reduction='mean')
+        # BCE loss with focal loss to handle class imbalance
+        bce_loss = self.focal_bce_loss(vad_pred, vad_labels)
         # ArcFace loss（只对有效说话人）
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None:
@@ -415,8 +443,8 @@ class SSNDModel(nn.Module):
         _,N,S = speaker_embs.shape
         device = feats.device
         pos_emb = self.pos_emb[:, :T, :].expand(B, T, self.pos_emb_dim)  # [1, T, D_pos]
-        x_det_dec = torch.zeros((B,N,self.d_model),device=device)
-        x_rep_dec = torch.zeros((B,N,T),device=device)
+        x_det_dec = self.det_query_emb.unsqueeze(0).expand(B, N, self.d_model)
+        x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, T)
         vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)  # [1, N, T']
         emb_pred = self.rep_decoder(x_rep_dec, x, vad_pred, pos_emb)          # [1, N, S]
         return vad_pred, emb_pred 

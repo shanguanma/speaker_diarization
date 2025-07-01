@@ -310,6 +310,9 @@ def compute_loss(
             print(f"[DIAG] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
             print(f"[DIAG] labels[0, :, :10]: {labels[0, :, :10]}")
             print(f"[DIAG] spk_label_idx[0]: {spk_label_idx[0]}")
+            # 添加更多诊断信息
+            print(f"[DIAG] labels.sum(): {labels.sum()}, labels.mean(): {labels.mean()}")
+            print(f"[DIAG] valid_speakers: {(spk_label_idx >= 0).sum()}")
         # forward
         (
             vad_pred,
@@ -326,6 +329,10 @@ def compute_loss(
             print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
             print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
             print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
+            # 添加预测概率的统计信息
+            vad_probs = torch.sigmoid(vad_pred)
+            print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
+            print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
         print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
