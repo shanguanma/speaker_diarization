@@ -299,6 +299,7 @@ def compute_loss(
     batch: tuple,
     is_training: bool,
 ):
+    global use_arcface
     """
     batch: (fbanks, labels, spk_label_idx, labels_len)
     """
