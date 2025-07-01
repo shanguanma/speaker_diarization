@@ -372,7 +372,7 @@ class SSNDModel(nn.Module):
         self.gradient_checkpointing = False
         # For learnable loss weights， it is very important for begin of training
         self.log_s_bce = nn.Parameter(torch.tensor(0.0))  # exp(-0.0) = 1.0, BCE weight = 1.0
-        self.log_s_arcface = nn.Parameter(torch.tensor(10.0))  # 权重极小
+        self.log_s_arcface = nn.Parameter(torch.tensor(0.0))  
 
 
     def compute_arcface_loss(self, spk_emb_pred, spk_labels):

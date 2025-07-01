@@ -177,6 +177,7 @@ def get_parser():
         It does not affect checkpoints with name `checkpoint-xxx.pt`.
         """,
     )
+    parser.add_argument("--extrator_frozen_steps", type=int, default=100000,help="frozen speaker pretrain model")
 
     # Data arguments
     parser.add_argument('--train_wav_dir', type=str, required=True, help='Directory containing train WAV files.')
@@ -521,19 +522,19 @@ def train_one_epoch(
     tot_loss = MetricsTracker()
     train_batch_nums = []
     # extrator冻结/解冻逻辑
-    extrator_frozen_steps = 100000
-    extrator_frozen = params.get('extrator_frozen', True)
+    #extrator_frozen_steps = 100000
+    #extrator_frozen = params.get('extrator_frozen', True)
     for batch_idx, batch in enumerate(train_dl):
         # 每个batch前判断是否需要冻结/解冻extrator
-        if extrator_frozen and params.batch_idx_train < extrator_frozen_steps:
+        if  params.batch_idx_train < params.extrator_frozen_steps:
             for p in model.module.extractor.speech_encoder.parameters():
                 p.requires_grad = False
-        elif extrator_frozen and params.batch_idx_train >= extrator_frozen_steps:
-            extrator_frozen = False
+            logging.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
+        elif params.batch_idx_train >= params.extrator_frozen_steps:
             for p in model.module.extractor.speech_encoder.parameters():
                 p.requires_grad = True
             logging.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
-            params['extrator_frozen'] = False
+            #params['extrator_frozen'] = False
         params.batch_idx_train += 1
         batch_size = params.batch_size
 
@@ -658,7 +659,7 @@ def train_one_epoch(
         params.best_train_epoch = params.cur_epoch
         params.best_train_der = der_value
     
-    return True
+
 
 def load_model_params(
     ckpt: str, model: nn.Module, init_modules: List[str] = None, strict: bool = True
@@ -989,13 +990,13 @@ def main():
     logging.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
 
     # fix_random_seed(params.seed) # fairseq1 seed=1337 # this may be not correct at here.
-    extrator_frozen_steps = 10000  # 前10000步冻结extrator
-    extrator_frozen = True
+    #extrator_frozen_steps = 100000  # 前10000步冻结extrator
+    #extrator_frozen = True
 
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
         params.cur_epoch = epoch
-        use_arcface = train_one_epoch(
+        train_one_epoch(
             params=params,
             model=model,
             optimizer=optimizer,
@@ -1013,11 +1014,11 @@ def main():
                 optimizer=optimizer,
                 scheduler=scheduler,
             )  
-        if params.batch_idx_train >= extrator_frozen_steps and extrator_frozen:
-            extrator_frozen = False
-            for p in model.module.extractor.parameters():
-                p.requires_grad = True
-            logging.info(f"[Unfreeze] extractor解冻 at step {params.batch_idx_train}")
+        #if params.batch_idx_train >= extrator_frozen_steps and extrator_frozen:
+        #    extrator_frozen = False
+        #    for p in model.module.extractor.speech_encoder.parameters():
+        #        p.requires_grad = True
+        #    logging.info(f"[Unfreeze] extractor解冻 at step {params.batch_idx_train}")
     if writer:
         writer.close()
     logging.info("Done!")
