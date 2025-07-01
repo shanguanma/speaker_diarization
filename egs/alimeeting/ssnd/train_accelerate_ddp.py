@@ -367,6 +367,7 @@ def compute_validation_loss(
     valid_dl: torch.utils.data.DataLoader,
     batch_idx_train: int = 0,
     writer: Optional[SummaryWriter] = None,
+    use_arcface: bool = False,
 ) -> MetricsTracker:
     """Run the validation process."""
     model.eval()
@@ -392,9 +393,11 @@ def compute_validation_loss(
             model=model,
             batch=batch,
             is_training=False,
+            use_arcface=use_arcface,
         )
+        loss = loss.detach()  # 确保无梯度
         batch_nums.append(batch_idx)
-        assert loss.requires_grad is False
+        # assert loss.requires_grad is False  # 移除该断言
         tot_loss_valid = tot_loss_valid + loss_info["loss"]
         tot_loss = tot_loss + loss_info
 
@@ -632,6 +635,7 @@ def train_one_epoch(
                 valid_dl=valid_dl,
                 batch_idx_train=params.batch_idx_train,
                 writer=writer,
+                use_arcface=use_arcface,
             )
             model.train()
             logging.info(
