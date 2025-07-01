@@ -303,7 +303,7 @@ class SSNDModel(nn.Module):
         loss = F.cross_entropy(logits_arc, labels)
         return loss
 
-    def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=2.0):
+    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=3.0):
         """
         Focal loss for binary classification to handle class imbalance.
         logits: [B, N, T]
@@ -412,7 +412,7 @@ class SSNDModel(nn.Module):
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss with focal loss to handle class imbalance
-        bce_loss = self.focal_bce_loss(vad_pred, vad_labels)
+        bce_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.75, gamma=3.0)
         # ArcFace loss（只对有效说话人）
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None:
