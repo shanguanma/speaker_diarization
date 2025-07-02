@@ -477,19 +477,16 @@ class SSNDModel(nn.Module):
             pad_embs = []
             pad_vad = []
             for b in range(B):
-                # 当前block的说话人集合
                 cur_spk = set(spk_label_idx[b].tolist())
                 all_spk = set(range(self.n_all_speakers))
                 unused_spk = list(all_spk - cur_spk)
                 for i in range(pad_num):
                     if torch.rand(1).item() < 0.5 and len(unused_spk) > 0:
-                        # 随机选一个未出现的说话人
                         rand_spk = np.random.choice(unused_spk)
-                        pad_embs.append(self.E_all[rand_spk].to(speaker_embs.dtype))
+                        pad_embs.append(self.E_all[rand_spk].to(speaker_embs.dtype))  # shape [emb_dim]
                     else:
-                        pad_embs.append(self.e_non.to(speaker_embs.dtype))
+                        pad_embs.append(self.e_non[0].to(speaker_embs.dtype))  # shape [emb_dim]
                     pad_vad.append(torch.zeros(vad_labels.shape[2], device=device))
-            # 组装padding
             pad_embs = torch.stack(pad_embs).reshape(B, pad_num, self.emb_dim)
             pad_vad = torch.stack(pad_vad).reshape(B, pad_num, vad_labels.shape[2])
             speaker_embs = torch.cat([speaker_embs, pad_embs], dim=1)  # [B, N, S]
