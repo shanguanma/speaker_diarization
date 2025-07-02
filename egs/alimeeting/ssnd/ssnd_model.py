@@ -530,7 +530,7 @@ class SSNDModel(nn.Module):
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
-        pos_weight = torch.tensor([8.0], device=vad_pred.device)  # 
+        pos_weight = torch.tensor([10.0], device=vad_pred.device)  # 
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean')
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
