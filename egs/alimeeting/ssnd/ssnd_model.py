@@ -546,16 +546,8 @@ class SSNDModel(nn.Module):
         )
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
+        arcface_weight = 0.02  # 建议0.01~0.05
         arcface_loss = torch.tensor(0.0, device=device)
-        if hasattr(self, 'cur_epoch'):
-            if self.cur_epoch < 2:
-                arcface_weight = 0.0
-            elif self.cur_epoch < 6:
-                arcface_weight = 0.01 * (self.cur_epoch - 1)  # 2~6 epoch: 0.01~0.05
-            else:
-                arcface_weight = 0.05
-        else:
-            arcface_weight = 0.01
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
             vad_label_active = vad_labels.sum(dim=2) > 0  # [B, N]
