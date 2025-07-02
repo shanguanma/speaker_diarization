@@ -273,7 +273,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, 0.0)  # 由0.5改为0.0
+        torch.nn.init.constant_(self.out_proj.bias, 0.2)  # 由0.5改为0.0
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
