@@ -459,27 +459,38 @@ class SSNDModel(nn.Module):
         if unknown_mask.any():
             speaker_embs[unknown_mask] = self.e_pse.to(speaker_embs.dtype)
 
-        # 2. Mask策略（训练时）
+        # 2. Mask策略（训练时，严格按论文0.5概率mask）
         mask_info = None
         if self.training_mode:
             mask_info = []
             for b in range(B):
-                if torch.rand(1).item() < self.mask_prob and N_loc > 0:
+                if N_loc > 0 and torch.rand(1).item() < 0.5:
                     mask_idx = torch.randint(0, N_loc, (1,)).item()
-                    # 用e_pse替换
-                    #print(f"mask_idx: {mask_idx}, speaker_embs[b,mask_idx]: {speaker_embs[b, mask_idx].shape}， self.e_pse: {self.e_pse.shape}")
                     speaker_embs[b, mask_idx] = self.e_pse.to(speaker_embs.dtype)
-                    # VAD标签分配给伪说话人
-                    # 记录mask位置，后续loss用
-                    #print(f"(b, mask_idx, spk_label_idx[b, mask_idx].item()): {(b, mask_idx, spk_label_idx[b, mask_idx].item())}")
+                    # VAD标签不变
                     mask_info.append((b, mask_idx, spk_label_idx[b, mask_idx].item()))
-        # 3. Padding策略
+        # 3. Padding策略（严格按论文50% e_non, 50%未出现说话人embedding）
         N = self.max_speakers
         if N_loc < N:
             pad_num = N - N_loc
-            # 用e_non填充，VAD全0
-            pad_embs = self.e_non.to(speaker_embs.dtype).expand(B, pad_num, self.emb_dim)
-            pad_vad = torch.zeros(B, pad_num, vad_labels.shape[2], device=device)
+            pad_embs = []
+            pad_vad = []
+            for b in range(B):
+                # 当前block的说话人集合
+                cur_spk = set(spk_label_idx[b].tolist())
+                all_spk = set(range(self.n_all_speakers))
+                unused_spk = list(all_spk - cur_spk)
+                for i in range(pad_num):
+                    if torch.rand(1).item() < 0.5 and len(unused_spk) > 0:
+                        # 随机选一个未出现的说话人
+                        rand_spk = np.random.choice(unused_spk)
+                        pad_embs.append(self.E_all[rand_spk].to(speaker_embs.dtype))
+                    else:
+                        pad_embs.append(self.e_non.to(speaker_embs.dtype))
+                    pad_vad.append(torch.zeros(vad_labels.shape[2], device=device))
+            # 组装padding
+            pad_embs = torch.stack(pad_embs).reshape(B, pad_num, self.emb_dim)
+            pad_vad = torch.stack(pad_vad).reshape(B, pad_num, vad_labels.shape[2])
             speaker_embs = torch.cat([speaker_embs, pad_embs], dim=1)  # [B, N, S]
             vad_labels = torch.cat([vad_labels, pad_vad], dim=1)       # [B, N, T]
             if spk_labels is not None:
@@ -558,7 +569,7 @@ class SSNDModel(nn.Module):
         pos_emb = self.pos_emb[:, :T, :].expand(B, T, self.pos_emb_dim)  # [1, T, D_pos]
         x_det_dec = self.det_query_emb.unsqueeze(0).expand(B, N, self.d_model)
         x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, T)
-        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)  # [1, N, T']
+        vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
         emb_pred = self.rep_decoder(x_rep_dec, x, vad_pred, pos_emb)          # [1, N, S]
         return vad_pred, emb_pred 
 

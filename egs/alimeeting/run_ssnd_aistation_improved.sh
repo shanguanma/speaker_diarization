@@ -22,12 +22,12 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --debug true\
     --world-size 2 \
     --num-epochs 30\
-    --batch-size 32 \
+    --batch-size 64 \
     --start-epoch 1\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --grad-clip true\
-    --lr 5e-5\
+    --lr 1e-4\
     --exp-dir $exp_dir\
     --musan-path $musan_path \
     --rir-path $rir_path \
@@ -35,9 +35,9 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --train_textgrid_dir $train_textgrid_dir\
     --valid_wav_dir $valid_wav_dir\
     --valid_textgrid_dir $valid_textgrid_dir\
-    --arcface-margin 0.1\
-    --arcface-scale 16.0\
-    --mask-prob 0.3\
+    --arcface-margin 0.2\
+    --arcface-scale 32.0\
+    --mask-prob 0.5\
     --speaker_pretrain_model_path $speaker_pretrain_model_path\
     --extractor_model_type $extractor_model_type
      
