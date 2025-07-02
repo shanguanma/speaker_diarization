@@ -356,37 +356,43 @@ class SSNDModel(nn.Module):
         self.n_all_speakers = n_all_speakers
         self.mask_prob = mask_prob
         self.training_mode = training
-        # 可学习全体说话人embedding矩阵 E_all [N_all, S]
-        self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim))
+        # 可学习全体说话人embedding矩阵 E_all [N_all, S] - 使用更好的初始化
+        self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim) * 0.1)
         # 可学习伪说话人embedding e_pse [1, S]
-        self.e_pse = nn.Parameter(torch.randn(1, emb_dim))
+        self.e_pse = nn.Parameter(torch.randn(1, emb_dim) * 0.1)
         # 可学习non-speech embedding e_non [1, S]
-        self.e_non = nn.Parameter(torch.randn(1, emb_dim))
+        self.e_non = nn.Parameter(torch.randn(1, emb_dim) * 0.1)
         # 可学习DetectionDecoder的query embedding [N, D]
-        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model))
+        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model) * 0.1)
         # 可学习RepresentationDecoder的query embedding [N, T_max]
-        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len))
+        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len) * 0.1)
         # 保存 arcface margin/scale
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
         self.gradient_checkpointing = False
-        # For learnable loss weights， it is very important for begin of training
-        self.log_s_bce = nn.Parameter(torch.tensor(0.0))  # exp(-0.0) = 1.0, BCE weight = 1.0
-        self.log_s_arcface = nn.Parameter(torch.tensor(0.0))  
+        # 移除可学习的loss权重，使用固定权重
+        # self.log_s_bce = nn.Parameter(torch.tensor(0.0))  # exp(-0.0) = 1.0, BCE weight = 1.0
+        # self.log_s_arcface = nn.Parameter(torch.tensor(0.0))  
 
 
     def compute_arcface_loss(self, spk_emb_pred, spk_labels):
         """
-        严格按照 ArcFace 论文公式实现，分母为所有类别 margin 后的 logit。
+        改进的 ArcFace loss 实现，添加数值稳定性和梯度裁剪。
         spk_emb_pred: [num_valid, emb_dim]
         spk_labels: [num_valid]
         """
+        # 添加梯度裁剪防止梯度爆炸
+        spk_emb_pred = torch.clamp(spk_emb_pred, -10, 10)
+        
         spk_emb_norm = F.normalize(spk_emb_pred, p=2, dim=-1)  # [num_valid, emb_dim]
         E_all_norm = F.normalize(self.E_all, p=2, dim=-1)      # [n_all_speakers, emb_dim]
-        logits = torch.matmul(spk_emb_norm, E_all_norm.t()).clamp(-1+1e-7, 1-1e-7)  # [num_valid, n_all_speakers]
+        
+        # 更安全的clamp范围
+        logits = torch.matmul(spk_emb_norm, E_all_norm.t()).clamp(-0.9999, 0.9999)  # [num_valid, n_all_speakers]
         labels = spk_labels  # [num_valid]
         margin = self.arcface_margin
         scale = self.arcface_scale
+        
         # 先算 theta
         theta = torch.acos(logits)
         # 对正类加 margin
@@ -396,7 +402,14 @@ class SSNDModel(nn.Module):
         logits_arc = torch.cos(theta_m)
         # 乘 scale
         logits_arc = logits_arc * scale
-        loss = F.cross_entropy(logits_arc, labels)
+        
+        # 添加label smoothing提高稳定性
+        loss = F.cross_entropy(logits_arc, labels, label_smoothing=0.1)
+        
+        # 添加正则化项防止embedding范数过大
+        embedding_norm_penalty = 0.01 * torch.mean(torch.norm(spk_emb_pred, p=2, dim=1))
+        loss = loss + embedding_norm_penalty
+        
         return loss
 
     def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=3.0):
@@ -507,20 +520,22 @@ class SSNDModel(nn.Module):
         # torch.Size([16, 30, 200]), pos_emb shape: torch.Size([16, 200, 256])
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
-        # BCE loss with pos_weight
-        pos_weight = torch.tensor([10.0], device=vad_pred.device)  # 8.0可调
+        # BCE loss with pos_weight - 降低pos_weight减少过拟合
+        pos_weight = torch.tensor([5.0], device=vad_pred.device)  # 从10.0降到5.0
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean')
-        # ArcFace loss（只对有效说话人）
+        
+        # ArcFace loss（只对有效说话人）- 添加梯度裁剪和温度缩放
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None:
             # mask掉填充的-1
             valid = (spk_labels >= 0)
             if valid.sum() > 0:
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
+                # 添加温度缩放来稳定ArcFace loss
+                arcface_loss = arcface_loss * 0.1  # 温度缩放因子
         
-        loss = torch.exp(-self.log_s_bce) * bce_loss + self.log_s_bce
-        if arcface_loss.item() > 0:
-            loss = loss + (torch.exp(-self.log_s_arcface) * arcface_loss + self.log_s_arcface)
+        # 使用固定的loss权重而不是可学习的权重，避免权重爆炸
+        loss = 1.0 * bce_loss + 0.1 * arcface_loss
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     

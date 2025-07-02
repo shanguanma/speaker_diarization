@@ -245,12 +245,13 @@ def add_finetune_arguments(parser: argparse.ArgumentParser):
 def get_optimizer_scheduler(params, model):
     from torch.optim import AdamW
 
+    # 增加weight_decay来减少过拟合
     optimizer = AdamW(
         model.parameters(),
         lr=params.lr,
         betas=(0.9, 0.98),
         eps=1e-08,
-        weight_decay=0.01,
+        weight_decay=0.05,  # 从0.01增加到0.05
     )
     if params.lr_type=="PolynomialDecayLR":
         # optimizer = AdamW(model.parameters(),lr=5e-5,betas=(0.9, 0.98)) # same as fairseq2
@@ -355,9 +356,10 @@ def compute_loss(
         "FA": fa,
         "CF": cf,
     }
-    if is_training:
-        info["log_s_bce"] = model.module.log_s_bce.item()
-        info["log_s_arcface"] = model.module.log_s_arcface.item()
+    # 移除可学习权重的日志，因为已经改为固定权重
+    # if is_training:
+    #     info["log_s_bce"] = model.module.log_s_bce.item()
+    #     info["log_s_arcface"] = model.module.log_s_arcface.item()
     return total_loss, info
 
 def compute_validation_loss(
