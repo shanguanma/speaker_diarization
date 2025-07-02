@@ -273,7 +273,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, 0.1)  # 由0.5改为0.0
+        torch.nn.init.constant_(self.out_proj.bias, 0.0)  # 由0.5改为0.0
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -540,16 +540,16 @@ class SSNDModel(nn.Module):
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
-        pos_weight = torch.tensor([20.0], device=vad_pred.device)  # 
+        pos_weight = torch.tensor([5.0], device=vad_pred.device)  # 
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean')
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
         arcface_loss = torch.tensor(0.0, device=device)
         if hasattr(self, 'cur_epoch'):
-            if self.cur_epoch < 1:
+            if self.cur_epoch < 2:
                 arcface_weight = 0.0
-            elif self.cur_epoch < 5:
-                arcface_weight = 0.01 + 0.01 * (self.cur_epoch - 1)  # 1~5 epoch: 0.01~0.05
+            elif self.cur_epoch < 6:
+                arcface_weight = 0.01 * (self.cur_epoch - 1)  # 2~6 epoch: 0.01~0.05
             else:
                 arcface_weight = 0.05
         else:
