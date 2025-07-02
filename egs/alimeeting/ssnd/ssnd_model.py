@@ -273,8 +273,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        # 修改bias初始化，让模型更倾向于检测说话人
-        torch.nn.init.constant_(self.out_proj.bias, 0.5) # 从-1.0改为0.5，减少漏检 
+        torch.nn.init.constant_(self.out_proj.bias, 0.0)  # 由0.5改为0.0
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -531,7 +530,7 @@ class SSNDModel(nn.Module):
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
-        pos_weight = torch.tensor([5.0], device=vad_pred.device)  # 从10.0降到5.0
+        pos_weight = torch.tensor([8.0], device=vad_pred.device)  # 
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean')
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
