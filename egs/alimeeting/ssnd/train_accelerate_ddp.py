@@ -337,6 +337,19 @@ def compute_loss(
             vad_probs = torch.sigmoid(vad_pred)
             print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
             print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
+            
+            # 添加VAD预测分布分析
+            vad_probs_flat = vad_probs.flatten()
+            positive_preds = vad_probs_flat > 0.5
+            print(f"[VAD DIAG] 预测为正样本的比例: {positive_preds.float().mean().item():.4f}")
+            print(f"[VAD DIAG] 真实正样本比例: {padded_vad_labels.float().mean().item():.4f}")
+            
+            # 分析每个说话人的预测
+            for i in range(min(3, vad_probs.shape[1])):  # 只看前3个说话人
+                spk_probs = vad_probs[0, i, :]
+                spk_labels = padded_vad_labels[0, i, :]
+                spk_positive_preds = spk_probs > 0.5
+                print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
         print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")

@@ -272,7 +272,8 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, -1.0) # bias is very import 
+        # 修改bias初始化，让模型更倾向于检测说话人
+        torch.nn.init.constant_(self.out_proj.bias, 0.5) # 从-1.0改为0.5，减少漏检 
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -404,10 +405,10 @@ class SSNDModel(nn.Module):
         logits_arc = logits_arc * scale
         
         # 添加label smoothing提高稳定性
-        loss = F.cross_entropy(logits_arc, labels, label_smoothing=0.1)
+        loss = F.cross_entropy(logits_arc, labels, label_smoothing=0.05)  # 从0.1降到0.05
         
-        # 添加正则化项防止embedding范数过大
-        embedding_norm_penalty = 0.01 * torch.mean(torch.norm(spk_emb_pred, p=2, dim=1))
+        # 减少正则化项，让模型更容易学习说话人表示
+        embedding_norm_penalty = 0.001 * torch.mean(torch.norm(spk_emb_pred, p=2, dim=1))  # 从0.01降到0.001
         loss = loss + embedding_norm_penalty
         
         return loss
@@ -524,18 +525,18 @@ class SSNDModel(nn.Module):
         pos_weight = torch.tensor([5.0], device=vad_pred.device)  # 从10.0降到5.0
         bce_loss = F.binary_cross_entropy_with_logits(vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean')
         
-        # ArcFace loss（只对有效说话人）- 添加梯度裁剪和温度缩放
+        # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None:
             # mask掉填充的-1
             valid = (spk_labels >= 0)
             if valid.sum() > 0:
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
-                # 添加温度缩放来稳定ArcFace loss
-                arcface_loss = arcface_loss * 0.1  # 温度缩放因子
+                # 增加ArcFace loss权重
+                arcface_loss = arcface_loss * 0.5  # 从0.1增加到0.5
         
-        # 使用固定的loss权重而不是可学习的权重，避免权重爆炸
-        loss = 1.0 * bce_loss + 0.1 * arcface_loss
+        # 使用固定的loss权重，增加ArcFace权重
+        loss = 1.0 * bce_loss + 0.5 * arcface_loss
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
