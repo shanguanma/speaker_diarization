@@ -532,6 +532,10 @@ def train_one_epoch(
       valid_dl:
         Dataloader for the validation dataset.
     """
+    if hasattr(model, 'module'):
+        model.module.cur_epoch = params.cur_epoch
+    else:
+        model.cur_epoch = params.cur_epoch
     model.train()
 
     tot_loss = MetricsTracker()

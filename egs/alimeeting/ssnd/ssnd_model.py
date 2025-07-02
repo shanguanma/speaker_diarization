@@ -341,7 +341,9 @@ class SSNDModel(nn.Module):
         n_all_speakers=1000, # 训练集说话人总数
         mask_prob=0.5,      # mask概率
         training=True,      # 是否训练模式
-        device=torch.device("cpu")
+        device=torch.device("cpu"),
+        mask_prob_warmup=0.8,   # 新增：训练初期mask概率
+        mask_prob_warmup_epochs=3,  # 新增：前多少个epoch用高mask概率
     ):
         super().__init__()
         self.extractor = ResNetExtractor(device,speaker_pretrain_model_path, in_dim=feat_dim, out_dim=emb_dim, extractor_model_type=extractor_model_type)
@@ -356,6 +358,9 @@ class SSNDModel(nn.Module):
         self.pos_emb = nn.Parameter(torch.randn(1, max_seq_len, pos_emb_dim))
         self.n_all_speakers = n_all_speakers
         self.mask_prob = mask_prob
+        self.mask_prob_warmup = mask_prob_warmup
+        self.mask_prob_warmup_epochs = mask_prob_warmup_epochs
+        self.cur_epoch = 0  # 训练脚本每个epoch前要设置
         self.training_mode = training
         # 可学习全体说话人embedding矩阵 E_all [N_all, S] - 使用更好的初始化
         self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim) * 0.1)
@@ -459,12 +464,17 @@ class SSNDModel(nn.Module):
         if unknown_mask.any():
             speaker_embs[unknown_mask] = self.e_pse.to(speaker_embs.dtype)
 
-        # 2. Mask策略（训练时，严格按论文0.5概率mask）
+        # 2. Mask策略（训练时，动态mask概率）
         mask_info = None
         if self.training_mode:
+            # 动态mask概率
+            if hasattr(self, 'cur_epoch'):
+                mask_prob = self.mask_prob_warmup if self.cur_epoch < self.mask_prob_warmup_epochs else self.mask_prob
+            else:
+                mask_prob = self.mask_prob  # 兼容性
             mask_info = []
             for b in range(B):
-                if N_loc > 0 and torch.rand(1).item() < 0.5:
+                if N_loc > 0 and torch.rand(1).item() < mask_prob:
                     mask_idx = torch.randint(0, N_loc, (1,)).item()
                     speaker_embs[b, mask_idx] = self.e_pse.to(speaker_embs.dtype)
                     # VAD标签不变
