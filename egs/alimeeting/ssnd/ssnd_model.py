@@ -545,14 +545,26 @@ class SSNDModel(nn.Module):
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
         arcface_loss = torch.tensor(0.0, device=device)
-        if spk_labels is not None:
-            # mask掉填充的-1，且只对VAD有正样本的通道施加
+        # 动态ArcFace loss权重：前3个epoch不加，3~10线性增加，10以后恒定0.05
+        if hasattr(self, 'cur_epoch'):
+            if self.cur_epoch < 3:
+                arcface_weight = 0.0
+            elif self.cur_epoch < 10:
+                arcface_weight = 0.05 * (self.cur_epoch - 2) / 7  # 3~10线性增长
+            else:
+                arcface_weight = 0.05
+        else:
+            arcface_weight = 0.05
+        if spk_labels is not None and arcface_weight > 0.0:
+            # mask掉填充的-1，且只对VAD标签和VAD预测均为正的通道施加
             valid = (spk_labels >= 0)
-            vad_active = vad_labels.sum(dim=2) > 0  # [B, N]
-            valid = valid & vad_active
+            vad_label_active = vad_labels.sum(dim=2) > 0  # [B, N]
+            vad_pred_probs = torch.sigmoid(vad_pred)
+            vad_pred_active = vad_pred_probs.mean(dim=2) > 0.1  # 只对预测为正的通道施加
+            valid = valid & vad_label_active & vad_pred_active
             if valid.sum() > 0:
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
-                arcface_loss = arcface_loss * 0.05  # 权重大幅降低
+                arcface_loss = arcface_loss * arcface_weight
         
         # 使用固定的loss权重，增加ArcFace权重
         loss = 1.0 * bce_loss + arcface_loss
