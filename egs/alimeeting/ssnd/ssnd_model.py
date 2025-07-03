@@ -541,9 +541,11 @@ class SSNDModel(nn.Module):
         # 7. 损失
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
         pos_weight = torch.tensor([2.0], device=vad_pred.device)
+        valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
         bce_loss = F.binary_cross_entropy_with_logits(
-            vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean'
+            vad_pred, vad_labels, pos_weight=pos_weight, reduction='none'
         )
+        bce_loss = (bce_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
         arcface_weight = 0.02  # 建议0.01~0.05
