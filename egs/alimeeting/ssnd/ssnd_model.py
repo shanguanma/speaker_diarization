@@ -265,7 +265,7 @@ class DetectionDecoder(nn.Module):
     """
     Detection Decoder: 输入decoder emb, feature emb, aux query（L2归一化），pos emb，输出VAD
     """
-    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len):
+    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len, out_bias=-0.5):
         super().__init__()
         #self.input_proj = nn.Linear(d_feat, d_model)
         self.layers = nn.ModuleList([
@@ -273,7 +273,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, -0.5)
+        torch.nn.init.constant_(self.out_proj.bias, out_bias)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -344,11 +344,12 @@ class SSNDModel(nn.Module):
         device=torch.device("cpu"),
         mask_prob_warmup=0.8,   # 新增：训练初期mask概率
         mask_prob_warmup_epochs=3,  # 新增：前多少个epoch用高mask概率
+        out_bias=-0.5,        
     ):
         super().__init__()
         self.extractor = ResNetExtractor(device,speaker_pretrain_model_path, in_dim=feat_dim, out_dim=emb_dim, extractor_model_type=extractor_model_type)
         self.encoder = SSNDConformerEncoder(emb_dim, d_model, num_layers, nhead, d_ff)
-        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len)
+        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len, out_bias=out_bias)
         self.rep_decoder = RepresentationDecoder(d_model,emb_dim, nhead, d_ff, num_layers, q_rep_aux_dim, pos_emb_dim,emb_dim)
         self.d_model = d_model
         self.max_speakers = max_speakers
