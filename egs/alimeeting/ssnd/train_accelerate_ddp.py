@@ -903,7 +903,7 @@ def main():
     args.exp_dir.mkdir(parents=True, exist_ok=True)
     params = get_params(args)
     params.update(vars(args))
-    logging.info(f"params: {params}")
+    #logging.info(f"params: {params}")
     fix_random_seed(params.seed)
 
     # accelerator must be created before any DDP stuff
@@ -940,7 +940,7 @@ def main():
     # Note: scale_window is not used in the current code, but kept for reference
     scale_window = max(int(2**14 / accelerator.num_processes / gradient_accumulation), 1)
     logging.info(f"The scale window is set to {scale_window}.")
-
+    logging.info(f"params: {params}")
     # Model
     model = SSNDModel(
         speaker_pretrain_model_path=params.speaker_pretrain_model_path,
