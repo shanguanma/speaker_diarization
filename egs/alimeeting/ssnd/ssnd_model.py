@@ -363,15 +363,15 @@ class SSNDModel(nn.Module):
         self.cur_epoch = 0  # 训练脚本每个epoch前要设置
         self.training_mode = training
         # 可学习全体说话人embedding矩阵 E_all [N_all, S] - 使用更好的初始化
-        self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim) * 0.1)
+        self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim) )
         # 可学习伪说话人embedding e_pse [1, S]
-        self.e_pse = nn.Parameter(torch.randn(1, emb_dim) * 0.1)
+        self.e_pse = nn.Parameter(torch.randn(1, emb_dim) )
         # 可学习non-speech embedding e_non [1, S]
-        self.e_non = nn.Parameter(torch.randn(1, emb_dim) * 0.1)
+        self.e_non = nn.Parameter(torch.randn(1, emb_dim) )
         # 可学习DetectionDecoder的query embedding [N, D]
-        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model) * 0.1)
+        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model) )
         # 可学习RepresentationDecoder的query embedding [N, T_max]
-        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len) * 0.1)
+        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len) )
         # 保存 arcface margin/scale
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
@@ -558,7 +558,7 @@ class SSNDModel(nn.Module):
         bce_loss = (bce_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
-        arcface_weight = 0.02  # 建议0.01~0.05
+        arcface_weight = 5.0  # 建议0.01~0.05
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
