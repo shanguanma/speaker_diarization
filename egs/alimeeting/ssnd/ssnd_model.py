@@ -565,7 +565,7 @@ class SSNDModel(nn.Module):
                 arcface_loss = arcface_loss * arcface_weight
         
         # 使用固定的loss权重，增加ArcFace权重
-        loss = bce_loss + arcface_loss
+        loss = 0.5*bce_loss + arcface_loss
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
