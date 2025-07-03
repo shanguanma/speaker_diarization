@@ -516,6 +516,7 @@ class SSNDModel(nn.Module):
                 spk_labels = spk_labels[:, :N]
         # 4. 特征提取
         x = self.extractor(feats)  # [B, T, emb_dim]
+        assert vad_labels.shape[-1] == x.shape[1], f"Label/feature length mismatch: {vad_labels.shape[-1]} vs {x.shape[1]}"
         enc_out = self.encoder(x)  # [B, T, d_model]
         _, T_enc, _ = enc_out.shape
         pos_emb = self.pos_emb[:, :T_enc, :].expand(B, T_enc, self.pos_emb_dim)  # [B, T, D_pos]
@@ -569,6 +570,14 @@ class SSNDModel(nn.Module):
         # 使用固定的loss权重，增加ArcFace权重
         loss = 0.1 * bce_loss + arcface_loss
             
+        print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
+        for n in range(vad_labels.shape[1]):
+            print(f"Channel {n} positive ratio:", vad_labels[0, n, :].sum().item() / vad_labels.shape[2])
+        
+        print("spk_ids_list[0]:", spk_label_idx[0])
+        print("spk_label_idx[0]:", spk_label_idx[0])
+        print("labels[0]:", vad_labels[0])
+        
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
     def infer(self, feats, speaker_embs):
@@ -591,7 +600,7 @@ class SSNDModel(nn.Module):
         x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, T)
         
         # 修正推理逻辑：DetectionDecoder也需要推理
-        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)
+        vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
         # RepresentationDecoder的q_aux在推理时应该用vad_pred（sigmoid后）
         vad_prob_for_rep = torch.sigmoid(vad_pred)
         emb_pred = self.rep_decoder(x_rep_dec, x, vad_prob_for_rep, pos_emb)          # [1, N, S]

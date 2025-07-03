@@ -802,6 +802,7 @@ def build_spk2int(*textgrid_dirs: str):
                 logging.warning(f"Could not process {tg_file}: {e}")
     spk2int = {spk: i for i, spk in enumerate(sorted(list(spk_ids)))}
     logging.info(f"Found {len(spk2int)} unique speakers in the provided set.")
+    logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
 def build_train_dl(args, spk2int): 
@@ -923,8 +924,9 @@ def main():
 
     # 构建spk2int (用训练集和验证集联合)
     spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
+    #logging.info(f"spk2int: {spk2int}")
     params.n_all_speakers = len(spk2int)
-
+    
     # build train/valid dataloader
     train_dl = build_train_dl(args, spk2int)
     valid_dl = build_valid_dl(args, spk2int)
