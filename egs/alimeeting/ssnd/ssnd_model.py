@@ -273,7 +273,7 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, -0.15)
+        torch.nn.init.constant_(self.out_proj.bias, -2.0)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -545,20 +545,19 @@ class SSNDModel(nn.Module):
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
-        #pos_weight = torch.tensor([2.0], device=vad_pred.device)
-        # 统计正负样本数
-        num_pos = vad_labels.sum()
-        num_neg = vad_labels.numel() - num_pos
+        valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
+        num_pos = (vad_labels * valid_mask).sum()
+        num_neg = (valid_mask.sum() - num_pos)
         pos_weight = num_neg / (num_pos + 1e-6)
         pos_weight = torch.tensor([pos_weight], device=vad_pred.device)
-        valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
         bce_loss = F.binary_cross_entropy_with_logits(
             vad_pred, vad_labels, pos_weight=pos_weight, reduction='none'
         )
         bce_loss = (bce_loss * valid_mask).sum() / valid_mask.sum()
         
+        
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
-        arcface_weight = 5.0  # 建议0.01~0.05
+        arcface_weight = 1.0  # 或0.5
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
@@ -569,7 +568,7 @@ class SSNDModel(nn.Module):
                 arcface_loss = arcface_loss * arcface_weight
         
         # 使用固定的loss权重，增加ArcFace权重
-        loss = 1.0 * bce_loss + arcface_loss
+        loss = bce_loss + arcface_loss
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
