@@ -30,8 +30,6 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
-    --musan-path $musan_path \
-    --rir-path $rir_path \
     --train_wav_dir $train_wav_dir\
     --train_textgrid_dir $train_textgrid_dir\
     --valid_wav_dir $valid_wav_dir\
@@ -41,6 +39,8 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --mask-prob 0.5\
     --speaker_pretrain_model_path $speaker_pretrain_model_path\
     --extractor_model_type $extractor_model_type\
-    --out-bias $out_bias
+    --out-bias $out_bias\
+    #--musan-path $musan_path \
+    #--rir-path $rir_path 
      
 fi 
