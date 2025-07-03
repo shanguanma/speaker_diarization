@@ -41,6 +41,6 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --mask-prob 0.5\
     --speaker_pretrain_model_path $speaker_pretrain_model_path\
     --extractor_model_type $extractor_model_type\
-    --out_bias $out_bias
+    --out-bias $out_bias
      
 fi 
