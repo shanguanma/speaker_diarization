@@ -545,7 +545,12 @@ class SSNDModel(nn.Module):
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
-        pos_weight = torch.tensor([2.0], device=vad_pred.device)
+        #pos_weight = torch.tensor([2.0], device=vad_pred.device)
+        # 统计正负样本数
+        num_pos = vad_labels.sum()
+        num_neg = vad_labels.numel() - num_pos
+        pos_weight = num_neg / (num_pos + 1e-6)
+        pos_weight = torch.tensor([pos_weight], device=vad_pred.device)
         valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
         bce_loss = F.binary_cross_entropy_with_logits(
             vad_pred, vad_labels, pos_weight=pos_weight, reduction='none'
