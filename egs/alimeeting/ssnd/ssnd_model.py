@@ -419,7 +419,7 @@ class SSNDModel(nn.Module):
         
         return loss
 
-    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=3.0):
+    def focal_bce_loss(self, logits, targets, alpha=0.8, gamma=2.0):
         """
         Focal loss for binary classification to handle class imbalance.
         logits: [B, N, T]
@@ -438,8 +438,7 @@ class SSNDModel(nn.Module):
         # 应用focal weight和alpha weight
         alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
         focal_loss = alpha_weight * focal_weight * bce_loss
-        
-        return focal_loss.mean()
+        return focal_loss
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
         """
@@ -548,13 +547,10 @@ class SSNDModel(nn.Module):
         # 7. 损失
         # Clamp VAD predictions for numerical stability
         vad_pred = torch.clamp(vad_pred, -15, 15)
-        # BCE loss with pos_weight - 降低pos_weight减少过拟合
+        # Focal loss with mask
         valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
-        bce_loss = F.binary_cross_entropy_with_logits(
-            vad_pred, vad_labels, reduction='none'
-        )
-        bce_loss = (bce_loss * valid_mask).sum() / valid_mask.sum()
-        
+        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.8, gamma=2.0)
+        bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
         arcface_weight = 1.0  # 或0.5
@@ -600,7 +596,7 @@ class SSNDModel(nn.Module):
         x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, T)
         
         # 修正推理逻辑：DetectionDecoder也需要推理
-        vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
+        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)
         # RepresentationDecoder的q_aux在推理时应该用vad_pred（sigmoid后）
         vad_prob_for_rep = torch.sigmoid(vad_pred)
         emb_pred = self.rep_decoder(x_rep_dec, x, vad_prob_for_rep, pos_emb)          # [1, N, S]
