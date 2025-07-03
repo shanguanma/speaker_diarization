@@ -25,12 +25,12 @@ def toy_collate_fn(batch):
 
 # 2. Model
 model = SSNDModel(
-    speaker_pretrain_model_path='dummy',
+    speaker_pretrain_model_path='/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin',
     extractor_model_type='CAM++_wo_gsp',
     feat_dim=80,
-    emb_dim=16,
-    q_det_aux_dim=16,
-    q_rep_aux_dim=16,
+    emb_dim=256,
+    q_det_aux_dim=256,
+    q_rep_aux_dim=256,
     d_model=16,
     nhead=2,
     d_ff=32,
