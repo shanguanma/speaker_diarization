@@ -485,6 +485,7 @@ class SSNDModel(nn.Module):
             pad_num = N - N_loc
             pad_embs = []
             pad_vad = []
+            pad_idx = []
             for b in range(B):
                 cur_spk = set(spk_label_idx[b].tolist())
                 all_spk = set(range(self.n_all_speakers))
@@ -493,13 +494,17 @@ class SSNDModel(nn.Module):
                     if torch.rand(1).item() < 0.5 and len(unused_spk) > 0:
                         rand_spk = np.random.choice(unused_spk)
                         pad_embs.append(self.E_all[rand_spk].to(speaker_embs.dtype))  # shape [emb_dim]
+                        pad_idx.append(rand_spk)
                     else:
                         pad_embs.append(self.e_non[0].to(speaker_embs.dtype))  # shape [emb_dim]
+                        pad_idx.append(-1)
                     pad_vad.append(torch.zeros(vad_labels.shape[2], device=device))
             pad_embs = torch.stack(pad_embs).reshape(B, pad_num, self.emb_dim)
             pad_vad = torch.stack(pad_vad).reshape(B, pad_num, vad_labels.shape[2])
+            pad_idx = torch.tensor(pad_idx, dtype=spk_label_idx.dtype, device=device).reshape(B, pad_num)
             speaker_embs = torch.cat([speaker_embs, pad_embs], dim=1)  # [B, N, S]
             vad_labels = torch.cat([vad_labels, pad_vad], dim=1)       # [B, N, T]
+            spk_label_idx = torch.cat([spk_label_idx, pad_idx], dim=1)
             if spk_labels is not None:
                 pad_labels = torch.full((B, pad_num), -1, dtype=spk_labels.dtype, device=device)
                 spk_labels = torch.cat([spk_labels, pad_labels], dim=1)
