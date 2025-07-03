@@ -545,6 +545,8 @@ class SSNDModel(nn.Module):
         # torch.Size([16, 30, 200]), pos_emb shape: torch.Size([16, 200, 256])
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
+        # Clamp VAD predictions for numerical stability
+        vad_pred = torch.clamp(vad_pred, -15, 15)
         # BCE loss with pos_weight - 降低pos_weight减少过拟合
         valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
         bce_loss = F.binary_cross_entropy_with_logits(
@@ -565,7 +567,7 @@ class SSNDModel(nn.Module):
                 arcface_loss = arcface_loss * arcface_weight
         
         # 使用固定的loss权重，增加ArcFace权重
-        loss = 0.5*bce_loss + arcface_loss
+        loss = 0.1 * bce_loss + arcface_loss
             
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
@@ -587,8 +589,12 @@ class SSNDModel(nn.Module):
         pos_emb = self.pos_emb[:, :T, :].expand(B, T, self.pos_emb_dim)  # [1, T, D_pos]
         x_det_dec = self.det_query_emb.unsqueeze(0).expand(B, N, self.d_model)
         x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, T)
-        vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
-        emb_pred = self.rep_decoder(x_rep_dec, x, vad_pred, pos_emb)          # [1, N, S]
+        
+        # 修正推理逻辑：DetectionDecoder也需要推理
+        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)
+        # RepresentationDecoder的q_aux在推理时应该用vad_pred（sigmoid后）
+        vad_prob_for_rep = torch.sigmoid(vad_pred)
+        emb_pred = self.rep_decoder(x_rep_dec, x, vad_prob_for_rep, pos_emb)          # [1, N, S]
         return vad_pred, emb_pred 
 
     def offline_diarization(self, feats, threshold=0.5):
