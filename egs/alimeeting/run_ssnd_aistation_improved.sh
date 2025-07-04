@@ -28,7 +28,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --keep-last-k 1\
     --keep-last-epoch 1\
     --grad-clip true\
-    --lr 2e-5\
+    --lr 5e-5\
     --exp-dir $exp_dir\
     --train_wav_dir $train_wav_dir\
     --train_textgrid_dir $train_textgrid_dir\
