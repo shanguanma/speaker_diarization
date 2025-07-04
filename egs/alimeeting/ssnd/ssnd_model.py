@@ -588,7 +588,7 @@ class SSNDModel(nn.Module):
         bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 进一步降低权重
-        arcface_weight = 0.05  # 进一步降低ArcFace权重
+        arcface_weight = 0.5  # 进一步降低ArcFace权重
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
