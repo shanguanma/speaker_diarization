@@ -273,7 +273,8 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, out_bias)
+        # 初始化bias为负值，让模型初始时更倾向于预测负样本
+        torch.nn.init.constant_(self.out_proj.bias, -2.0)  # 从-0.5改为-2.0
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -419,7 +420,7 @@ class SSNDModel(nn.Module):
         
         return loss
 
-    def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=2.0):
+    def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=3.0):
         """
         Focal loss for binary classification to handle class imbalance.
         logits: [B, N, T]
@@ -439,11 +440,14 @@ class SSNDModel(nn.Module):
         alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
         focal_loss = alpha_weight * focal_weight * bce_loss
         
-        # 添加概率正则化，鼓励模型输出更极端的概率
+        # 增强概率正则化，强烈鼓励模型输出更极端的概率
         prob_entropy = -probs * torch.log(probs + 1e-8) - (1 - probs) * torch.log(1 - probs + 1e-8)
-        entropy_penalty = 0.1 * prob_entropy  # 惩罚高熵（中等概率）
+        entropy_penalty = 0.5 * prob_entropy  # 增加熵惩罚权重
         
-        return focal_loss + entropy_penalty
+        # 添加额外的极端概率奖励
+        extreme_reward = 0.2 * torch.exp(-10 * (probs - 0.5).abs())  # 奖励接近0或1的预测
+        
+        return focal_loss + entropy_penalty - extreme_reward
 
     def print_loss_grad_norms(self, bce_loss, arcface_loss):
         """
@@ -583,8 +587,8 @@ class SSNDModel(nn.Module):
         focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.25, gamma=1.0)
         bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
-        # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
-        arcface_weight = 0.1  # 进一步降低ArcFace权重
+        # ArcFace loss（只对有效说话人）- 进一步降低权重
+        arcface_weight = 0.05  # 进一步降低ArcFace权重
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
@@ -595,8 +599,8 @@ class SSNDModel(nn.Module):
                 arcface_loss = arcface_loss * arcface_weight
         
         # 使用固定的loss权重，让BCE主导训练
-        loss = 1.0 * bce_loss + arcface_loss
-        l2_reg = 0.001 * sum(p.norm(2) for p in self.parameters() if p.requires_grad)
+        loss = 2.0 * bce_loss + arcface_loss  # 增加BCE权重
+        l2_reg = 0.0005 * sum(p.norm(2) for p in self.parameters() if p.requires_grad)  # 减少L2正则化
         loss = loss + l2_reg
 
         # ========== 新增：分析各loss对参数的主导作用 ==========
@@ -618,6 +622,13 @@ class SSNDModel(nn.Module):
             # 分析预测的极端性
             extreme_preds = ((vad_probs > 0.8) | (vad_probs < 0.2)).float().mean().item()
             print(f"DEBUG - Extreme predictions ratio: {extreme_preds:.4f}")
+            # 添加更详细的分布分析
+            very_low = (vad_probs < 0.1).float().mean().item()
+            low = ((vad_probs >= 0.1) & (vad_probs < 0.3)).float().mean().item()
+            mid = ((vad_probs >= 0.3) & (vad_probs < 0.7)).float().mean().item()
+            high = ((vad_probs >= 0.7) & (vad_probs < 0.9)).float().mean().item()
+            very_high = (vad_probs >= 0.9).float().mean().item()
+            print(f"DEBUG - VAD probs distribution: <0.1:{very_low:.4f}, 0.1-0.3:{low:.4f}, 0.3-0.7:{mid:.4f}, 0.7-0.9:{high:.4f}, >0.9:{very_high:.4f}")
             
         print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
         for n in range(vad_labels.shape[1]):
