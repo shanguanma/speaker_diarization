@@ -440,9 +440,35 @@ class SSNDModel(nn.Module):
         focal_loss = alpha_weight * focal_weight * bce_loss
         
         # 添加L2正则化来防止过拟合
-        l2_reg = 0.001 * torch.norm(logits, p=2)
-        
-        return focal_loss + l2_reg
+        #l2_reg = 0.001 * torch.norm(logits, p=2)
+        return focal_loss
+        #return focal_loss + l2_reg
+
+    def print_loss_grad_norms(self, bce_loss, arcface_loss):
+        """
+        分析BCE loss和ArcFace loss对参数的梯度主导作用，并打印梯度范数。
+        """
+        # 1. BCE loss对参数的梯度范数
+        self.zero_grad()
+        bce_loss.backward(retain_graph=True)
+        bce_grad_norm = 0.0
+        for p in self.parameters():
+            if p.grad is not None:
+                bce_grad_norm += p.grad.norm(2).item() ** 2
+        bce_grad_norm = bce_grad_norm ** 0.5
+        self.zero_grad()
+        # 2. ArcFace loss对参数的梯度范数
+        if arcface_loss.requires_grad and arcface_loss != 0.0:
+            arcface_loss.backward(retain_graph=True)
+            arcface_grad_norm = 0.0
+            for p in self.parameters():
+                if p.grad is not None:
+                    arcface_grad_norm += p.grad.norm(2).item() ** 2
+            arcface_grad_norm = arcface_grad_norm ** 0.5
+            self.zero_grad()
+        else:
+            arcface_grad_norm = 0.0
+        print(f"[GRAD DIAG] BCE grad norm: {bce_grad_norm:.4f}, ArcFace grad norm: {arcface_grad_norm:.4f}")
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
         """
@@ -557,7 +583,7 @@ class SSNDModel(nn.Module):
         bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
-        arcface_weight = 0.5  # 降低ArcFace权重
+        arcface_weight = 0.25  # 降低ArcFace权重
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
@@ -569,7 +595,14 @@ class SSNDModel(nn.Module):
         
         # 使用固定的loss权重，平衡BCE和ArcFace
         loss = 0.5 * bce_loss + arcface_loss
-        
+        l2_reg = 0.001 * sum(p.norm(2) for p in self.parameters() if p.requires_grad)
+        loss = loss + l2_reg
+
+        # ========== 新增：分析各loss对参数的主导作用 ==========
+        if self.training and loss.requires_grad:
+            self.print_loss_grad_norms(bce_loss, arcface_loss)
+        # ========== END ==========
+
         # 添加调试信息
         with torch.no_grad():
             vad_probs = torch.sigmoid(vad_pred)
