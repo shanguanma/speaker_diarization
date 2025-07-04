@@ -259,7 +259,7 @@ def get_optimizer_scheduler(params, model):
         from polynomial import PolynomialDecayLR
 
         scheduler = PolynomialDecayLR(
-            optimizer, params.max_updates, params.warmup_updates, power=1.0
+            optimizer, params.max_updates, params.warmup_updates, power=0.5  # 降低power，使学习率增长更平缓
         )
     elif params.lr_type=="CosineAnnealingLR":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

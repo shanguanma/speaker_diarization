@@ -419,7 +419,7 @@ class SSNDModel(nn.Module):
         
         return loss
 
-    def focal_bce_loss(self, logits, targets, alpha=0.8, gamma=2.0):
+    def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=1.0):
         """
         Focal loss for binary classification to handle class imbalance.
         logits: [B, N, T]
@@ -438,7 +438,11 @@ class SSNDModel(nn.Module):
         # 应用focal weight和alpha weight
         alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
         focal_loss = alpha_weight * focal_weight * bce_loss
-        return focal_loss
+        
+        # 添加L2正则化来防止过拟合
+        l2_reg = 0.001 * torch.norm(logits, p=2)
+        
+        return focal_loss + l2_reg
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
         """
@@ -549,11 +553,11 @@ class SSNDModel(nn.Module):
         vad_pred = torch.clamp(vad_pred, -15, 15)
         # Focal loss with mask
         valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
-        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.8, gamma=2.0)
+        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.25, gamma=1.0)
         bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
-        arcface_weight = 1.0  # 或0.5
+        arcface_weight = 0.5  # 降低ArcFace权重
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
@@ -563,8 +567,17 @@ class SSNDModel(nn.Module):
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
                 arcface_loss = arcface_loss * arcface_weight
         
-        # 使用固定的loss权重，增加ArcFace权重
-        loss = 0.1 * bce_loss + arcface_loss
+        # 使用固定的loss权重，平衡BCE和ArcFace
+        loss = 0.5 * bce_loss + arcface_loss
+        
+        # 添加调试信息
+        with torch.no_grad():
+            vad_probs = torch.sigmoid(vad_pred)
+            pred_positive_ratio = vad_probs.mean().item()
+            true_positive_ratio = vad_labels.mean().item()
+            print(f"DEBUG - True positive ratio: {true_positive_ratio:.4f}, Pred positive ratio: {pred_positive_ratio:.4f}")
+            print(f"DEBUG - BCE loss: {bce_loss.item():.4f}, ArcFace loss: {arcface_loss.item():.4f}")
+            print(f"DEBUG - Total loss: {loss.item():.4f}")
             
         print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
         for n in range(vad_labels.shape[1]):
