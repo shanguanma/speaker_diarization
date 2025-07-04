@@ -28,7 +28,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --keep-last-k 1\
     --keep-last-epoch 1\
     --grad-clip true\
-    --lr 3e-5\
+    --lr 1e-4\
     --exp-dir $exp_dir\
     --train_wav_dir $train_wav_dir\
     --train_textgrid_dir $train_textgrid_dir\
@@ -36,7 +36,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --valid_textgrid_dir $valid_textgrid_dir\
     --arcface-margin 0.2\
     --arcface-scale 32.0\
-    --mask-prob 0.5\
+    --mask-prob 0.1\
     --speaker_pretrain_model_path $speaker_pretrain_model_path\
     --extractor_model_type $extractor_model_type\
     --out-bias $out_bias\

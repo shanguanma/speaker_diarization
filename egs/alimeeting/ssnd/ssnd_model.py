@@ -273,8 +273,8 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        # 初始化bias为负值，让模型初始时更倾向于预测负样本
-        torch.nn.init.constant_(self.out_proj.bias, -2.0)  # 从-0.5改为-2.0
+        # 初始化bias为0.0，让模型初始时输出概率更中性
+        torch.nn.init.constant_(self.out_proj.bias, 0.0)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -287,6 +287,24 @@ class DetectionDecoder(nn.Module):
             x_dec = layer(x_dec, x_fea, q_aux, k_pos)
         out = self.out_proj(x_dec)  # [B,N,D]->[B, N, T]
         return out
+
+    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=2.0):
+        """
+        Focal loss for binary classification to handle class imbalance.
+        logits: [B, N, T]
+        targets: [B, N, T]
+        """
+        # 计算sigmoid概率
+        probs = torch.sigmoid(logits)
+        # 计算focal loss
+        pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
+        focal_weight = (1 - pt) ** gamma
+        # 计算BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        # 应用focal weight和alpha weight
+        alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
+        focal_loss = alpha_weight * focal_weight * bce_loss
+        return focal_loss
 
 class RepresentationDecoder(nn.Module):
     """
@@ -419,7 +437,27 @@ class SSNDModel(nn.Module):
         loss = loss + embedding_norm_penalty
         
         return loss
+    
 
+    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=2.0):
+        """
+        Focal loss for binary classification to handle class imbalance.
+        logits: [B, N, T]
+        targets: [B, N, T]
+        """
+        # 计算sigmoid概率
+        probs = torch.sigmoid(logits)
+        # 计算focal loss
+        pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
+        focal_weight = (1 - pt) ** gamma
+        # 计算BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        # 应用focal weight和alpha weight
+        alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
+        focal_loss = alpha_weight * focal_weight * bce_loss
+        return focal_loss
+    
+    """
     def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=3.0):
         """
         Focal loss for binary classification to handle class imbalance.
@@ -448,7 +486,7 @@ class SSNDModel(nn.Module):
         extreme_reward = 0.2 * torch.exp(-10 * (probs - 0.5).abs())  # 奖励接近0或1的预测
         
         return focal_loss + entropy_penalty - extreme_reward
-
+    """
     def print_loss_grad_norms(self, bce_loss, arcface_loss):
         """
         分析BCE loss和ArcFace loss对参数的梯度主导作用，并打印梯度范数。
