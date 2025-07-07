@@ -209,8 +209,9 @@ def get_parser():
     parser.add_argument('--arcface-scale', type=float, default=32.0)
     parser.add_argument('--pos-emb-dim', type=int, default=256)
     parser.add_argument('--max-seq-len', type=int, default=200)
-    parser.add_argument('--n-all-speakers', type=int, default=2097) # Alimeeting has 2097 speakers
+    #parser.add_argument('--n-all-speakers', type=int, default=2097) # Alimeeting has 2097 speakers
     parser.add_argument('--mask-prob', type=float, default=0.5)
+    parser.add_argument('--out-bias', type=float, default=-0.5, help="output bias of detection decoder, >0 means more confident positive samples, <0 means more confident negative samples")
     add_finetune_arguments(parser)
     return parser
 
@@ -258,7 +259,7 @@ def get_optimizer_scheduler(params, model):
         from polynomial import PolynomialDecayLR
 
         scheduler = PolynomialDecayLR(
-            optimizer, params.max_updates, params.warmup_updates, power=1.0
+            optimizer, params.max_updates, params.warmup_updates, power=0.5  # 降低power，使学习率增长更平缓
         )
     elif params.lr_type=="CosineAnnealingLR":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -571,7 +572,7 @@ def train_one_epoch(
         if params.grad_clip:
             if accelerator.sync_gradients:
                 grad_norm = accelerator.clip_grad_norm_(
-                    model.parameters(), max_norm=2.0
+                    model.parameters(), max_norm=1.0
                 )
 
         optimizer.step()
@@ -801,6 +802,7 @@ def build_spk2int(*textgrid_dirs: str):
                 logging.warning(f"Could not process {tg_file}: {e}")
     spk2int = {spk: i for i, spk in enumerate(sorted(list(spk_ids)))}
     logging.info(f"Found {len(spk2int)} unique speakers in the provided set.")
+    logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
 def build_train_dl(args, spk2int): 
@@ -902,7 +904,7 @@ def main():
     args.exp_dir.mkdir(parents=True, exist_ok=True)
     params = get_params(args)
     params.update(vars(args))
-    logging.info(f"params: {params}")
+    #logging.info(f"params: {params}")
     fix_random_seed(params.seed)
 
     # accelerator must be created before any DDP stuff
@@ -922,8 +924,9 @@ def main():
 
     # 构建spk2int (用训练集和验证集联合)
     spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
+    #logging.info(f"spk2int: {spk2int}")
     params.n_all_speakers = len(spk2int)
-
+    
     # build train/valid dataloader
     train_dl = build_train_dl(args, spk2int)
     valid_dl = build_valid_dl(args, spk2int)
@@ -939,7 +942,7 @@ def main():
     # Note: scale_window is not used in the current code, but kept for reference
     scale_window = max(int(2**14 / accelerator.num_processes / gradient_accumulation), 1)
     logging.info(f"The scale window is set to {scale_window}.")
-
+    logging.info(f"params: {params}")
     # Model
     model = SSNDModel(
         speaker_pretrain_model_path=params.speaker_pretrain_model_path,
@@ -960,7 +963,8 @@ def main():
         max_seq_len=params.max_seq_len,
         n_all_speakers=params.n_all_speakers,
         mask_prob=params.mask_prob,
-        training=True
+        training=True,
+        out_bias=params.out_bias,
     )
     # 强制初始化DetectionDecoder输出层bias为0
     #with torch.no_grad():

@@ -265,7 +265,7 @@ class DetectionDecoder(nn.Module):
     """
     Detection Decoder: 输入decoder emb, feature emb, aux query（L2归一化），pos emb，输出VAD
     """
-    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len):
+    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len, out_bias=-0.5):
         super().__init__()
         #self.input_proj = nn.Linear(d_feat, d_model)
         self.layers = nn.ModuleList([
@@ -273,7 +273,8 @@ class DetectionDecoder(nn.Module):
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
-        torch.nn.init.constant_(self.out_proj.bias, -0.15)
+        # 初始化bias为0.0，让模型初始时输出概率更中性
+        torch.nn.init.constant_(self.out_proj.bias, 0.0)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec:[B,N,D], it is setting to 0, it applys on query
@@ -286,6 +287,24 @@ class DetectionDecoder(nn.Module):
             x_dec = layer(x_dec, x_fea, q_aux, k_pos)
         out = self.out_proj(x_dec)  # [B,N,D]->[B, N, T]
         return out
+
+    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=2.0):
+        """
+        Focal loss for binary classification to handle class imbalance.
+        logits: [B, N, T]
+        targets: [B, N, T]
+        """
+        # 计算sigmoid概率
+        probs = torch.sigmoid(logits)
+        # 计算focal loss
+        pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
+        focal_weight = (1 - pt) ** gamma
+        # 计算BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        # 应用focal weight和alpha weight
+        alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
+        focal_loss = alpha_weight * focal_weight * bce_loss
+        return focal_loss
 
 class RepresentationDecoder(nn.Module):
     """
@@ -344,11 +363,12 @@ class SSNDModel(nn.Module):
         device=torch.device("cpu"),
         mask_prob_warmup=0.8,   # 新增：训练初期mask概率
         mask_prob_warmup_epochs=3,  # 新增：前多少个epoch用高mask概率
+        out_bias=-0.5,        
     ):
         super().__init__()
         self.extractor = ResNetExtractor(device,speaker_pretrain_model_path, in_dim=feat_dim, out_dim=emb_dim, extractor_model_type=extractor_model_type)
         self.encoder = SSNDConformerEncoder(emb_dim, d_model, num_layers, nhead, d_ff)
-        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len)
+        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len, out_bias=out_bias)
         self.rep_decoder = RepresentationDecoder(d_model,emb_dim, nhead, d_ff, num_layers, q_rep_aux_dim, pos_emb_dim,emb_dim)
         self.d_model = d_model
         self.max_speakers = max_speakers
@@ -363,15 +383,15 @@ class SSNDModel(nn.Module):
         self.cur_epoch = 0  # 训练脚本每个epoch前要设置
         self.training_mode = training
         # 可学习全体说话人embedding矩阵 E_all [N_all, S] - 使用更好的初始化
-        self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim) * 0.1)
+        self.E_all = nn.Parameter(torch.randn(n_all_speakers, emb_dim) )
         # 可学习伪说话人embedding e_pse [1, S]
-        self.e_pse = nn.Parameter(torch.randn(1, emb_dim) * 0.1)
+        self.e_pse = nn.Parameter(torch.randn(1, emb_dim) )
         # 可学习non-speech embedding e_non [1, S]
-        self.e_non = nn.Parameter(torch.randn(1, emb_dim) * 0.1)
+        self.e_non = nn.Parameter(torch.randn(1, emb_dim) )
         # 可学习DetectionDecoder的query embedding [N, D]
-        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model) * 0.1)
+        self.det_query_emb = nn.Parameter(torch.randn(max_speakers, d_model) )
         # 可学习RepresentationDecoder的query embedding [N, T_max]
-        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len) * 0.1)
+        self.rep_query_emb = nn.Parameter(torch.randn(max_speakers, vad_out_len) )
         # 保存 arcface margin/scale
         self.arcface_margin = arcface_margin
         self.arcface_scale = arcface_scale
@@ -417,8 +437,28 @@ class SSNDModel(nn.Module):
         loss = loss + embedding_norm_penalty
         
         return loss
+    
 
-    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=3.0):
+    def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=2.0):
+        """
+        Focal loss for binary classification to handle class imbalance.
+        logits: [B, N, T]
+        targets: [B, N, T]
+        """
+        # 计算sigmoid概率
+        probs = torch.sigmoid(logits)
+        # 计算focal loss
+        pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
+        focal_weight = (1 - pt) ** gamma
+        # 计算BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        # 应用focal weight和alpha weight
+        alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
+        focal_loss = alpha_weight * focal_weight * bce_loss
+        return focal_loss
+    
+    """
+    def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=3.0):
         """
         Focal loss for binary classification to handle class imbalance.
         logits: [B, N, T]
@@ -438,7 +478,40 @@ class SSNDModel(nn.Module):
         alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
         focal_loss = alpha_weight * focal_weight * bce_loss
         
-        return focal_loss.mean()
+        # 增强概率正则化，强烈鼓励模型输出更极端的概率
+        prob_entropy = -probs * torch.log(probs + 1e-8) - (1 - probs) * torch.log(1 - probs + 1e-8)
+        entropy_penalty = 0.5 * prob_entropy  # 增加熵惩罚权重
+        
+        # 添加额外的极端概率奖励
+        extreme_reward = 0.2 * torch.exp(-10 * (probs - 0.5).abs())  # 奖励接近0或1的预测
+        
+        return focal_loss + entropy_penalty - extreme_reward
+    """
+    def print_loss_grad_norms(self, bce_loss, arcface_loss):
+        """
+        分析BCE loss和ArcFace loss对参数的梯度主导作用，并打印梯度范数。
+        """
+        # 1. BCE loss对参数的梯度范数
+        self.zero_grad()
+        bce_loss.backward(retain_graph=True)
+        bce_grad_norm = 0.0
+        for p in self.parameters():
+            if p.grad is not None:
+                bce_grad_norm += p.grad.norm(2).item() ** 2
+        bce_grad_norm = bce_grad_norm ** 0.5
+        self.zero_grad()
+        # 2. ArcFace loss对参数的梯度范数
+        if arcface_loss.requires_grad and arcface_loss != 0.0:
+            arcface_loss.backward(retain_graph=True)
+            arcface_grad_norm = 0.0
+            for p in self.parameters():
+                if p.grad is not None:
+                    arcface_grad_norm += p.grad.norm(2).item() ** 2
+            arcface_grad_norm = arcface_grad_norm ** 0.5
+            self.zero_grad()
+        else:
+            arcface_grad_norm = 0.0
+        print(f"[GRAD DIAG] BCE grad norm: {bce_grad_norm:.4f}, ArcFace grad norm: {arcface_grad_norm:.4f}")
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
         """
@@ -485,6 +558,7 @@ class SSNDModel(nn.Module):
             pad_num = N - N_loc
             pad_embs = []
             pad_vad = []
+            pad_idx = []
             for b in range(B):
                 cur_spk = set(spk_label_idx[b].tolist())
                 all_spk = set(range(self.n_all_speakers))
@@ -493,13 +567,17 @@ class SSNDModel(nn.Module):
                     if torch.rand(1).item() < 0.5 and len(unused_spk) > 0:
                         rand_spk = np.random.choice(unused_spk)
                         pad_embs.append(self.E_all[rand_spk].to(speaker_embs.dtype))  # shape [emb_dim]
+                        pad_idx.append(rand_spk)
                     else:
                         pad_embs.append(self.e_non[0].to(speaker_embs.dtype))  # shape [emb_dim]
+                        pad_idx.append(-1)
                     pad_vad.append(torch.zeros(vad_labels.shape[2], device=device))
             pad_embs = torch.stack(pad_embs).reshape(B, pad_num, self.emb_dim)
             pad_vad = torch.stack(pad_vad).reshape(B, pad_num, vad_labels.shape[2])
+            pad_idx = torch.tensor(pad_idx, dtype=spk_label_idx.dtype, device=device).reshape(B, pad_num)
             speaker_embs = torch.cat([speaker_embs, pad_embs], dim=1)  # [B, N, S]
             vad_labels = torch.cat([vad_labels, pad_vad], dim=1)       # [B, N, T]
+            spk_label_idx = torch.cat([spk_label_idx, pad_idx], dim=1)
             if spk_labels is not None:
                 pad_labels = torch.full((B, pad_num), -1, dtype=spk_labels.dtype, device=device)
                 spk_labels = torch.cat([spk_labels, pad_labels], dim=1)
@@ -510,6 +588,7 @@ class SSNDModel(nn.Module):
                 spk_labels = spk_labels[:, :N]
         # 4. 特征提取
         x = self.extractor(feats)  # [B, T, emb_dim]
+        assert vad_labels.shape[-1] == x.shape[1], f"Label/feature length mismatch: {vad_labels.shape[-1]} vs {x.shape[1]}"
         enc_out = self.encoder(x)  # [B, T, d_model]
         _, T_enc, _ = enc_out.shape
         pos_emb = self.pos_emb[:, :T_enc, :].expand(B, T_enc, self.pos_emb_dim)  # [B, T, D_pos]
@@ -539,14 +618,15 @@ class SSNDModel(nn.Module):
         # torch.Size([16, 30, 200]), pos_emb shape: torch.Size([16, 200, 256])
         spk_emb_pred = self.rep_decoder(x_rep_dec, x, vad_labels, pos_emb)      # [B, N, S]
         # 7. 损失
-        # BCE loss with pos_weight - 降低pos_weight减少过拟合
-        pos_weight = torch.tensor([2.0], device=vad_pred.device)
-        bce_loss = F.binary_cross_entropy_with_logits(
-            vad_pred, vad_labels, pos_weight=pos_weight, reduction='mean'
-        )
+        # Clamp VAD predictions for numerical stability
+        vad_pred = torch.clamp(vad_pred, -15, 15)
+        # Focal loss with mask
+        valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
+        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.25, gamma=1.0)
+        bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
-        # ArcFace loss（只对有效说话人）- 增加权重来学习更好的说话人表示
-        arcface_weight = 0.02  # 建议0.01~0.05
+        # ArcFace loss（只对有效说话人）- 进一步降低权重
+        arcface_weight = 0.5  # 进一步降低ArcFace权重
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
@@ -556,9 +636,45 @@ class SSNDModel(nn.Module):
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
                 arcface_loss = arcface_loss * arcface_weight
         
-        # 使用固定的loss权重，增加ArcFace权重
-        loss = 1.0 * bce_loss + arcface_loss
+        # 使用固定的loss权重，让BCE主导训练
+        loss = 2.0 * bce_loss + arcface_loss  # 增加BCE权重
+        l2_reg = 0.0005 * sum(p.norm(2) for p in self.parameters() if p.requires_grad)  # 减少L2正则化
+        loss = loss + l2_reg
+
+        # ========== 新增：分析各loss对参数的主导作用 ==========
+        if self.training and loss.requires_grad:
+            self.print_loss_grad_norms(bce_loss, arcface_loss)
+        # ========== END ==========
+
+        # 添加调试信息
+        with torch.no_grad():
+            vad_probs = torch.sigmoid(vad_pred)
+            pred_positive_ratio = vad_probs.mean().item()
+            true_positive_ratio = vad_labels.mean().item()
+            print(f"DEBUG - True positive ratio: {true_positive_ratio:.4f}, Pred positive ratio: {pred_positive_ratio:.4f}")
+            print(f"DEBUG - BCE loss: {bce_loss.item():.4f}, ArcFace loss: {arcface_loss.item():.4f}")
+            print(f"DEBUG - Total loss: {loss.item():.4f}")
+            # 添加VAD预测分布分析
+            print(f"DEBUG - VAD probs stats: mean={vad_probs.mean().item():.4f}, std={vad_probs.std().item():.4f}")
+            print(f"DEBUG - VAD probs range: [{vad_probs.min().item():.4f}, {vad_probs.max().item():.4f}]")
+            # 分析预测的极端性
+            extreme_preds = ((vad_probs > 0.8) | (vad_probs < 0.2)).float().mean().item()
+            print(f"DEBUG - Extreme predictions ratio: {extreme_preds:.4f}")
+            # 添加更详细的分布分析
+            very_low = (vad_probs < 0.1).float().mean().item()
+            low = ((vad_probs >= 0.1) & (vad_probs < 0.3)).float().mean().item()
+            mid = ((vad_probs >= 0.3) & (vad_probs < 0.7)).float().mean().item()
+            high = ((vad_probs >= 0.7) & (vad_probs < 0.9)).float().mean().item()
+            very_high = (vad_probs >= 0.9).float().mean().item()
+            print(f"DEBUG - VAD probs distribution: <0.1:{very_low:.4f}, 0.1-0.3:{low:.4f}, 0.3-0.7:{mid:.4f}, 0.7-0.9:{high:.4f}, >0.9:{very_high:.4f}")
             
+        print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
+        for n in range(vad_labels.shape[1]):
+            print(f"Channel {n} positive ratio:", vad_labels[0, n, :].sum().item() / vad_labels.shape[2])
+        
+        print("spk_ids_list[0]:", spk_label_idx[0])
+        print("spk_label_idx[0]:", spk_label_idx[0])
+        print("labels[0]:", vad_labels[0])
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
     def infer(self, feats, speaker_embs):
@@ -579,8 +695,12 @@ class SSNDModel(nn.Module):
         pos_emb = self.pos_emb[:, :T, :].expand(B, T, self.pos_emb_dim)  # [1, T, D_pos]
         x_det_dec = self.det_query_emb.unsqueeze(0).expand(B, N, self.d_model)
         x_rep_dec = self.rep_query_emb.unsqueeze(0).expand(B, N, T)
-        vad_pred, spk_emb_pred = self.infer(feats, speaker_embs)
-        emb_pred = self.rep_decoder(x_rep_dec, x, vad_pred, pos_emb)          # [1, N, S]
+        
+        # 修正推理逻辑：DetectionDecoder也需要推理
+        vad_pred = self.det_decoder(x_det_dec, enc_out, speaker_embs, pos_emb)
+        # RepresentationDecoder的q_aux在推理时应该用vad_pred（sigmoid后）
+        vad_prob_for_rep = torch.sigmoid(vad_pred)
+        emb_pred = self.rep_decoder(x_rep_dec, x, vad_prob_for_rep, pos_emb)          # [1, N, S]
         return vad_pred, emb_pred 
 
     def offline_diarization(self, feats, threshold=0.5):

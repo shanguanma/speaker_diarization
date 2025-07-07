@@ -14,8 +14,9 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
    valid_wav_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/audio_dir
    valid_textgrid_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/textgrid_dir
    speaker_pretrain_model_path=/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin
-   extractor_model_type='CAM++_wo_gsp'
-   exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr5e-5_batch32
+   extractor_model_type='CAM++_gsp'
+   out_bias=0.0
+   exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr5e-5_batch64_out_bias${out_bias}
    CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15915 \
    ssnd/train_accelerate_ddp.py\
@@ -29,16 +30,18 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
-    --musan-path $musan_path \
-    --rir-path $rir_path \
     --train_wav_dir $train_wav_dir\
     --train_textgrid_dir $train_textgrid_dir\
     --valid_wav_dir $valid_wav_dir\
     --valid_textgrid_dir $valid_textgrid_dir\
     --arcface-margin 0.2\
     --arcface-scale 32.0\
-    --mask-prob 0.5\
+    --mask-prob 0.1\
     --speaker_pretrain_model_path $speaker_pretrain_model_path\
-    --extractor_model_type $extractor_model_type
+    --extractor_model_type $extractor_model_type\
+    --out-bias $out_bias\
+    --warmup-updates 3000
+    #--musan-path $musan_path \
+    #--rir-path $rir_path 
      
 fi 
