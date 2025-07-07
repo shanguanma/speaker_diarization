@@ -401,7 +401,33 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.transformer_embed_dim),
                 nn.ReLU(),
             )
+        elif cfg.single_backend_type == "mamba2_unidirectional":
+            self.pos_encoder = PositionalEncoding(
+                cfg.transformer_embed_dim,
+                dropout=cfg.dropout,
+                max_len=(task_cfg.rs_len * self.label_rate),
+            )
+            # causal_conv1d  channel must be multiples of 8  , So I select 384=192*2 as model dimension.
+            self.single_backend = Mamba2BlockV2(
+                cfg.transformer_embed_dim,
+                n_layer=cfg.num_transformer_layer,
+                d_state=cfg.d_state,
+                d_conv=4,
+                expand=cfg.expand,
+                bidirectional=False,
+            )
 
+            self.backend_down = nn.Sequential(
+                nn.Conv1d(
+                    2 * cfg.transformer_embed_dim * self.max_num_speaker,
+                    cfg.transformer_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                nn.ReLU(),
+            )
         return self.single_backend, self.pos_encoder, self.backend_down
 
     def create_multi_backend(self, cfg):

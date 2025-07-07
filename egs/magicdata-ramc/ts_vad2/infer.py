@@ -198,7 +198,12 @@ def load_model(
         if model_file is not None:
             # case1 load one best checkpoint model
             model = model.to(device)
+            #for name, v in model.named_parameters():
+            #    logging.info(f"name: {name}, v: {v.shape}")
             logging.info(f"params.model_file: {params.model_file}")
+            #b = torch.load(params.model_file, map_location=device)["model"] 
+            #for k,value in b.items():
+            #    logging.info(f"k:{k}, value :{value.shape}")
             model.load_state_dict(
                 torch.load(params.model_file, map_location=device)["model"]
             )

@@ -177,6 +177,29 @@ class TSVADModel(nn.Module):
                 BatchNorm1D(num_features=cfg.transformer_embed_dim),
                 nn.ReLU(),
             )
+        elif self.single_backend_type == "mamba2_unidirectional":
+            self.pos_encoder = PositionalEncoding(cfg.transformer_embed_dim, cfg.dropout)
+            # causal_conv1d  channel must be multiples of 8  , So I select 384=192*2 as model dimension.
+            self.single_backend = Mamba2BlockV2(
+                cfg.transformer_embed_dim,
+                n_layer=cfg.num_transformer_layer,
+                d_state=cfg.d_state,
+                d_conv=4,
+                expand=cfg.expand,
+                bidirectional=False,
+            )
+
+            self.backend_down = nn.Sequential(
+                nn.Conv1d(
+                    cfg.transformer_embed_dim * self.max_num_speaker,
+                    cfg.transformer_embed_dim,
+                    5,
+                    stride=1,
+                    padding=2,
+                ),
+                BatchNorm1D(num_features=cfg.transformer_embed_dim),
+                nn.ReLU(),
+            )
         
 
         self.multi_backend = torch.nn.ModuleList(
@@ -197,6 +220,7 @@ class TSVADModel(nn.Module):
                 for _ in range(cfg.num_transformer_layer)
             ]
         )
+
 
         self.static_chunk_size = cfg.static_chunk_size
         self.use_dynamic_chunk = cfg.use_dynamic_chunk
@@ -319,8 +343,10 @@ class TSVADModel(nn.Module):
                     cat_embed, chunk_masks, _ = single_layer(
                         cat_embed, chunk_masks
                     )  # (B,T',F) ,F=2D
-            elif self.single_backend_type == "mamba2":
+            elif self.single_backend_type == "mamba2" or self.single_backend_type == "mamba2_unidirectional":
                 cat_embed = self.single_backend(cat_embed)  # (B,T',F) ,F=2D
+            #elif self.single_backend_type == "mamba2_unidirectional":
+            #    cat_embed = self.single_backend(cat_embed)  # (B,T',F) ,F=2D
             # cat_embed = self.single_backend(cat_embed)  # T, B, F
             # cat_embed = cat_embed.transpose(0, 1)  # B, T, F
             cat_embeds.append(cat_embed)
@@ -385,8 +411,11 @@ class TSVADModel(nn.Module):
                     cat_embed, chunk_masks, _ = ckpt.checkpoint(
                         single_layer.__call__, cat_embed, chunk_masks, use_reentrant=False
                     )  # (B,T',F)
-            elif self.single_backend_type == "mamba2":
+            elif self.single_backend_type == "mamba2" or self.single_backend_type == "mamba2_unidirectional":
                 cat_embed =  ckpt.checkpoint(self.single_backend.__call__,cat_embed, use_reentrant=False)
+
+            #elif self.single_backend_type == "mamba2_unidirectional":
+            #    cat_embed =  ckpt.checkpoint(self.single_backend.__call__,cat_embed, use_reentrant=False)
             # cat_embed = self.single_backend(cat_embed)  # T, B, F
             # cat_embed = cat_embed.transpose(0, 1)  # B, T, F
             cat_embeds.append(cat_embed)

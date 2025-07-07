@@ -218,6 +218,9 @@ if __name__ == "__main__":
     model=MambaBlockV2(192,n_layer=2,d_state=64,d_conv=4,expand=4,bidirectional=True).to("cuda")
     model2=Mamba2BlockV2(256,n_layer=2,d_state=64,d_conv=4,expand=4,bidirectional=True).to("cuda")
     output = model(input)
+    for name, v in model2.named_parameters():
+        print(f"name: {name}, v: {v.shape}")
+ 
     print(f"output shape: {output.shape}")
     input2=torch.randn(64,200,256).to("cuda")
     output2 = model2(input2)
