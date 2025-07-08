@@ -457,7 +457,7 @@ class SSNDModel(nn.Module):
         focal_loss = alpha_weight * focal_weight * bce_loss
         return focal_loss
     
-    """
+    '''
     def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=3.0):
         """
         #Focal loss for binary classification to handle class imbalance.
@@ -486,7 +486,7 @@ class SSNDModel(nn.Module):
         extreme_reward = 0.2 * torch.exp(-10 * (probs - 0.5).abs())  # 奖励接近0或1的预测
         
         return focal_loss + entropy_penalty - extreme_reward
-    """
+    '''
     def print_loss_grad_norms(self, bce_loss, arcface_loss):
         """
         分析BCE loss和ArcFace loss对参数的梯度主导作用，并打印梯度范数。

@@ -203,7 +203,7 @@ def get_parser():
     parser.add_argument('--nhead', type=int, default=8)
     parser.add_argument('--d-ff', type=int, default=512)
     parser.add_argument('--num-layers', type=int, default=4)
-    parser.add_argument('--max-speakers', type=int, default=30)
+    parser.add_argument('--max-speakers', type=int, default=4)
     parser.add_argument('--vad-out-len', type=int, default=200) # 8s / (16000/160) / 2 * 2 = 200, it is 8/0.04
     parser.add_argument('--arcface-margin', type=float, default=0.2)
     parser.add_argument('--arcface-scale', type=float, default=32.0)
