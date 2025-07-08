@@ -350,7 +350,7 @@ class SSNDModel(nn.Module):
         nhead=8,
         d_ff=512,
         num_layers=4,
-        max_speakers=30,
+        max_speakers=4,
         vad_out_len=100,  # 由block/chunk长度决定
         #arcface_num_classes=None,  # 说话人总数
         arcface_margin=0.2,
@@ -460,14 +460,14 @@ class SSNDModel(nn.Module):
     """
     def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=3.0):
         """
-        Focal loss for binary classification to handle class imbalance.
-        logits: [B, N, T]
-        targets: [B, N, T]
+        #Focal loss for binary classification to handle class imbalance.
+        #logits: [B, N, T]
+        #targets: [B, N, T]
         """
         # 计算sigmoid概率
         probs = torch.sigmoid(logits)
         
-        # 计算focal loss
+        # xixi计算focal loss
         pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
         focal_weight = (1 - pt) ** gamma
         
