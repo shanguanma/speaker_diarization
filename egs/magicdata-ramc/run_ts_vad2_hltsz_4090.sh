@@ -642,6 +642,9 @@ if [ ${stage} -le 135 ] && [ ${stop_stage} -ge 135 ];then
  done
 done
 fi
+
+#grep -r Eval logs/run_ts_vad2_hltsz_4090_stage134-136.log
+# dev of magicdata-ramc, collar=0.0
 #Eval for threshold 0.2 DER=14.51, miss=0.27, falarm=10.84, confusion=3.40
 #Eval for threshold 0.3 DER=13.02, miss=0.47, falarm=8.88, confusion=3.66
 #Eval for threshold 0.35 DER=12.52, miss=0.64, falarm=8.17, confusion=3.71
@@ -653,6 +656,8 @@ fi
 #Eval for threshold 0.7 DER=11.70, miss=3.65, falarm=4.78, confusion=3.28
 #Eval for threshold 0.8 DER=12.57, miss=5.77, falarm=3.85, confusion=2.95
 #Eval for threshold 0.9 DER=15.40, miss=10.42, falarm=2.70, confusion=2.27
+
+# test of magicdata-ramc, collar=0.0
 #Eval for threshold 0.2 DER=17.02, miss=0.39, falarm=14.73, confusion=1.90
 #Eval for threshold 0.3 DER=15.23, miss=0.82, falarm=12.21, confusion=2.20
 #Eval for threshold 0.35 DER=14.64, miss=1.10, falarm=11.26, confusion=2.28
@@ -664,6 +669,8 @@ fi
 #Eval for threshold 0.7 DER=14.45, miss=8.37, falarm=4.45, confusion=1.64
 #Eval for threshold 0.8 DER=16.18, miss=11.38, falarm=3.51, confusion=1.29
 #Eval for threshold 0.9 DER=20.81, miss=17.54, falarm=2.42, confusion=0.85
+
+# cssd_testset of magicdata-ramc, collar=0.0
 #Eval for threshold 0.2 DER=27.97, miss=3.80, falarm=21.71, confusion=2.45
 #Eval for threshold 0.3 DER=23.99, miss=5.29, falarm=15.42, confusion=3.28
 #Eval for threshold 0.35 DER=22.76, miss=6.19, falarm=13.00, confusion=3.58
@@ -675,6 +682,8 @@ fi
 #Eval for threshold 0.7 DER=26.41, miss=19.87, falarm=5.05, confusion=1.49
 #Eval for threshold 0.8 DER=30.71, miss=26.50, falarm=3.42, confusion=0.80
 #Eval for threshold 0.9 DER=40.17, miss=38.18, falarm=1.70, confusion=0.29
+
+# dev of magicdata-ramc, collar=0.25
 #Eval for threshold 0.2 DER=6.22, miss=0.07, falarm=3.06, confusion=3.09
 #Eval for threshold 0.3 DER=5.52, miss=0.12, falarm=2.12, confusion=3.27
 #Eval for threshold 0.35 DER=5.32, miss=0.18, falarm=1.83, confusion=3.31
@@ -686,6 +695,8 @@ fi
 #Eval for threshold 0.7 DER=5.57, miss=1.41, falarm=1.03, confusion=3.13
 #Eval for threshold 0.8 DER=6.38, miss=2.55, falarm=0.89, confusion=2.94
 #Eval for threshold 0.9 DER=8.88, miss=5.79, falarm=0.74, confusion=2.35
+
+# test of magicdata-ramc, collar=0.25
 #Eval for threshold 0.2 DER=8.60, miss=0.12, falarm=7.06, confusion=1.42
 #Eval for threshold 0.3 DER=7.74, miss=0.31, falarm=5.86, confusion=1.56
 #Eval for threshold 0.35 DER=7.50, miss=0.43, falarm=5.46, confusion=1.61
@@ -697,6 +708,8 @@ fi
 #Eval for threshold 0.7 DER=8.33, miss=5.40, falarm=1.61, confusion=1.32
 #Eval for threshold 0.8 DER=9.79, miss=7.31, falarm=1.36, confusion=1.13
 #Eval for threshold 0.9 DER=13.83, miss=12.00, falarm=1.03, confusion=0.80
+
+# cssd_testset of magicdata-ramc, collar=0.25
 #Eval for threshold 0.2 DER=9.98, miss=1.24, falarm=7.80, confusion=0.94
 #Eval for threshold 0.3 DER=7.53, miss=1.84, falarm=4.16, confusion=1.52
 #Eval for threshold 0.35 DER=6.80, miss=2.21, falarm=2.82, confusion=1.78
@@ -726,6 +739,7 @@ if [ ${stage} -le 136 ] && [ ${stop_stage} -ge 136 ];then
 fi
 
 # grep -r Avg logs/run_ts_vad2_hltsz_4090_stage136.log
+# dev of magicdata-ramc
 #Avg CDER : 0.485
 #Avg CDER : 0.326
 #Avg CDER : 0.267
@@ -737,6 +751,8 @@ fi
 #Avg CDER : 0.102
 #Avg CDER : 0.097
 #Avg CDER : 0.091
+
+# test of magicdata-ramc
 #Avg CDER : 0.308
 #Avg CDER : 0.254
 #Avg CDER : 0.232
@@ -748,6 +764,8 @@ fi
 #Avg CDER : Error!
 #Avg CDER : Error!
 #Avg CDER : Error!
+
+# cssd_test of magicdata-ramc
 #Avg CDER : 0.249
 #Avg CDER : 0.189
 #Avg CDER : 0.165
@@ -853,7 +871,7 @@ if [ ${stage} -le 138 ] && [ ${stop_stage} -ge 138 ];then
  #speech_encoder_config="/mntcephfs/lab_data/maduo/model_hub/speaker_pretrain_model/w2v-bert2.0/config.json"
 
  # for loading speaker embedding file
- spk_path=/share/workspace/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
+ spk_path=/shar/workspace/maduo/model_hub/ts_vad/spk_embed/magicdata-ramc/SpeakerEmbedding # store speaker embedding directory
  speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
 
  #data_dir="/data/maduo/exp/speaker_diarization/ts_vad2/data/magicdata-ramc" # oracle target audio , mix audio and labels path
@@ -888,6 +906,85 @@ if [ ${stage} -le 138 ] && [ ${stop_stage} -ge 138 ];then
  done
 done
 fi
+#grep -r Eval logs/run_ts_vad2_hltsz_4090_stage138-139.log
+
+# dev of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=14.14, miss=0.28, falarm=10.38, confusion=3.48
+#Eval for threshold 0.3 DER=12.78, miss=0.52, falarm=8.60, confusion=3.65
+#Eval for threshold 0.35 DER=12.36, miss=0.70, falarm=7.97, confusion=3.70
+#Eval for threshold 0.4 DER=11.99, miss=0.91, falarm=7.36, confusion=3.71
+#Eval for threshold 0.45 DER=11.69, miss=1.16, falarm=6.82, confusion=3.71
+#Eval for threshold 0.5 DER=11.50, miss=1.47, falarm=6.35, confusion=3.68
+#Eval for threshold 0.55 DER=11.43, miss=1.88, falarm=5.95, confusion=3.60
+#Eval for threshold 0.6 DER=11.44, miss=2.36, falarm=5.58, confusion=3.51
+#Eval for threshold 0.7 DER=11.69, miss=3.55, falarm=4.82, confusion=3.33
+#Eval for threshold 0.8 DER=12.54, miss=5.56, falarm=3.92, confusion=3.06
+#Eval for threshold 0.9 DER=15.66, miss=10.43, falarm=2.85, confusion=2.37
+
+# test of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=17.18, miss=0.50, falarm=14.77, confusion=1.91
+#Eval for threshold 0.3 DER=15.41, miss=0.95, falarm=12.25, confusion=2.21
+#Eval for threshold 0.35 DER=14.78, miss=1.28, falarm=11.21, confusion=2.29
+#Eval for threshold 0.4 DER=14.37, miss=1.69, falarm=10.30, confusion=2.37
+#Eval for threshold 0.45 DER=13.84, miss=2.24, falarm=9.07, confusion=2.53
+#Eval for threshold 0.5 DER=12.83, miss=3.37, falarm=6.32, confusion=3.14
+#Eval for threshold 0.55 DER=13.61, miss=5.62, falarm=5.68, confusion=2.31
+#Eval for threshold 0.6 DER=14.09, miss=6.86, falarm=5.26, confusion=1.97
+#Eval for threshold 0.7 DER=15.09, miss=9.07, falarm=4.42, confusion=1.60
+#Eval for threshold 0.8 DER=16.92, miss=12.14, falarm=3.53, confusion=1.25
+#Eval for threshold 0.9 DER=21.52, miss=18.25, falarm=2.47, confusion=0.80
+
+# cssd_testset of magicdata-ramc, collar=0.0
+#Eval for threshold 0.2 DER=29.41, miss=3.95, falarm=22.66, confusion=2.80
+#Eval for threshold 0.3 DER=25.28, miss=5.64, falarm=15.89, confusion=3.75
+#Eval for threshold 0.35 DER=23.96, miss=6.65, falarm=13.15, confusion=4.16
+#Eval for threshold 0.4 DER=23.12, miss=7.90, falarm=10.86, confusion=4.35
+#Eval for threshold 0.45 DER=22.80, miss=9.41, falarm=9.04, confusion=4.35
+#Eval for threshold 0.5 DER=23.10, miss=11.35, falarm=7.69, confusion=4.05
+#Eval for threshold 0.55 DER=24.05, miss=13.74, falarm=6.84, confusion=3.48
+#Eval for threshold 0.6 DER=25.20, miss=16.20, falarm=6.11, confusion=2.90
+#Eval for threshold 0.7 DER=28.21, miss=21.59, falarm=4.71, confusion=1.91
+#Eval for threshold 0.8 DER=32.73, miss=28.41, falarm=3.20, confusion=1.12
+#Eval for threshold 0.9 DER=42.67, miss=40.59, falarm=1.64, confusion=0.44
+
+# dev of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=6.01, miss=0.07, falarm=2.74, confusion=3.20
+#Eval for threshold 0.3 DER=5.40, miss=0.14, falarm=1.97, confusion=3.29
+#Eval for threshold 0.35 DER=5.26, miss=0.21, falarm=1.74, confusion=3.31
+#Eval for threshold 0.4 DER=5.15, miss=0.27, falarm=1.57, confusion=3.32
+#Eval for threshold 0.45 DER=5.08, miss=0.35, falarm=1.42, confusion=3.32
+#Eval for threshold 0.5 DER=5.05, miss=0.46, falarm=1.29, confusion=3.30
+#Eval for threshold 0.55 DER=5.10, miss=0.62, falarm=1.21, confusion=3.27
+#Eval for threshold 0.6 DER=5.18, miss=0.81, falarm=1.15, confusion=3.23
+#Eval for threshold 0.7 DER=5.50, miss=1.30, falarm=1.03, confusion=3.16
+#Eval for threshold 0.8 DER=6.31, miss=2.39, falarm=0.90, confusion=3.02
+#Eval for threshold 0.9 DER=9.19, miss=5.98, falarm=0.76, confusion=2.44
+
+# test of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=8.94, miss=0.17, falarm=7.40, confusion=1.37
+#Eval for threshold 0.3 DER=8.05, miss=0.35, falarm=6.15, confusion=1.54
+#Eval for threshold 0.35 DER=7.76, miss=0.48, falarm=5.67, confusion=1.61
+#Eval for threshold 0.4 DER=7.62, miss=0.68, falarm=5.26, confusion=1.67
+#Eval for threshold 0.45 DER=7.37, miss=0.97, falarm=4.57, confusion=1.83
+#Eval for threshold 0.5 DER=6.49, miss=1.72, falarm=2.21, confusion=2.56
+#Eval for threshold 0.55 DER=7.42, miss=3.73, falarm=1.92, confusion=1.77
+#Eval for threshold 0.6 DER=7.95, miss=4.68, falarm=1.81, confusion=1.47
+#Eval for threshold 0.7 DER=8.91, miss=6.06, falarm=1.59, confusion=1.26
+#Eval for threshold 0.8 DER=10.53, miss=8.12, falarm=1.34, confusion=1.07
+#Eval for threshold 0.9 DER=14.67, miss=12.92, falarm=1.02, confusion=0.73
+
+# cssd_testset of magicdata-ramc, collar=0.25
+#Eval for threshold 0.2 DER=11.99, miss=1.30, falarm=9.45, confusion=1.24
+#Eval for threshold 0.3 DER=9.27, miss=2.00, falarm=5.33, confusion=1.95
+#Eval for threshold 0.35 DER=8.41, miss=2.46, falarm=3.60, confusion=2.35
+#Eval for threshold 0.4 DER=7.86, miss=3.07, falarm=2.18, confusion=2.61
+#Eval for threshold 0.45 DER=7.78, miss=3.91, falarm=1.12, confusion=2.75 as report
+#Eval for threshold 0.5 DER=8.27, miss=5.16, falarm=0.44, confusion=2.67
+#Eval for threshold 0.55 DER=9.40, miss=6.87, falarm=0.27, confusion=2.26
+#Eval for threshold 0.6 DER=10.72, miss=8.67, falarm=0.21, confusion=1.84
+#Eval for threshold 0.7 DER=14.02, miss=12.75, falarm=0.13, confusion=1.14
+#Eval for threshold 0.8 DER=18.94, miss=18.23, falarm=0.07, confusion=0.65
+#Eval for threshold 0.9 DER=29.45, miss=29.16, falarm=0.03, confusion=0.26
 
 
 if [ ${stage} -le 139 ] && [ ${stop_stage} -ge 139 ];then
@@ -906,38 +1003,42 @@ if [ ${stage} -le 139 ] && [ ${stop_stage} -ge 139 ];then
    done
 fi
 
+# grep -r Avg logs/run_ts_vad2_hltsz_4090_stage138-139.log
+# dev 
+#Avg CDER : 0.343
+#Avg CDER : 0.256
+#Avg CDER : 0.222
+#Avg CDER : 0.193
+#Avg CDER : 0.167
+#Avg CDER : 0.134
+#Avg CDER : 0.116
+#Avg CDER : 0.104
+#Avg CDER : 0.099
+#Avg CDER : 0.095
+#Avg CDER : 0.096
 
-#grep -r Avg logs/run_ts_vad2_hltsz_4090_stage137-139.log
-#Avg CDER : 1.009
-#Avg CDER : 1.009
-#Avg CDER : 1.010
-#Avg CDER : 1.080
-#Avg CDER : 1.383
-#Avg CDER : 1.524
+# test
+#Avg CDER : 0.295
+#Avg CDER : 0.241
+#Avg CDER : 0.219
+#Avg CDER : 0.199
+#Avg CDER : 0.193
+#Avg CDER : 0.123
+#Avg CDER : 0.113
+#Avg CDER : 0.107
 #Avg CDER : Error!
 #Avg CDER : Error!
 #Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : 1.012
-#Avg CDER : 1.012
-#Avg CDER : 1.072
-#Avg CDER : 1.405
-#Avg CDER : 1.154
-#Avg CDER : 1.005
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : 1.002
-#Avg CDER : 1.002
-#Avg CDER : 1.002
-#Avg CDER : 1.003
-#Avg CDER : 0.964
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
-#Avg CDER : Error!
+
+# cssd_testset
+#Avg CDER : 0.253
+#Avg CDER : 0.198
+#Avg CDER : 0.172
+#Avg CDER : 0.145
+#Avg CDER : 0.125
+#Avg CDER : 0.108
+#Avg CDER : 0.093
+#Avg CDER : 0.088
+#Avg CDER : 0.093
+#Avg CDER : 0.109
+#Avg CDER : 0.189
