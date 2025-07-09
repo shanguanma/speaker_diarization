@@ -7,6 +7,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from alimeeting_diar_dataset import AlimeetingDiarDataset
 import argparse
 #from train_accelerate_ddp import compute_loss, compute_validation_loss
+from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 
 def compute_loss(
     model: Union[nn.Module, DDP],
@@ -223,12 +224,27 @@ def main():
             print(f"Step {step}: loss={loss.item():.4f}, info={info}")
             print(f"vad_probs mean: {vad_probs.mean().item():.4f}, std: {vad_probs.std().item():.4f}")
             print(f"vad_labels mean: {vad_labels.mean().item():.4f}")
+            print("正样本比例（说话人活动帧）:", (vad_labels > 0.5).float().mean().item())
+            print("负样本比例（静音帧）:", (vad_labels <= 0.5).float().mean().item())
             for n in range(min(args.max_speakers, vad_probs.shape[1])):
                 print(f"Speaker {n} pred>0.5 ratio: {(vad_probs[:, n, :] > 0.5).float().mean().item():.4f}")
                 print(f"Speaker {n} label>0.5 ratio: {(vad_labels[:, n, :] > 0.5).float().mean().item():.4f}")
         if loss.item() < 1e-2:
             print("Loss very low, stop early.")
             break
+
+    vad_probs = info["vad_pred"].cpu().numpy()
+    vad_labels = info["vad_labels"].cpu().numpy()
+    # 二值化
+    vad_pred_bin = (vad_probs > 0.5).astype(int)
+    vad_labels_bin = (vad_labels > 0.5).astype(int)
+    # 展平
+    vad_pred_flat = vad_pred_bin.flatten()
+    vad_labels_flat = vad_labels_bin.flatten()
+    print("Confusion matrix:", confusion_matrix(vad_labels_flat, vad_pred_flat))
+    print("F1-score:", f1_score(vad_labels_flat, vad_pred_flat))
+    print("Precision:", precision_score(vad_labels_flat, vad_pred_flat))
+    print("Recall:", recall_score(vad_labels_flat, vad_pred_flat))
 
 if __name__ == "__main__":
     main() 
