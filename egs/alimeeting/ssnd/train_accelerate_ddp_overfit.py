@@ -120,25 +120,29 @@ def main():
         window_sec=8.0,
         window_shift_sec=0.4
     )
-    def collate_fn_wrapper(batch):
-        wavs, labels, spk_ids_list, fbanks, labels_len = dataset.collate_fn(batch, vad_out_len=args.vad_out_len)
-        print(f"wavs.shape: {wavs.shape}, labels.shape: {labels.shape}, spk_ids_list: {spk_ids_list}, fbanks.shape: {fbanks.shape}, labels_len.shape: {labels_len.shape}")
-        # 构造spk2int
-        all_spk = set()
-        for spk_ids in spk_ids_list:
-            all_spk.update([s for s in spk_ids if s is not None])
-        spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
-        max_spks_in_batch = labels.shape[1]
-        print(f"max_spks_in_batch: {max_spks_in_batch}")
-        spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
-        for i, spk_id_sample in enumerate(spk_ids_list):
-            for j, spk_id in enumerate(spk_id_sample):
-                if spk_id and spk_id in spk2int:
-                    spk_label_indices[i, j] = spk2int[spk_id]
-        return fbanks, labels, spk_label_indices, labels_len
-    from torch.utils.data import DataLoader
-    train_dl = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn_wrapper)
+    from train_accelerate_ddp import build_spk2int
+    def build_train_dl(dataset, args):
+        spk2int = build_spk2int(args.textgrid_dir)
 
+        def collate_fn_wrapper(batch):
+            wavs, labels, spk_ids_list, fbanks, labels_len = dataset.collate_fn(batch, vad_out_len=args.vad_out_len)
+            print(f"wavs.shape: {wavs.shape}, labels.shape: {labels.shape}, spk_ids_list: {spk_ids_list}, fbanks.shape: {fbanks.shape}, labels_len.shape: {labels_len.shape}")
+            # 构造spk2int
+            #all_spk = set()
+            #for spk_ids in spk_ids_list:
+            #    all_spk.update([s for s in spk_ids if s is not None])
+            #spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
+            max_spks_in_batch = labels.shape[1]
+            print(f"max_spks_in_batch: {max_spks_in_batch}")
+            spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
+            for i, spk_id_sample in enumerate(spk_ids_list):
+                for j, spk_id in enumerate(spk_id_sample):
+                    if spk_id and spk_id in spk2int:
+                        spk_label_indices[i, j] = spk2int[spk_id]
+            return fbanks, labels, spk_label_indices, labels_len
+        from torch.utils.data import DataLoader
+        train_dl = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn_wrapper)
+    train_dl = build_train_dl(dataset,args)
     # 取一个batch
     batch = next(iter(train_dl))
     fbanks, labels, spk_label_idx, labels_len = batch
