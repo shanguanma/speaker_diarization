@@ -137,7 +137,7 @@ class ResNetExtractor(nn.Module):
             raise ValueError(f"Unknown model_type: {extractor_model_type}")
         
     def load_speaker_encoder(self, model_path, device, module_name="speech_encoder"):
-        loadedState = torch.load(model_path, map_location=device)
+        loadedState = torch.load(model_path, map_location=device, weights_only=False)
         selfState = self.state_dict()
         for name, param in loadedState.items():
             origname = name
