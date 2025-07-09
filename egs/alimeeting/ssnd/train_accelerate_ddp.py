@@ -995,9 +995,10 @@ def main():
     )
 
     # 构建spk2int (用训练集和验证集联合)
-    spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
+    #spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
     #logging.info(f"spk2int: {spk2int}")
-    params.n_all_speakers = len(spk2int)
+    #params.n_all_speakers = len(spk2int)
+    
     
     # build train/valid dataloader
     #train_dl = build_train_dl(args, spk2int)
@@ -1005,8 +1006,8 @@ def main():
     # build train/vaild dataloader with spk2int
     train_dl = build_train_dl_with_local_spk2int(args)
     valid_dl = build_valid_dl_with_local_spk2int(args)
-
-
+    
+    params.n_all_speakers = params.max_speakers
     #if args.test_textgrid_dir and args.test_wav_dir:
     #    test_dl = build_test_dl(args, spk2int)
 
