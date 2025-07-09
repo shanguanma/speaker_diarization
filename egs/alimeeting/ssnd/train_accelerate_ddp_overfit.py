@@ -3,6 +3,7 @@ import torch.optim as optim
 from ssnd_model import SSNDModel
 from alimeeting_diar_dataset import AlimeetingDiarDataset
 import argparse
+from train_accelerate_ddp import compute_loss, compute_validation_loss
 
 
 def main():
@@ -88,14 +89,16 @@ def main():
 
     for step in range(args.num_steps):
         optimizer.zero_grad()
-        vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels = model(
-            fbanks, spk_label_idx, labels, spk_labels=spk_label_idx
-        )
+        #vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels = model(
+        #    fbanks, spk_label_idx, labels, spk_labels=spk_label_idx
+        #)
+        loss, info = compute_loss(model, batch, is_training=True)
         loss.backward()
         optimizer.step()
         with torch.no_grad():
             vad_probs = torch.sigmoid(vad_pred)
-            print(f"Step {step}: loss={loss.item():.4f}, bce_loss={bce_loss.item():.4f}, arcface_loss={arcface_loss.item():.4f}")
+            #print(f"Step {step}: loss={loss.item():.4f}, bce_loss={bce_loss.item():.4f}, arcface_loss={arcface_loss.item():.4f}")
+            print(f"Step {step}: loss={loss.item():.4f}, info={info}")
             print(f"vad_probs mean: {vad_probs.mean().item():.4f}, std: {vad_probs.std().item():.4f}")
             print(f"vad_labels mean: {vad_labels.mean().item():.4f}")
             for n in range(min(args.max_speakers, vad_probs.shape[1])):
