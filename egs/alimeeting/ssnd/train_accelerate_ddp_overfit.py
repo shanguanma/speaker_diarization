@@ -166,8 +166,11 @@ def main():
         from torch.utils.data import DataLoader
         train_dl = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn_wrapper)
         return train_dl
-    #train_dl = build_train_dl_with_local_spk2int(dataset, args)
-    train_dl = build_train_dl_with_global_spk2int(dataset,args)
+    #train_dl = build_train_dl_with_local_spk2int(dataset, args) # very fast coverage
+    train_dl = build_train_dl_with_global_spk2int(dataset,args) # 模型的loss也可以下降，
+                                                                #但是loss在运行到999步时，loss 是0.045 ，
+                                                                # 而且大部分来自arcface loss ，
+                                                                # bce loss 占比很小，DER 也变为0
     # 取一个batch
     batch = next(iter(train_dl))
     fbanks, labels, spk_label_idx, labels_len = batch
