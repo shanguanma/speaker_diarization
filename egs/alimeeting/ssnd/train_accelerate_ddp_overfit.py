@@ -43,32 +43,32 @@ def compute_loss(
             padded_vad_labels,
         ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx)
         # 诊断：打印模型输出和标签
-        if is_training and B > 0:
-            print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
-            print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
-            print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
-            print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
+        #if is_training and B > 0:
+        #    print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
+        #    print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
+        #    print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
+        #    print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
             # 添加预测概率的统计信息
-            vad_probs = torch.sigmoid(vad_pred)
-            print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
-            print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
+        #    vad_probs = torch.sigmoid(vad_pred)
+        #    print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
+        #    print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
             
             # 添加VAD预测分布分析
-            vad_probs_flat = vad_probs.flatten()
-            positive_preds = vad_probs_flat > 0.5
-            print(f"[VAD DIAG] 预测为正样本的比例: {positive_preds.float().mean().item():.4f}")
-            print(f"[VAD DIAG] 真实正样本比例: {padded_vad_labels.float().mean().item():.4f}")
+        #    vad_probs_flat = vad_probs.flatten()
+        #    positive_preds = vad_probs_flat > 0.5
+        #    print(f"[VAD DIAG] 预测为正样本的比例: {positive_preds.float().mean().item():.4f}")
+        #    print(f"[VAD DIAG] 真实正样本比例: {padded_vad_labels.float().mean().item():.4f}")
             
             # 分析每个说话人的预测
-            for i in range(min(3, vad_probs.shape[1])):  # 只看前3个说话人
-                spk_probs = vad_probs[0, i, :]
-                spk_labels = padded_vad_labels[0, i, :]
-                spk_positive_preds = spk_probs > 0.5
-                print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
+        #    for i in range(min(3, vad_probs.shape[1])):  # 只看前3个说话人
+        #        spk_probs = vad_probs[0, i, :]
+        #        spk_labels = padded_vad_labels[0, i, :]
+        #        spk_positive_preds = spk_probs > 0.5
+        #        print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
-        print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
-        print(f"[DER DIAG] labels_len.sum()={labels_len.sum() if hasattr(labels_len, 'sum') else labels_len}")
+        #print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
+        #print(f"[DER DIAG] labels_len.sum()={labels_len.sum() if hasattr(labels_len, 'sum') else labels_len}")
         mi, fa, cf, acc, der = model.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
@@ -122,12 +122,14 @@ def main():
     )
     def collate_fn_wrapper(batch):
         wavs, labels, spk_ids_list, fbanks, labels_len = dataset.collate_fn(batch, vad_out_len=args.vad_out_len)
+        print(f"wavs.shape: {wavs.shape}, labels.shape: {labels.shape}, spk_ids_list.shape: {spk_ids_list.shape}, spk_ids_list[0]: {spk_ids_list[0]}, fbanks.shape: {fbanks.shape}, labels_len.shape: {labels_len.shape}")
         # 构造spk2int
         all_spk = set()
         for spk_ids in spk_ids_list:
             all_spk.update([s for s in spk_ids if s is not None])
         spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
         max_spks_in_batch = labels.shape[1]
+        print(f"max_spks_in_batch: {max_spks_in_batch}")
         spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
         for i, spk_id_sample in enumerate(spk_ids_list):
             for j, spk_id in enumerate(spk_id_sample):
