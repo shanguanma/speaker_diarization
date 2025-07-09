@@ -83,6 +83,8 @@ def compute_loss(
         "MI": mi,
         "FA": fa,
         "CF": cf,
+        "vad_pred": outs_prob,
+        "vad_labels": padded_vad_labels.detach().cpu().numpy(),
     }
     # 移除可学习权重的日志，因为已经改为固定权重
     # if is_training:
@@ -180,7 +182,8 @@ def main():
         loss.backward()
         optimizer.step()
         with torch.no_grad():
-            vad_probs = torch.sigmoid(vad_pred)
+            vad_probs = info["vad_pred"]
+            vad_labels = info["vad_labels"]
             #print(f"Step {step}: loss={loss.item():.4f}, bce_loss={bce_loss.item():.4f}, arcface_loss={arcface_loss.item():.4f}")
             print(f"Step {step}: loss={loss.item():.4f}, info={info}")
             print(f"vad_probs mean: {vad_probs.mean().item():.4f}, std: {vad_probs.std().item():.4f}")
