@@ -622,11 +622,11 @@ class SSNDModel(nn.Module):
         vad_pred = torch.clamp(vad_pred, -15, 15)
         # Focal loss with mask
         valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
-        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.25, gamma=1.0)
+        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=0.75, gamma=2.0)
         bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 进一步降低权重
-        #arcface_weight = 0.5  # 进一步降低ArcFace权重
+        arcface_weight = 0.1  # 进一步降低ArcFace权重
         arcface_loss = torch.tensor(0.0, device=device)
         if spk_labels is not None: #and arcface_weight > 0.0:
             valid = (spk_labels >= 0)
@@ -634,7 +634,7 @@ class SSNDModel(nn.Module):
             valid = valid & vad_label_active
             if valid.sum() > 0:
                 arcface_loss = self.compute_arcface_loss(spk_emb_pred[valid], spk_labels[valid])
-                #arcface_loss = arcface_loss * arcface_weight
+                arcface_loss = arcface_loss * arcface_weight
         
         # 使用固定的loss权重，让BCE主导训练
         #loss = 2.0 * bce_loss + arcface_loss  # 增加BCE权重
@@ -668,6 +668,12 @@ class SSNDModel(nn.Module):
             very_high = (vad_probs >= 0.9).float().mean().item()
             print(f"DEBUG - VAD probs distribution: <0.1:{very_low:.4f}, 0.1-0.3:{low:.4f}, 0.3-0.7:{mid:.4f}, 0.7-0.9:{high:.4f}, >0.9:{very_high:.4f}")
             
+            print(f"vad_probs mean: {vad_probs.mean().item()}, std: {vad_probs.std().item()}")
+            print(f"vad_labels mean: {vad_labels.mean().item()}")
+            for n in range(min(4, vad_probs.shape[1])):
+                print(f"Speaker {n} pred>0.5 ratio: {(vad_probs[:, n, :] > 0.5).float().mean().item()}")
+                print(f"Speaker {n} label>0.5 ratio: {(vad_labels[:, n, :] > 0.5).float().mean().item()}")
+
         print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
         for n in range(vad_labels.shape[1]):
             print(f"Channel {n} positive ratio:", vad_labels[0, n, :].sum().item() / vad_labels.shape[2])
