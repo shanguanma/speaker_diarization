@@ -84,7 +84,7 @@ def compute_loss(
         "FA": fa,
         "CF": cf,
         "vad_pred": outs_prob,
-        "vad_labels": padded_vad_labels.detach().cpu().numpy(),
+        "vad_labels": padded_vad_labels,
     }
     # 移除可学习权重的日志，因为已经改为固定权重
     # if is_training:
