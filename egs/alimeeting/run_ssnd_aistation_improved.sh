@@ -15,7 +15,7 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
    valid_textgrid_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/textgrid_dir
    speaker_pretrain_model_path=/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin
    extractor_model_type='CAM++_gsp'
-   out_bias=0.0
+   out_bias=-0.5
    mask_prob=0.5
    exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr1e-4_batch64_out_bias${out_bias}_mask_prob_${mask_prob}
    CUDA_VISIABLE_DEVICES=0,1\
