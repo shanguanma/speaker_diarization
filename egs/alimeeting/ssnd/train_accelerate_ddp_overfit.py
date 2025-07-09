@@ -234,7 +234,7 @@ def main():
             print("Loss very low, stop early.")
             break
 
-    vad_probs = info["vad_pred"]..detach().cpu().numpy()
+    vad_probs = info["vad_pred"].detach().cpu().numpy()
     vad_labels = info["vad_labels"].detach()..cpu().numpy()
     # 二值化
     vad_pred_bin = (vad_probs > 0.5).astype(int)
