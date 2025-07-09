@@ -836,6 +836,42 @@ def build_train_dl(args, spk2int):
     )   
     return train_dl
 
+def build_train_dl_with_local_spk2int(args,): 
+    logging.info("Building train dataloader with training spk2int...")
+    train_dataset = AlimeetingDiarDataset(
+        wav_dir=args.train_wav_dir,
+        textgrid_dir=args.train_textgrid_dir,
+        sample_rate=16000,
+        frame_shift=0.04, # 25fps to match vad_out_len
+        musan_path=args.musan_path,
+        rir_path=args.rir_path,
+        noise_ratio=args.noise_ratio,
+        window_sec=args.window_sec,
+        window_shift_sec=args.window_shift_sec
+    )
+    vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
+    def collate_fn_wrapper(batch):
+        wavs, labels, spk_ids_list, fbanks, labels_len = train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
+        # 构造spk2int
+        all_spk = set()
+        for spk_ids in spk_ids_list:
+            all_spk.update([s for s in spk_ids if s is not None])
+        spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
+        max_spks_in_batch = labels.shape[1]
+        spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
+        for i, spk_id_sample in enumerate(spk_ids_list):
+            for j, spk_id in enumerate(spk_id_sample):
+                if spk_id and spk_id in spk2int:
+                    spk_label_indices[i, j] = spk2int[spk_id]
+        return fbanks, labels, spk_label_indices, labels_len
+    train_dl = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=collate_fn_wrapper
+    )   
+    return train_dl
+
 def build_valid_dl(args, spk2int): 
     logging.info("Building valid dataloader with training spk2int...")
     valid_dataset = AlimeetingDiarDataset(
@@ -852,6 +888,42 @@ def build_valid_dl(args, spk2int):
     vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
     def collate_fn_wrapper(batch):
         wavs, labels, spk_ids_list, fbanks, labels_len = valid_dataset.collate_fn(batch, vad_out_len=vad_out_len)
+        max_spks_in_batch = labels.shape[1]
+        spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
+        for i, spk_id_sample in enumerate(spk_ids_list):
+            for j, spk_id in enumerate(spk_id_sample):
+                if spk_id and spk_id in spk2int:
+                    spk_label_indices[i, j] = spk2int[spk_id]
+        return fbanks, labels, spk_label_indices, labels_len
+    valid_dl = DataLoader(
+        valid_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        collate_fn=collate_fn_wrapper
+    ) 
+    return valid_dl
+
+def build_valid_dl_with_local_spk2int(args): 
+    logging.info("Building valid dataloader with training spk2int...")
+    valid_dataset = AlimeetingDiarDataset(
+        wav_dir=args.valid_wav_dir,
+        textgrid_dir=args.valid_textgrid_dir,
+        sample_rate=16000,
+        frame_shift=0.04, # 25fps to match vad_out_len
+        musan_path=args.musan_path,
+        rir_path=args.rir_path,
+        noise_ratio=0.0,
+        window_sec=args.window_sec,
+        window_shift_sec=args.window_shift_sec
+    )
+    vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
+    def collate_fn_wrapper(batch):
+        wavs, labels, spk_ids_list, fbanks, labels_len = valid_dataset.collate_fn(batch, vad_out_len=vad_out_len)
+        # 构造spk2int
+        all_spk = set()
+        for spk_ids in spk_ids_list:
+            all_spk.update([s for s in spk_ids if s is not None])
+        spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
         max_spks_in_batch = labels.shape[1]
         spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
         for i, spk_id_sample in enumerate(spk_ids_list):
@@ -928,9 +1000,13 @@ def main():
     params.n_all_speakers = len(spk2int)
     
     # build train/valid dataloader
-    train_dl = build_train_dl(args, spk2int)
-    valid_dl = build_valid_dl(args, spk2int)
-    
+    #train_dl = build_train_dl(args, spk2int)
+    #valid_dl = build_valid_dl(args, spk2int)
+    # build train/vaild dataloader with spk2int
+    train_dl = build_train_dl_with_local_spk2int(args)
+    valid_dl = build_valid_dl_with_local_spk2int(args)
+
+
     #if args.test_textgrid_dir and args.test_wav_dir:
     #    test_dl = build_test_dl(args, spk2int)
 
