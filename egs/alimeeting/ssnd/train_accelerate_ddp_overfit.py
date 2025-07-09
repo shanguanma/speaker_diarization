@@ -142,6 +142,8 @@ def main():
             return fbanks, labels, spk_label_indices, labels_len
         from torch.utils.data import DataLoader
         train_dl = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn_wrapper)
+        return train_dl
+    
     train_dl = build_train_dl(dataset,args)
     # 取一个batch
     batch = next(iter(train_dl))
