@@ -47,6 +47,7 @@ import textgrid
 
 from ssnd_model import SSNDModel
 from alimeeting_diar_dataset import AlimeetingDiarDataset
+import pickle
 
 logging.basicConfig(
     level=logging.INFO,
@@ -805,6 +806,27 @@ def build_spk2int(*textgrid_dirs: str):
     logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
+def broadcast_spk2int(args, accelerator):
+    if accelerator.is_main_process:
+        spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
+        spk2int_bytes = pickle.dumps(spk2int)
+        spk2int_tensor = torch.ByteTensor(list(spk2int_bytes)).to(accelerator.device)
+        length_tensor = torch.LongTensor([spk2int_tensor.numel()]).to(accelerator.device)
+    else:
+        spk2int_tensor = None
+        length_tensor = torch.LongTensor([0]).to(accelerator.device)
+    # 广播长度
+    length_tensor = accelerator.broadcast(length_tensor, 0)
+    # 分配空间
+    if not accelerator.is_main_process:
+        spk2int_tensor = torch.empty(length_tensor.item(), dtype=torch.uint8, device=accelerator.device)
+    # 广播内容
+    spk2int_tensor = accelerator.broadcast(spk2int_tensor, 0)
+    # 反序列化
+    spk2int_bytes = bytes(spk2int_tensor.cpu().tolist())
+    spk2int = pickle.loads(spk2int_bytes)
+    return spk2int
+
 def build_train_dl(args, spk2int): 
     logging.info("Building train dataloader with training spk2int...")
     train_dataset = AlimeetingDiarDataset(
@@ -998,7 +1020,7 @@ def main():
     # 构建spk2int (用训练集和验证集联合)
     #spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
     #logging.info(f"spk2int: {spk2int}")
-    #params.n_all_speakers = len(spk2int)
+    params.n_all_speakers = len(spk2int)
     
     
     # build train/valid dataloader
@@ -1007,9 +1029,9 @@ def main():
     # build train/vaild dataloader with spk2int
     train_dl = build_train_dl_with_local_spk2int(args)
     valid_dl = build_valid_dl_with_local_spk2int(args)
-    batch = next(iter(train_dl))
-    _, _, spk_label_idx, _ = batch
-    params.n_all_speakers = int((spk_label_idx.max() + 1).item()) if (spk_label_idx >= 0).any() else args.max_speakers
+    #batch = next(iter(train_dl))
+    #_, _, spk_label_idx, _ = batch
+    #params.n_all_speakers = int((spk_label_idx.max() + 1).item()) if (spk_label_idx >= 0).any() else args.max_speakers
     #if args.test_textgrid_dir and args.test_wav_dir:
     #    test_dl = build_test_dl(args, spk2int)
 
