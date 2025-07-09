@@ -72,6 +72,7 @@ def compute_loss(
         mi, fa, cf, acc, der = model.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
+
     # 始终返回loss（含两个loss）
     total_loss = loss
     info = {
@@ -83,7 +84,7 @@ def compute_loss(
         "MI": mi,
         "FA": fa,
         "CF": cf,
-        "vad_pred": outs_prob,
+        "vad_pred": torch.sigmoid(vad_pred),
         "vad_labels": padded_vad_labels,
     }
     # 移除可学习权重的日志，因为已经改为固定权重
