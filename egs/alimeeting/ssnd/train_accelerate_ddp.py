@@ -1018,8 +1018,8 @@ def main():
     )
 
     # 构建spk2int (用训练集和验证集联合)
-    #spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
-    #logging.info(f"spk2int: {spk2int}")
+    spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
+    logging.info(f"spk2int: {spk2int}")
     params.n_all_speakers = len(spk2int)
     
     
