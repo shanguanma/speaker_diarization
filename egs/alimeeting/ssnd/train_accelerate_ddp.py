@@ -211,7 +211,7 @@ def get_parser():
     parser.add_argument('--max-seq-len', type=int, default=200)
     #parser.add_argument('--n-all-speakers', type=int, default=2097) # Alimeeting has 2097 speakers
     parser.add_argument('--mask-prob', type=float, default=0.5)
-    parser.add_argument('--out-bias', type=float, default=-0.5, help="output bias of detection decoder, >0 means more confident positive samples, <0 means more confident negative samples")
+    #parser.add_argument('--out-bias', type=float, default=-0.5, help="output bias of detection decoder, >0 means more confident positive samples, <0 means more confident negative samples")
     add_finetune_arguments(parser)
     return parser
 
@@ -1041,7 +1041,7 @@ def main():
         n_all_speakers=params.n_all_speakers,
         mask_prob=params.mask_prob,
         training=True,
-        out_bias=params.out_bias,
+        #out_bias=params.out_bias,
     )
     # 强制初始化DetectionDecoder输出层bias为0
     #with torch.no_grad():
