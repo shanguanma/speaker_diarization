@@ -1006,8 +1006,9 @@ def main():
     # build train/vaild dataloader with spk2int
     train_dl = build_train_dl_with_local_spk2int(args)
     valid_dl = build_valid_dl_with_local_spk2int(args)
-    
-    params.n_all_speakers = params.max_speakers
+    batch = next(iter(train_dl))
+    _, _, spk_label_idx, _ = batch
+    params.n_all_speakers = int((spk_label_idx.max() + 1).item()) if (spk_label_idx >= 0).any() else args.max_speakers
     #if args.test_textgrid_dir and args.test_wav_dir:
     #    test_dl = build_test_dl(args, spk2int)
 
