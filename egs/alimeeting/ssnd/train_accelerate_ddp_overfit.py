@@ -122,7 +122,7 @@ def main():
     )
     def collate_fn_wrapper(batch):
         wavs, labels, spk_ids_list, fbanks, labels_len = dataset.collate_fn(batch, vad_out_len=args.vad_out_len)
-        print(f"wavs.shape: {wavs.shape}, labels.shape: {labels.shape}, spk_ids_list.shape: {spk_ids_list.shape}, spk_ids_list[0]: {spk_ids_list[0]}, fbanks.shape: {fbanks.shape}, labels_len.shape: {labels_len.shape}")
+        print(f"wavs.shape: {wavs.shape}, labels.shape: {labels.shape}, spk_ids_list: {spk_ids_list}, fbanks.shape: {fbanks.shape}, labels_len.shape: {labels_len.shape}")
         # 构造spk2int
         all_spk = set()
         for spk_ids in spk_ids_list:
