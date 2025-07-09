@@ -1,6 +1,9 @@
 import torch
 import torch.optim as optim
 from ssnd_model import SSNDModel
+from typing import Any, Dict, Optional, Tuple, Union, List
+import torch.nn as nn
+from torch.nn.parallel import DistributedDataParallel as DDP
 from alimeeting_diar_dataset import AlimeetingDiarDataset
 import argparse
 #from train_accelerate_ddp import compute_loss, compute_validation_loss
@@ -66,7 +69,7 @@ def compute_loss(
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
         print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
         print(f"[DER DIAG] labels_len.sum()={labels_len.sum() if hasattr(labels_len, 'sum') else labels_len}")
-        mi, fa, cf, acc, der = model.module.calc_diarization_result(
+        mi, fa, cf, acc, der = model.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
     # 始终返回loss（含两个loss）
