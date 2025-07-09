@@ -3,8 +3,89 @@ import torch.optim as optim
 from ssnd_model import SSNDModel
 from alimeeting_diar_dataset import AlimeetingDiarDataset
 import argparse
-from train_accelerate_ddp import compute_loss, compute_validation_loss
+#from train_accelerate_ddp import compute_loss, compute_validation_loss
 
+def compute_loss(
+    model: Union[nn.Module, DDP],
+    batch: tuple,
+    is_training: bool,
+    device: torch.device,
+):
+    """
+    batch: (fbanks, labels, spk_label_idx, labels_len)
+    """
+    with torch.set_grad_enabled(is_training):
+        fbanks, labels, spk_label_idx, labels_len = batch  # [B, T, F], [B, N, T], [B, N], [B]
+        fbanks = fbanks.to(device)
+        labels = labels.to(device)
+        spk_label_idx = spk_label_idx.to(device)
+        labels_len = labels_len.to(device)
+        B, N, T = labels.shape
+        # 诊断：打印输入shape和部分内容
+        if is_training and B > 0:
+            print(f"[DIAG] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
+            print(f"[DIAG] labels[0, :, :10]: {labels[0, :, :10]}")
+            print(f"[DIAG] spk_label_idx[0]: {spk_label_idx[0]}")
+            # 添加更多诊断信息
+            print(f"[DIAG] labels.sum(): {labels.sum()}, labels.mean(): {labels.mean()}")
+            print(f"[DIAG] valid_speakers: {(spk_label_idx >= 0).sum()}")
+        # forward
+        (
+            vad_pred,
+            spk_emb_pred,
+            loss,
+            bce_loss,
+            arcface_loss,
+            mask_info,
+            padded_vad_labels,
+        ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx)
+        # 诊断：打印模型输出和标签
+        if is_training and B > 0:
+            print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
+            print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
+            print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
+            print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
+            # 添加预测概率的统计信息
+            vad_probs = torch.sigmoid(vad_pred)
+            print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
+            print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
+            
+            # 添加VAD预测分布分析
+            vad_probs_flat = vad_probs.flatten()
+            positive_preds = vad_probs_flat > 0.5
+            print(f"[VAD DIAG] 预测为正样本的比例: {positive_preds.float().mean().item():.4f}")
+            print(f"[VAD DIAG] 真实正样本比例: {padded_vad_labels.float().mean().item():.4f}")
+            
+            # 分析每个说话人的预测
+            for i in range(min(3, vad_probs.shape[1])):  # 只看前3个说话人
+                spk_probs = vad_probs[0, i, :]
+                spk_labels = padded_vad_labels[0, i, :]
+                spk_positive_preds = spk_probs > 0.5
+                print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
+        # DER 计算
+        outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
+        print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
+        print(f"[DER DIAG] labels_len.sum()={labels_len.sum() if hasattr(labels_len, 'sum') else labels_len}")
+        mi, fa, cf, acc, der = model.module.calc_diarization_result(
+            outs_prob, padded_vad_labels, labels_len
+        )
+    # 始终返回loss（含两个loss）
+    total_loss = loss
+    info = {
+        "loss": total_loss.detach().cpu().item(),
+        "bce_loss": bce_loss.detach().cpu().item(),
+        "arcface_loss": arcface_loss.detach().cpu().item(),
+        "DER": der,
+        "ACC": acc,
+        "MI": mi,
+        "FA": fa,
+        "CF": cf,
+    }
+    # 移除可学习权重的日志，因为已经改为固定权重
+    # if is_training:
+    #     info["log_s_bce"] = model.module.log_s_bce.item()
+    #     info["log_s_arcface"] = model.module.log_s_arcface.item()
+    return total_loss, info
 
 def main():
     parser = argparse.ArgumentParser()
@@ -92,7 +173,7 @@ def main():
         #vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels = model(
         #    fbanks, spk_label_idx, labels, spk_labels=spk_label_idx
         #)
-        loss, info = compute_loss(model, batch, is_training=True)
+        loss, info = compute_loss(model, batch, is_training=True, device=device)
         loss.backward()
         optimizer.step()
         with torch.no_grad():
