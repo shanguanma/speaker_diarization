@@ -857,6 +857,7 @@ def build_train_dl_with_local_spk2int(args,):
         for spk_ids in spk_ids_list:
             all_spk.update([s for s in spk_ids if s is not None])
         spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
+        logging.info(f"train set spk2int len: {len(spk2int)}")
         max_spks_in_batch = labels.shape[1]
         spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
         for i, spk_id_sample in enumerate(spk_ids_list):
