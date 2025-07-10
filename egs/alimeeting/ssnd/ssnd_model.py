@@ -676,8 +676,8 @@ class SSNDModel(nn.Module):
             vad_probs = torch.sigmoid(vad_pred)
             silence_mask = (vad_labels == 0)
             speech_mask = (vad_labels == 1)
-            silence_acc = ((vad_probs < 0.5) == silence_mask).float().sum() / silence_mask.sum()
-            speech_acc = ((vad_probs > 0.5) == speech_mask).float().sum() / speech_mask.sum()
+            silence_acc = ((vad_probs < 0.5)[silence_mask]).float().mean().item()
+            speech_acc = ((vad_probs > 0.5)[speech_mask]).float().mean().item()
             print(f"[DIAG] Silence ACC: {silence_acc:.4f}, Speech ACC: {speech_acc:.4f}")
             print(f"vad_probs mean: {vad_probs.mean().item()}, std: {vad_probs.std().item()}")
             print(f"vad_labels mean: {vad_labels.mean().item()}")
@@ -1218,7 +1218,10 @@ class SSNDModel(nn.Module):
         conf = float(np.sum(np.minimum(ref_speech, sys_speech) - n_map))
         # new
         #conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
-        correct = np.sum((label_np == pred_np) * mask) / n_spk
+        # 全体帧的平均准确率
+        #correct = np.sum((label_np == pred_np) * mask) / n_spk
+        # 只统计说话人帧的准确率
+        correct = np.sum((label_np == pred_np) * (label_np == 1) * mask) / np.sum((label_np == 1) * mask)
         return correct, num_frames, miss, fa, conf
 
     def calc_diarization_result(self, outs_prob, labels, labels_len):
