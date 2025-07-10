@@ -1069,7 +1069,7 @@ def main():
         n_all_speakers=params.n_all_speakers,
         mask_prob=params.mask_prob,
         training=True,
-        arcface_weight=params.arcface_weight
+        arcface_weight=params.arcface_weight,
         bce_gamma=params.bce_gamma,
         bce_alpha=params.bce_alpha,
         #out_bias=params.out_bias,
