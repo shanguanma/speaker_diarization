@@ -1070,6 +1070,8 @@ def main():
         mask_prob=params.mask_prob,
         training=True,
         arcface_weight=params.arcface_weight
+        bce_gamma=params.bce_gamma,
+        bce_alpha=params.bce_alpha,
         #out_bias=params.out_bias,
     )
     # 强制初始化DetectionDecoder输出层bias为0
