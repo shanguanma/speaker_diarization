@@ -257,7 +257,7 @@ def get_optimizer_scheduler(params, model):
         lr=params.lr,
         betas=(0.9, 0.98),
         eps=1e-08,
-        weight_decay=0.01,  # 从0.01增加到0.05
+        weight_decay=params.weight_decay,  # 从0.01增加到0.05
     )
     if params.lr_type=="PolynomialDecayLR":
         # optimizer = AdamW(model.parameters(),lr=5e-5,betas=(0.9, 0.98)) # same as fairseq2
