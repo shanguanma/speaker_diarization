@@ -213,6 +213,10 @@ def get_parser():
     #parser.add_argument('--n-all-speakers', type=int, default=2097) # Alimeeting has 2097 speakers
     parser.add_argument('--mask-prob', type=float, default=0.5)
     #parser.add_argument('--out-bias', type=float, default=-0.5, help="output bias of detection decoder, >0 means more confident positive samples, <0 means more confident negative samples")
+    parser.add_argument("--arcface-weight",type=float, default=0.01, help="arcface loss weight")
+    parser.add_argument("--bce-alpha", type=float, default=0.75, help="focal bce loss scale")
+    parser.add_argument("--bce-gamma", type=float, default=2.0, help="focal bce loss scale")
+    parser.add_argument("--weight-decay",type=float, default=0.001, help= "AdamW optimizer weight_decay")
     add_finetune_arguments(parser)
     return parser
 
@@ -253,7 +257,7 @@ def get_optimizer_scheduler(params, model):
         lr=params.lr,
         betas=(0.9, 0.98),
         eps=1e-08,
-        weight_decay=0.001,  # 从0.01增加到0.05
+        weight_decay=0.01,  # 从0.01增加到0.05
     )
     if params.lr_type=="PolynomialDecayLR":
         # optimizer = AdamW(model.parameters(),lr=5e-5,betas=(0.9, 0.98)) # same as fairseq2
@@ -394,10 +398,10 @@ def compute_validation_loss(
         # 新增详细打印和断言
         try:
             fbanks, labels, spk_label_idx, labels_len = batch
-            print(f"[VAL DIAG] batch_idx={batch_idx}, fbanks.shape={getattr(fbanks, 'shape', None)}, labels.shape={getattr(labels, 'shape', None)}, spk_label_idx.shape={getattr(spk_label_idx, 'shape', None)}, labels_len={labels_len}")
-            print(f"[VAL DIAG] batch_idx={batch_idx}, labels_len.sum()={labels_len.sum().item() if hasattr(labels_len, 'sum') else labels_len}")
-            print(f"[VAL DIAG] batch_idx={batch_idx}, labels[0, :, :10]={labels[0, :, :10] if hasattr(labels, 'shape') and labels.shape[0] > 0 else 'N/A'}")
-            print(f"[VAL DIAG] batch_idx={batch_idx}, spk_label_idx[0]={spk_label_idx[0] if hasattr(spk_label_idx, 'shape') and spk_label_idx.shape[0] > 0 else 'N/A'}")
+            #print(f"[VAL DIAG] batch_idx={batch_idx}, fbanks.shape={getattr(fbanks, 'shape', None)}, labels.shape={getattr(labels, 'shape', None)}, spk_label_idx.shape={getattr(spk_label_idx, 'shape', None)}, labels_len={labels_len}")
+            #print(f"[VAL DIAG] batch_idx={batch_idx}, labels_len.sum()={labels_len.sum().item() if hasattr(labels_len, 'sum') else labels_len}")
+            #print(f"[VAL DIAG] batch_idx={batch_idx}, labels[0, :, :10]={labels[0, :, :10] if hasattr(labels, 'shape') and labels.shape[0] > 0 else 'N/A'}")
+            #print(f"[VAL DIAG] batch_idx={batch_idx}, spk_label_idx[0]={spk_label_idx[0] if hasattr(spk_label_idx, 'shape') and spk_label_idx.shape[0] > 0 else 'N/A'}")
             assert fbanks is not None and labels is not None and spk_label_idx is not None and labels_len is not None, f"Batch {batch_idx} has None values!"
             assert hasattr(labels_len, 'sum') and labels_len.sum().item() > 0, f"Batch {batch_idx} has zero valid frames! labels_len={labels_len}"
             assert hasattr(labels, 'shape') and labels.shape[0] > 0, f"Batch {batch_idx} labels is empty!"
@@ -417,9 +421,9 @@ def compute_validation_loss(
 
         if batch_idx == 0:
             fbanks, labels, spk_label_idx, labels_len = batch
-            print(f'[VAL DIAG] labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}')
-            print(f'[VAL DIAG] labels[0, :, :10]: {labels[0, :, :10]}')
-            print(f'[VAL DIAG] spk_label_idx[0]: {spk_label_idx[0]}')
+            #print(f'[VAL DIAG] labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}')
+            #print(f'[VAL DIAG] labels[0, :, :10]: {labels[0, :, :10]}')
+            #print(f'[VAL DIAG] spk_label_idx[0]: {spk_label_idx[0]}')
 
     for item in tot_loss.keys():
         tot_loss[item] = tot_loss[item] / len(batch_nums)
@@ -1065,6 +1069,7 @@ def main():
         n_all_speakers=params.n_all_speakers,
         mask_prob=params.mask_prob,
         training=True,
+        arcface_weight=params.arcface_weight
         #out_bias=params.out_bias,
     )
     # 强制初始化DetectionDecoder输出层bias为0
