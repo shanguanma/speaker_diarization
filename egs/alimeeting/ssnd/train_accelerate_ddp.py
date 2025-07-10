@@ -313,7 +313,7 @@ def compute_loss(
     batch: (fbanks, labels, spk_label_idx, labels_len)
     """
     with torch.set_grad_enabled(is_training):
-        fbanks, labels, spk_label_idx, labels_len = batch  # [B, T, F], [B, N, T], [B, N], [B]
+        fbanks, labels, spk_label_idx, labels_len = batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
         B, N, T = labels.shape
         # 诊断：打印输入shape和部分内容
         if is_training and B > 0:
@@ -883,7 +883,7 @@ def build_train_dl_with_local_spk2int(args,):
         for spk_ids in spk_ids_list:
             all_spk.update([s for s in spk_ids if s is not None])
         spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
-        logging.info(f"train set spk2int len: {len(spk2int)}")
+        logging.info(f"train set spk2int len: {len(spk2int)} in fn build_train_dl_with_local_spk2int")
         max_spks_in_batch = labels.shape[1]
         spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
         for i, spk_id_sample in enumerate(spk_ids_list):
@@ -1028,11 +1028,11 @@ def main():
     
     
     # build train/valid dataloader
-    #train_dl = build_train_dl(args, spk2int)
-    #valid_dl = build_valid_dl(args, spk2int)
-    # build train/vaild dataloader with spk2int
-    train_dl = build_train_dl_with_local_spk2int(args)
-    valid_dl = build_valid_dl_with_local_spk2int(args)
+    train_dl = build_train_dl(args, spk2int)
+    valid_dl = build_valid_dl(args, spk2int)
+    # build train/vaild dataloader with local spk2int
+    #train_dl = build_train_dl_with_local_spk2int(args)
+    #valid_dl = build_valid_dl_with_local_spk2int(args)
     #batch = next(iter(train_dl))
     #_, _, spk_label_idx, _ = batch
     #params.n_all_speakers = int((spk_label_idx.max() + 1).item()) if (spk_label_idx >= 0).any() else args.max_speakers
