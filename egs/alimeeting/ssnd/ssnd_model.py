@@ -1219,23 +1219,25 @@ class SSNDModel(nn.Module):
         # new
         #conf = np.sum(np.abs(ref_speech - sys_speech) * ((ref_speech > 0) & (sys_speech > 0)))
         # 全体帧的平均准确率
-        #correct = np.sum((label_np == pred_np) * mask) / n_spk
+        correct_all = np.sum((label_np == pred_np) * mask) / n_spk
         # 只统计说话人帧的准确率
-        correct = np.sum((label_np == pred_np) * (label_np == 1) * mask) / np.sum((label_np == 1) * mask)
-        return correct, num_frames, miss, fa, conf
+        correct_spks = np.sum((label_np == pred_np) * (label_np == 1) * mask) / np.sum((label_np == 1) * mask)
+        return correct_all, correct_spks num_frames, miss, fa, conf
 
     def calc_diarization_result(self, outs_prob, labels, labels_len):
         """
         计算DER等相关指标，返回mi, fa, cf, acc, der。
         """
-        correct, num_frames, miss, fa, conf = self.calc_diarization_error(outs_prob, labels, labels_len)
-        acc = correct / num_frames if num_frames > 0 else 0.0
+        correct_all, correct_spks, num_frames, miss, fa, conf = self.calc_diarization_error(outs_prob, labels, labels_len)
+        acc_all = correct_all / num_frames if num_frames > 0 else 0.0
+        acc_spks = correct_spks / num_frames if num_frames > 0 else 0.0
         der = (miss + fa + conf) / num_frames if num_frames > 0 else 0.0
         return (
             miss / num_frames if num_frames > 0 else 0.0,
             fa / num_frames if num_frames > 0 else 0.0,
             conf / num_frames if num_frames > 0 else 0.0,
-            acc,
+            acc_all,
+            acc_spks,
             der
         )
     

@@ -360,7 +360,7 @@ def compute_loss(
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
         print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
         print(f"[DER DIAG] labels_len.sum()={labels_len.sum() if hasattr(labels_len, 'sum') else labels_len}")
-        mi, fa, cf, acc, der = model.module.calc_diarization_result(
+        mi, fa, cf, acc_all, acc_spks, der = model.module.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
     # 始终返回loss（含两个loss）
@@ -370,7 +370,8 @@ def compute_loss(
         "bce_loss": bce_loss.detach().cpu().item(),
         "arcface_loss": arcface_loss.detach().cpu().item(),
         "DER": der,
-        "ACC": acc,
+        "ACC_ALL": acc_all,
+        "ACC_SPKS": acc_spks,
         "MI": mi,
         "FA": fa,
         "CF": cf,
