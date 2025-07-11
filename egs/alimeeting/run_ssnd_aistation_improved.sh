@@ -192,7 +192,9 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ];then
    bce_alpha=0.75
    bce_gamma=2.0
    max_speakers=10 #
-   exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr1e-4_batch64_mask_prob_${mask_prob}_arcface_weight_${arcface_weight}_arcface_margin${arcface_margin}_arcface_scale${arcface_scale}_with_global_spk2int_max_speakers${max_speakers}   CUDA_VISIABLE_DEVICES=0,1\
+   exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr1e-4_batch64_mask_prob_${mask_prob}_arcface_weight_${arcface_weight}_arcface_margin${arcface_margin}_arcface_scale${arcface_scale}_with_global_spk2int_max_speakers${max_speakers}
+   mkdir -p $exp_dir
+   CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15815 \
    ssnd/train_accelerate_ddp.py\
     --debug true\
