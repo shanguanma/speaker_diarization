@@ -1222,7 +1222,7 @@ class SSNDModel(nn.Module):
         correct_all = np.sum((label_np == pred_np) * mask) / n_spk
         # 只统计说话人帧的准确率
         correct_spks = np.sum((label_np == pred_np) * (label_np == 1) * mask) / np.sum((label_np == 1) * mask)
-        return correct_all, correct_spks num_frames, miss, fa, conf
+        return correct_all, correct_spks, num_frames, miss, fa, conf
 
     def calc_diarization_result(self, outs_prob, labels, labels_len):
         """

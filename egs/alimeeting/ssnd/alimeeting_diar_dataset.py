@@ -145,6 +145,7 @@ class AlimeetingDiarDataset(Dataset):
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
         fbanks = torch.tensor(np.stack(fbanks), dtype=torch.float32)
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
+        print(f"fbanks shape: {fbanks.shape}")
         return wavs, labels, spk_ids_list, fbanks, labels_len
 
     @staticmethod
