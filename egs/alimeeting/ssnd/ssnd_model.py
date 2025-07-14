@@ -463,6 +463,16 @@ class SSNDModel(nn.Module):
         focal_loss = alpha_weight * focal_weight * bce_loss
         return focal_loss
     
+    def standard_bce_loss(self, logits, targets):
+        """
+        标准的BCE loss，不使用focal loss机制。
+        logits: [B, N, T]
+        targets: [B, N, T]
+        """
+        # 直接使用标准的BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        return bce_loss
+    
     '''
     def focal_bce_loss(self, logits, targets, alpha=0.25, gamma=3.0):
         """
@@ -519,7 +529,7 @@ class SSNDModel(nn.Module):
             arcface_grad_norm = 0.0
         print(f"[GRAD DIAG] BCE grad norm: {bce_grad_norm:.4f}, ArcFace grad norm: {arcface_grad_norm:.4f}")
 
-    def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None):
+    def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None, use_standard_bce=False):
         """
         feats: [B, T, F]
         spk_label_idx: [B, N_loc]，每个block的说话人index（int，指向E_all）
@@ -626,10 +636,17 @@ class SSNDModel(nn.Module):
         # 7. 损失
         # Clamp VAD predictions for numerical stability
         vad_pred = torch.clamp(vad_pred, -15, 15)
-        # Focal loss with mask
+        # 选择使用标准BCE loss还是focal loss
         valid_mask = (spk_label_idx >= 0).unsqueeze(-1)  # [B, N, 1]
-        focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=self.bce_alpha, gamma=self.bce_gamma)
-        bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
+        
+        if use_standard_bce:
+            # 使用标准BCE loss
+            bce_loss_raw = self.standard_bce_loss(vad_pred, vad_labels)
+            bce_loss = (bce_loss_raw * valid_mask).sum() / valid_mask.sum()
+        else:
+            # 使用focal loss
+            focal_loss = self.focal_bce_loss(vad_pred, vad_labels, alpha=self.bce_alpha, gamma=self.bce_gamma)
+            bce_loss = (focal_loss * valid_mask).sum() / valid_mask.sum()
         
         # ArcFace loss（只对有效说话人）- 进一步降低权重
         #arcface_weight = 0.01  # 进一步降低ArcFace权重

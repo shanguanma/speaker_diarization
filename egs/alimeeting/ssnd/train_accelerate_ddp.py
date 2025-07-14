@@ -216,6 +216,7 @@ def get_parser():
     parser.add_argument("--arcface-weight",type=float, default=0.01, help="arcface loss weight")
     parser.add_argument("--bce-alpha", type=float, default=0.75, help="focal bce loss scale")
     parser.add_argument("--bce-gamma", type=float, default=2.0, help="focal bce loss scale")
+    parser.add_argument("--use-standard-bce", type=str2bool, default=False, help="Use standard BCE loss instead of focal loss")
     parser.add_argument("--weight-decay",type=float, default=0.001, help= "AdamW optimizer weight_decay")
     add_finetune_arguments(parser)
     return parser
@@ -293,6 +294,7 @@ def get_params(args) -> AttributeDict:
             # "valid_interval": 1500,  # same as fairseq
             "valid_interval": 500 if not args.debug else 5,
             "batch_size": 64,
+            "use_standard_bce": args.use_standard_bce,
         }
     )
     return params
@@ -308,6 +310,7 @@ def compute_loss(
     model: Union[nn.Module, DDP],
     batch: tuple,
     is_training: bool,
+    use_standard_bce: bool = False,
 ):
     """
     batch: (fbanks, labels, spk_label_idx, labels_len)
@@ -332,7 +335,7 @@ def compute_loss(
             arcface_loss,
             mask_info,
             padded_vad_labels,
-        ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx)
+        ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx, use_standard_bce=use_standard_bce)
         # 诊断：打印模型输出和标签
         if is_training and B > 0:
             print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
@@ -397,14 +400,14 @@ def compute_validation_loss(
     
     with torch.no_grad():
         for batch_idx, batch in enumerate(valid_dl):
-            loss, info = compute_loss(model, batch, is_training=False)
+            loss, info = compute_loss(model, batch, is_training=False, use_standard_bce=params.use_standard_bce)
             assert loss.requires_grad is False
             tot_loss.update(info)
     
     # 新增：过拟合检测
     if train_der is not None:
         valid_der = tot_loss["DER"]
-        der_gap = train_der - valid_der
+        der_gap = valid_der - train_der
         
         # 记录DER差距
         if writer is not None:
@@ -546,6 +549,7 @@ def train_one_epoch(
             model=model,
             batch=batch,
             is_training=True,
+            use_standard_bce=params.use_standard_bce,  # 使用参数控制
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
