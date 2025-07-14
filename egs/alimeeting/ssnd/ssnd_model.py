@@ -224,20 +224,24 @@ class SWDecoderBlockV2(nn.Module):
     """
     支持自定义Q/K融合的Decoder Block，结构如Fig.2
     """
-    def __init__(self, d_model, nhead, d_ff, d_aux=None, d_pos=None):
+    def __init__(self, d_model, nhead, d_ff, d_aux=None, d_pos=None,dropout=0.0):
         super().__init__()
         self.fq = FqFusion(d_model, d_aux) if d_aux is not None else None
         self.fk = FkFusion(d_model, d_pos) if d_pos is not None else None
-        self.cross_attn = nn.MultiheadAttention(d_model, nhead, batch_first=True)
-        self.self_attn = nn.MultiheadAttention(d_model, nhead, batch_first=True)
+        self.cross_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
+        self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
         self.ffn = nn.Sequential(
             nn.Linear(d_model, d_ff),
             nn.ReLU(),
+            nn.Dropout(p=dropout),
             nn.Linear(d_ff, d_model)
         )
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         self.norm3 = nn.LayerNorm(d_model)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+        self.dropout3 = nn.Dropout(dropout)
 
     def forward(self, x_dec, x_fea, q_aux, k_pos):
         # x_dec: [B, N, D], x_fea: [B, T, D], q_aux: [B, N, D_aux], k_pos: [B, T, D_pos]
@@ -251,12 +255,15 @@ class SWDecoderBlockV2(nn.Module):
 
         # Cross-attention: Q attends to K, V
         x2, _ = self.cross_attn(Q, K, V)
+        x2 = self.droput1(x2)
         x = self.norm1(x_dec + x2)
         # Self-attention
         x2, _ = self.self_attn(x, x, x)
+        x2 = self.droput2(x2)
         x = self.norm2(x + x2)
         # FFN
         x2 = self.ffn(x)
+        x2 = self.droput3(x2)
         x = self.norm3(x + x2)
         #print(f'Output x shape: {x.shape}')  # [B, N, D]
         return x
@@ -265,11 +272,11 @@ class DetectionDecoder(nn.Module):
     """
     Detection Decoder: 输入decoder emb, feature emb, aux query（L2归一化），pos emb，输出VAD
     """
-    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len):#, out_bias=-0.5):
+    def __init__(self, d_model, nhead, d_ff, num_layers, d_aux, d_pos, out_vad_len,dropout=0.0):#, out_bias=-0.5):
         super().__init__()
         #self.input_proj = nn.Linear(d_feat, d_model)
         self.layers = nn.ModuleList([
-            SWDecoderBlockV2(d_model, nhead, d_ff, d_aux=d_aux, d_pos=d_pos)
+            SWDecoderBlockV2(d_model, nhead, d_ff, d_aux=d_aux, d_pos=d_pos,dropout=dropout)
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, out_vad_len)
@@ -291,32 +298,57 @@ class DetectionDecoder(nn.Module):
     def focal_bce_loss(self, logits, targets, alpha=0.75, gamma=2.0):
         """
         Focal loss for binary classification to handle class imbalance.
+        增强版本：添加正则化机制来降低过拟合风险
         logits: [B, N, T]
         targets: [B, N, T]
         """
         # 计算sigmoid概率
         probs = torch.sigmoid(logits)
+        
         # 计算focal loss
         pt = probs * targets + (1 - probs) * (1 - targets)  # p_t
         focal_weight = (1 - pt) ** gamma
+        
         # 计算BCE loss
         bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        
         # 应用focal weight和alpha weight
         alpha_weight = alpha * targets + (1 - alpha) * (1 - targets)
         focal_loss = alpha_weight * focal_weight * bce_loss
-        return focal_loss
+        
+        # ========== 新增：过拟合防护机制 ==========
+        
+        # 1. 概率分布正则化：鼓励更保守的预测
+        prob_entropy = -probs * torch.log(probs + 1e-8) - (1 - probs) * torch.log(1 - probs + 1e-8)
+        entropy_penalty = 0.1 * prob_entropy  # 增加熵惩罚，鼓励更不确定的预测
+        
+        # 2. 极端概率惩罚：防止过度自信
+        extreme_penalty = 0.05 * torch.exp(-5 * (probs - 0.5).abs())  # 惩罚接近0或1的极端预测
+        
+        # 3. 预测分布一致性：鼓励预测分布接近真实分布
+        pred_positive_ratio = probs.mean()
+        true_positive_ratio = targets.mean()
+        distribution_penalty = 0.2 * torch.abs(pred_positive_ratio - true_positive_ratio)
+        
+        # 4. 梯度平滑：防止梯度爆炸
+        grad_smooth_penalty = 0.01 * torch.mean(torch.abs(logits))
+        
+        # 组合所有正则化项
+        regularization_loss = entropy_penalty + extreme_penalty + distribution_penalty + grad_smooth_penalty
+        
+        return focal_loss + regularization_loss
 
 class RepresentationDecoder(nn.Module):
     """
     Representation Decoder: 输入decoder emb, feature emb, aux query（VAD），pos emb，输出speaker emb
     """
-    def __init__(self, d_model, d_feat, nhead, d_ff, num_layers, d_aux, d_pos, speaker_embed_dim):
+    def __init__(self, d_model, d_feat, nhead, d_ff, num_layers, d_aux, d_pos, speaker_embed_dim,dropout=0.0):
         super().__init__()
         self.input_proj = nn.Linear(d_feat, d_model)  # [B, T, F] -> [B, T, D]
         self.xdec_proj = nn.Linear(1, d_model)        # [B, N, 1] -> [B, N, D]
         self.qaux_proj = nn.Linear(1, d_aux)          # [B, N, 1] -> [B, N, d_aux]
         self.layers = nn.ModuleList([
-            SWDecoderBlockV2(d_model, nhead, d_ff, d_aux=d_aux, d_pos=d_pos)
+            SWDecoderBlockV2(d_model, nhead, d_ff, d_aux=d_aux, d_pos=d_pos,dropout=dropout)
             for _ in range(num_layers)
         ])
         self.out_proj = nn.Linear(d_model, speaker_embed_dim)
@@ -366,13 +398,15 @@ class SSNDModel(nn.Module):
         arcface_weight=0.01, #arcface loss weight
         bce_gamma=2.0,
         bce_alpha=0.75,
+        decoder_dropout=0.0,
+        extractor_dropout=0.0,
         #out_bias=-0.5,        
     ):
         super().__init__()
         self.extractor = ResNetExtractor(device,speaker_pretrain_model_path, in_dim=feat_dim, out_dim=emb_dim, extractor_model_type=extractor_model_type)
         self.encoder = SSNDConformerEncoder(emb_dim, d_model, num_layers, nhead, d_ff)
-        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len) #out_bias=out_bias)
-        self.rep_decoder = RepresentationDecoder(d_model,emb_dim, nhead, d_ff, num_layers, q_rep_aux_dim, pos_emb_dim,emb_dim)
+        self.det_decoder = DetectionDecoder(d_model, nhead, d_ff, num_layers, q_det_aux_dim, pos_emb_dim, vad_out_len,dropout=decoder_dropout) #out_bias=out_bias)
+        self.rep_decoder = RepresentationDecoder(d_model,emb_dim, nhead, d_ff, num_layers, q_rep_aux_dim, pos_emb_dim,emb_dim,dropout=decoder_dropout)
         self.d_model = d_model
         self.max_speakers = max_speakers
         self.emb_dim = emb_dim
@@ -402,6 +436,7 @@ class SSNDModel(nn.Module):
         self.arcface_weight=arcface_weight
         self.bce_alpha=bce_alpha
         self.bce_gamma=bce_gamma
+        self.extractor_drop=nn.Dropout(extractor_dropout)
         # 移除可学习的loss权重，使用固定权重
         # self.log_s_bce = nn.Parameter(torch.tensor(0.0))  # exp(-0.0) = 1.0, BCE weight = 1.0
         # self.log_s_arcface = nn.Parameter(torch.tensor(0.0))  
@@ -604,6 +639,9 @@ class SSNDModel(nn.Module):
                 spk_labels = spk_labels[:, :N]
         # 4. 特征提取
         x = self.extractor(feats)  # [B, T, emb_dim]
+
+        # add dropout option
+        x = self.extractor_drop(x)
         assert vad_labels.shape[-1] == x.shape[1], f"Label/feature length mismatch: {vad_labels.shape[-1]} vs {x.shape[1]}"
         enc_out = self.encoder(x)  # [B, T, d_model]
         _, T_enc, _ = enc_out.shape

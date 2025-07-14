@@ -218,6 +218,15 @@ def get_parser():
     parser.add_argument("--bce-gamma", type=float, default=2.0, help="focal bce loss scale")
     parser.add_argument("--use-standard-bce", type=str2bool, default=False, help="Use standard BCE loss instead of focal loss")
     parser.add_argument("--weight-decay",type=float, default=0.001, help= "AdamW optimizer weight_decay")
+    parser.add_argument("--dropout", type=float, default=0.0, help="Dropout rate for regularization")
+    parser.add_argument("--label-smoothing", type=float, default=0.00, help="Label smoothing factor")
+    parser.add_argument("--gradient-clip", type=float, default=1.0, help="Gradient clipping norm")
+    parser.add_argument("--early-stopping-patience", type=int, default=5, help="Early stopping patience")
+    parser.add_argument("--early-stopping-min-delta", type=float, default=0.001, help="Early stopping minimum improvement")
+    #parser.add_argument("--focal-alpha", type=float, default=0.75, help="Focal loss alpha parameter")
+    #parser.add_argument("--focal-gamma", type=float, default=2.0, help="Focal loss gamma parameter")
+    parser.add_argument("--decoder-dropout", type=float, default=0.0, help="two decoder dropout rate")
+    parser.add_argument("--extractor-dropout", type=float, default=0.0, help="apply dropout into output of extractor")
     add_finetune_arguments(parser)
     return parser
 
@@ -295,6 +304,17 @@ def get_params(args) -> AttributeDict:
             "valid_interval": 500 if not args.debug else 5,
             "batch_size": 64,
             "use_standard_bce": args.use_standard_bce,
+            # 新增正则化参数
+            "dropout": args.dropout,
+            "label_smoothing": args.label_smoothing,
+            "gradient_clip": args.gradient_clip,
+            "early_stopping_patience": args.early_stopping_patience,
+            "early_stopping_min_delta": args.early_stopping_min_delta,
+            #"focal_alpha": args.focal_alpha,
+            #"focal_gamma": args.focal_gamma,
+            # 早停相关
+            "patience_counter": 0,
+            "best_valid_der_for_early_stop": float("inf"),
         }
     )
     return params
@@ -311,6 +331,7 @@ def compute_loss(
     batch: tuple,
     is_training: bool,
     use_standard_bce: bool = False,
+    params: AttributeDict = None,
 ):
     """
     batch: (fbanks, labels, spk_label_idx, labels_len)
@@ -318,6 +339,11 @@ def compute_loss(
     with torch.set_grad_enabled(is_training):
         fbanks, labels, spk_label_idx, labels_len = batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
         B, N, T = labels.shape
+        
+        # 应用label smoothing
+        if params and params.label_smoothing > 0 and is_training:
+            labels = labels * (1 - params.label_smoothing) + 0.5 * params.label_smoothing
+        
         # 诊断：打印输入shape和部分内容
         if is_training and B > 0:
             print(f"[DIAG] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
@@ -326,6 +352,7 @@ def compute_loss(
             # 添加更多诊断信息
             print(f"[DIAG] labels.sum(): {labels.sum()}, labels.mean(): {labels.mean()}")
             print(f"[DIAG] valid_speakers: {(spk_label_idx >= 0).sum()}")
+        
         # forward
         (
             vad_pred,
@@ -336,6 +363,7 @@ def compute_loss(
             mask_info,
             padded_vad_labels,
         ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx, use_standard_bce=use_standard_bce)
+        
         # 诊断：打印模型输出和标签
         if is_training and B > 0:
             print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
@@ -359,6 +387,7 @@ def compute_loss(
                 spk_labels = padded_vad_labels[0, i, :]
                 spk_positive_preds = spk_probs > 0.5
                 print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
+        
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
         print(f"[DER DIAG] outs_prob.shape={outs_prob.shape}, padded_vad_labels.shape={padded_vad_labels.shape}, labels_len={labels_len}")
@@ -366,6 +395,7 @@ def compute_loss(
         mi, fa, cf, acc_all, acc_spks, der = model.module.calc_diarization_result(
             outs_prob, padded_vad_labels, labels_len
         )
+    
     # 始终返回loss（含两个loss）
     total_loss = loss
     info = {
@@ -400,11 +430,11 @@ def compute_validation_loss(
     
     with torch.no_grad():
         for batch_idx, batch in enumerate(valid_dl):
-            loss, info = compute_loss(model, batch, is_training=False, use_standard_bce=params.use_standard_bce)
+            loss, info = compute_loss(model, batch, is_training=False, use_standard_bce=params.use_standard_bce, params=params)
             assert loss.requires_grad is False
             tot_loss.update(info)
     
-    # 新增：过拟合检测
+    # 新增：过拟合检测和早停机制
     if train_der is not None:
         valid_der = tot_loss["DER"]
         der_gap = valid_der - train_der
@@ -419,8 +449,20 @@ def compute_validation_loss(
         if der_gap > 0.1:  # DER差距超过10%
             logging.warning(f"Potential overfitting detected! Train DER: {train_der:.4f}, Valid DER: {valid_der:.4f}, Gap: {der_gap:.4f}")
         
+        # 早停检查
+        if valid_der < params.best_valid_der_for_early_stop - params.early_stopping_min_delta:
+            params.best_valid_der_for_early_stop = valid_der
+            params.patience_counter = 0
+        else:
+            params.patience_counter += 1
+            
+        if params.patience_counter >= params.early_stopping_patience:
+            logging.warning(f"Early stopping triggered! No improvement for {params.early_stopping_patience} epochs.")
+            logging.warning(f"Best valid DER: {params.best_valid_der_for_early_stop:.4f}, Current valid DER: {valid_der:.4f}")
+        
         # 记录到日志
         logging.info(f"[Overfitting Check] Train DER: {train_der:.4f}, Valid DER: {valid_der:.4f}, Gap: {der_gap:.4f}")
+        logging.info(f"[Early Stop] Patience: {params.patience_counter}/{params.early_stopping_patience}, Best DER: {params.best_valid_der_for_early_stop:.4f}")
     
     return tot_loss
 
@@ -545,17 +587,22 @@ def train_one_epoch(
 
         optimizer.zero_grad()
         train_batch_nums.append(batch_idx)
+        batch_size = batch[0].shape[0]
+        params.batch_idx_train += 1
+        
         loss, loss_info = compute_loss(
-            model=model,
-            batch=batch,
-            is_training=True,
-            use_standard_bce=params.use_standard_bce,  # 使用参数控制
+            model, batch, is_training=True, use_standard_bce=params.use_standard_bce, params=params
         )
         accelerator.backward(loss)  # instead of loss.backward()
 
-        # grad clip(todo run)
+        # 应用梯度裁剪
         grad_norm = None
-        if params.grad_clip:
+        if params.gradient_clip > 0:
+            if accelerator.sync_gradients:
+                grad_norm = accelerator.clip_grad_norm_(
+                    model.parameters(), max_norm=params.gradient_clip
+                )
+        elif params.grad_clip:
             if accelerator.sync_gradients:
                 grad_norm = accelerator.clip_grad_norm_(
                     model.parameters(), max_norm=1.0
@@ -1071,6 +1118,8 @@ def main():
         arcface_weight=params.arcface_weight,
         bce_gamma=params.bce_gamma,
         bce_alpha=params.bce_alpha,
+        decoder_dropout=params.decoder_dropout,
+        extractor_dropout=params.extractor_dropout,
         #out_bias=params.out_bias,
     )
     # 强制初始化DetectionDecoder输出层bias为0
