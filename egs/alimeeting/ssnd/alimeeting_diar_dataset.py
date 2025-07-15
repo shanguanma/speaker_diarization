@@ -143,9 +143,9 @@ class AlimeetingDiarDataset(Dataset):
             labels_len.append(min(label.shape[1], vad_out_len) if label.ndim > 1 else 0)
         wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
-        fbanks = torch.tensor(np.stack(fbanks), dtype=torch.float32)
+        fbanks = torch.tensor(np.stack(fbanks), dtype=torch.float32) # torch.Size([64, 798, 80])
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
-        print(f"fbanks shape: {fbanks.shape}")
+        #print(f"fbanks shape: {fbanks.shape}")
         return wavs, labels, spk_ids_list, fbanks, labels_len
 
     @staticmethod
