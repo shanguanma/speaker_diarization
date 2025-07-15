@@ -708,45 +708,45 @@ class SSNDModel(nn.Module):
         # ========== END ==========
 
         # 添加调试信息
-        with torch.no_grad():
-            vad_probs = torch.sigmoid(vad_pred)
-            pred_positive_ratio = vad_probs.mean().item()
-            true_positive_ratio = vad_labels.mean().item()
-            print(f"DEBUG - True positive ratio: {true_positive_ratio:.4f}, Pred positive ratio: {pred_positive_ratio:.4f}")
-            print(f"DEBUG - BCE loss: {bce_loss.item():.4f}, ArcFace loss: {arcface_loss.item():.4f}")
-            print(f"DEBUG - Total loss: {loss.item():.4f}")
-            # 添加VAD预测分布分析
-            print(f"DEBUG - VAD probs stats: mean={vad_probs.mean().item():.4f}, std={vad_probs.std().item():.4f}")
-            print(f"DEBUG - VAD probs range: [{vad_probs.min().item():.4f}, {vad_probs.max().item():.4f}]")
-            # 分析预测的极端性
-            extreme_preds = ((vad_probs > 0.8) | (vad_probs < 0.2)).float().mean().item()
-            print(f"DEBUG - Extreme predictions ratio: {extreme_preds:.4f}")
-            # 添加更详细的分布分析
-            very_low = (vad_probs < 0.1).float().mean().item()
-            low = ((vad_probs >= 0.1) & (vad_probs < 0.3)).float().mean().item()
-            mid = ((vad_probs >= 0.3) & (vad_probs < 0.7)).float().mean().item()
-            high = ((vad_probs >= 0.7) & (vad_probs < 0.9)).float().mean().item()
-            very_high = (vad_probs >= 0.9).float().mean().item()
-            print(f"DEBUG - VAD probs distribution: <0.1:{very_low:.4f}, 0.1-0.3:{low:.4f}, 0.3-0.7:{mid:.4f}, 0.7-0.9:{high:.4f}, >0.9:{very_high:.4f}")
-            vad_probs = torch.sigmoid(vad_pred)
-            silence_mask = (vad_labels == 0)
-            speech_mask = (vad_labels == 1)
-            silence_acc = ((vad_probs < 0.5)[silence_mask]).float().mean().item()
-            speech_acc = ((vad_probs > 0.5)[speech_mask]).float().mean().item()
-            print(f"[DIAG] Silence ACC: {silence_acc:.4f}, Speech ACC: {speech_acc:.4f}")
-            print(f"vad_probs mean: {vad_probs.mean().item()}, std: {vad_probs.std().item()}")
-            print(f"vad_labels mean: {vad_labels.mean().item()}")
-            for n in range(min(4, vad_probs.shape[1])):
-                print(f"Speaker {n} pred>0.5 ratio: {(vad_probs[:, n, :] > 0.5).float().mean().item()}")
-                print(f"Speaker {n} label>0.5 ratio: {(vad_labels[:, n, :] > 0.5).float().mean().item()}")
+        # with torch.no_grad():
+        #     vad_probs = torch.sigmoid(vad_pred)
+        #     pred_positive_ratio = vad_probs.mean().item()
+        #     true_positive_ratio = vad_labels.mean().item()
+        #     print(f"DEBUG - True positive ratio: {true_positive_ratio:.4f}, Pred positive ratio: {pred_positive_ratio:.4f}")
+        #     print(f"DEBUG - BCE loss: {bce_loss.item():.4f}, ArcFace loss: {arcface_loss.item():.4f}")
+        #     print(f"DEBUG - Total loss: {loss.item():.4f}")
+        #     # 添加VAD预测分布分析
+        #     print(f"DEBUG - VAD probs stats: mean={vad_probs.mean().item():.4f}, std={vad_probs.std().item():.4f}")
+        #     print(f"DEBUG - VAD probs range: [{vad_probs.min().item():.4f}, {vad_probs.max().item():.4f}]")
+        #     # 分析预测的极端性
+        #     extreme_preds = ((vad_probs > 0.8) | (vad_probs < 0.2)).float().mean().item()
+        #     print(f"DEBUG - Extreme predictions ratio: {extreme_preds:.4f}")
+        #     # 添加更详细的分布分析
+        #     very_low = (vad_probs < 0.1).float().mean().item()
+        #     low = ((vad_probs >= 0.1) & (vad_probs < 0.3)).float().mean().item()
+        #     mid = ((vad_probs >= 0.3) & (vad_probs < 0.7)).float().mean().item()
+        #     high = ((vad_probs >= 0.7) & (vad_probs < 0.9)).float().mean().item()
+        #     very_high = (vad_probs >= 0.9).float().mean().item()
+        #     print(f"DEBUG - VAD probs distribution: <0.1:{very_low:.4f}, 0.1-0.3:{low:.4f}, 0.3-0.7:{mid:.4f}, 0.7-0.9:{high:.4f}, >0.9:{very_high:.4f}")
+        #     vad_probs = torch.sigmoid(vad_pred)
+        #     silence_mask = (vad_labels == 0)
+        #     speech_mask = (vad_labels == 1)
+        #     silence_acc = ((vad_probs < 0.5)[silence_mask]).float().mean().item()
+        #     speech_acc = ((vad_probs > 0.5)[speech_mask]).float().mean().item()
+        #     print(f"[DIAG] Silence ACC: {silence_acc:.4f}, Speech ACC: {speech_acc:.4f}")
+        #     print(f"vad_probs mean: {vad_probs.mean().item()}, std: {vad_probs.std().item()}")
+        #     print(f"vad_labels mean: {vad_labels.mean().item()}")
+        #     for n in range(min(4, vad_probs.shape[1])):
+        #         print(f"Speaker {n} pred>0.5 ratio: {(vad_probs[:, n, :] > 0.5).float().mean().item()}")
+        #         print(f"Speaker {n} label>0.5 ratio: {(vad_labels[:, n, :] > 0.5).float().mean().item()}")
 
-        print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
-        for n in range(vad_labels.shape[1]):
-            print(f"Channel {n} positive ratio:", vad_labels[0, n, :].sum().item() / vad_labels.shape[2])
+        # print("labels.sum() / labels.numel():", vad_labels.sum().item() / vad_labels.numel())
+        # for n in range(vad_labels.shape[1]):
+        #     print(f"Channel {n} positive ratio:", vad_labels[0, n, :].sum().item() / vad_labels.shape[2])
         
-        print("spk_ids_list[0]:", spk_label_idx[0])
-        print("spk_label_idx[0]:", spk_label_idx[0])
-        print("labels[0]:", vad_labels[0])
+        # print("spk_ids_list[0]:", spk_label_idx[0])
+        # print("spk_label_idx[0]:", spk_label_idx[0])
+        # print("labels[0]:", vad_labels[0])
         return vad_pred, spk_emb_pred, loss, bce_loss, arcface_loss, mask_info, vad_labels
     
     def infer(self, feats, speaker_embs):

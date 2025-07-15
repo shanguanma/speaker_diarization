@@ -267,7 +267,7 @@ def get_optimizer_scheduler(params, model):
         lr=params.lr,
         betas=(0.9, 0.98),
         eps=1e-08,
-        weight_decay=params.weight_decay,  # 从0.01增加到0.05
+        weight_decay=params.weight_decay,
     )
     if params.lr_type=="PolynomialDecayLR":
         # optimizer = AdamW(model.parameters(),lr=5e-5,betas=(0.9, 0.98)) # same as fairseq2
@@ -310,8 +310,6 @@ def get_params(args) -> AttributeDict:
             "gradient_clip": args.gradient_clip,
             "early_stopping_patience": args.early_stopping_patience,
             "early_stopping_min_delta": args.early_stopping_min_delta,
-            #"focal_alpha": args.focal_alpha,
-            #"focal_gamma": args.focal_gamma,
             # 早停相关
             "patience_counter": 0,
             "best_valid_der_for_early_stop": float("inf"),
@@ -345,13 +343,13 @@ def compute_loss(
             labels = labels * (1 - params.label_smoothing) + 0.5 * params.label_smoothing
         
         # 诊断：打印输入shape和部分内容
-        if is_training and B > 0:
-            print(f"[DIAG] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
-            print(f"[DIAG] labels[0, :, :10]: {labels[0, :, :10]}")
-            print(f"[DIAG] spk_label_idx[0]: {spk_label_idx[0]}")
-            # 添加更多诊断信息
-            print(f"[DIAG] labels.sum(): {labels.sum()}, labels.mean(): {labels.mean()}")
-            print(f"[DIAG] valid_speakers: {(spk_label_idx >= 0).sum()}")
+        # if is_training and B > 0:
+        #     print(f"[DIAG] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
+        #     print(f"[DIAG] labels[0, :, :10]: {labels[0, :, :10]}")
+        #     print(f"[DIAG] spk_label_idx[0]: {spk_label_idx[0]}")
+        #     # 添加更多诊断信息
+        #     print(f"[DIAG] labels.sum(): {labels.sum()}, labels.mean(): {labels.mean()}")
+        #     print(f"[DIAG] valid_speakers: {(spk_label_idx >= 0).sum()}")
         
         # forward
         (
@@ -365,28 +363,28 @@ def compute_loss(
         ) = model(fbanks, spk_label_idx, labels, spk_labels=spk_label_idx, use_standard_bce=use_standard_bce)
         
         # 诊断：打印模型输出和标签
-        if is_training and B > 0:
-            print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
-            print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
-            print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
-            print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
-            # 添加预测概率的统计信息
-            vad_probs = torch.sigmoid(vad_pred)
-            print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
-            print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
+        #if is_training and B > 0:
+        #    print(f"[LOSS DIAG] vad_pred.shape={vad_pred.shape}, padded_vad_labels.shape={padded_vad_labels.shape}")
+        #    print(f"[LOSS DIAG] vad_pred[0, :, :10]={vad_pred[0, :, :10].detach().cpu().numpy()}")
+        #    print(f"[LOSS DIAG] padded_vad_labels[0, :, :10]={padded_vad_labels[0, :, :10].detach().cpu().numpy()}")
+        #    print(f"[DIAG] loss: {loss.item()}, bce_loss: {bce_loss.item()}, arcface_loss: {arcface_loss.item()}")
+        #    # 添加预测概率的统计信息
+            # vad_probs = torch.sigmoid(vad_pred)
+            # print(f"[DIAG] vad_probs.mean(): {vad_probs.mean().item()}, vad_probs.std(): {vad_probs.std().item()}")
+            # print(f"[DIAG] vad_probs.max(): {vad_probs.max().item()}, vad_probs.min(): {vad_probs.min().item()}")
             
-            # 添加VAD预测分布分析
-            vad_probs_flat = vad_probs.flatten()
-            positive_preds = vad_probs_flat > 0.5
-            print(f"[VAD DIAG] 预测为正样本的比例: {positive_preds.float().mean().item():.4f}")
-            print(f"[VAD DIAG] 真实正样本比例: {padded_vad_labels.float().mean().item():.4f}")
+            # # 添加VAD预测分布分析
+            # vad_probs_flat = vad_probs.flatten()
+            # positive_preds = vad_probs_flat > 0.5
+            # print(f"[VAD DIAG] 预测为正样本的比例: {positive_preds.float().mean().item():.4f}")
+            # print(f"[VAD DIAG] 真实正样本比例: {padded_vad_labels.float().mean().item():.4f}")
             
-            # 分析每个说话人的预测
-            for i in range(min(3, vad_probs.shape[1])):  # 只看前3个说话人
-                spk_probs = vad_probs[0, i, :]
-                spk_labels = padded_vad_labels[0, i, :]
-                spk_positive_preds = spk_probs > 0.5
-                print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
+            # # 分析每个说话人的预测
+            # for i in range(min(3, vad_probs.shape[1])):  # 只看前3个说话人
+            #     spk_probs = vad_probs[0, i, :]
+            #     spk_labels = padded_vad_labels[0, i, :]
+            #     spk_positive_preds = spk_probs > 0.5
+            #     print(f"[VAD DIAG] Speaker {i}: 预测正样本比例={spk_positive_preds.float().mean().item():.4f}, 真实正样本比例={spk_labels.float().mean().item():.4f}")
         
         # DER 计算
         outs_prob = torch.sigmoid(vad_pred).detach().cpu().numpy()
@@ -421,48 +419,37 @@ def compute_validation_loss(
     valid_dl: torch.utils.data.DataLoader,
     batch_idx_train: int = 0,
     writer: Optional[SummaryWriter] = None,
-    train_der: float = None,  # 新增：训练集DER
+    #train_der: float = None,  # 新增：训练集DER
 ) -> MetricsTracker:
     """Compute validation loss."""
     model.eval()
     
     tot_loss = MetricsTracker()
     
-    with torch.no_grad():
-        for batch_idx, batch in enumerate(valid_dl):
-            loss, info = compute_loss(model, batch, is_training=False, use_standard_bce=params.use_standard_bce, params=params)
-            assert loss.requires_grad is False
-            tot_loss.update(info)
+    batch_nums = []
+    tot_loss_valid = 0
+    for batch_idx, batch in enumerate(valid_dl):
+        loss, loss_info = compute_loss(model, batch, is_training=False, use_standard_bce=params.use_standard_bce, params=params)
+        assert loss.requires_grad is False
+        #tot_loss.update(info)
+        batch_nums.append(batch_idx)
+        assert loss.requires_grad is False
+        tot_loss_valid = tot_loss_valid + loss_info["loss"]
+        tot_loss = tot_loss + loss_info
+
+    for item in tot_loss.keys():
+        tot_loss[item] = tot_loss[item] / len(batch_nums)
+
+    loss_value = tot_loss["loss"]
+    if loss_value < params.best_valid_loss:
+        params.best_valid_epoch = params.cur_epoch
+        params.best_valid_loss = loss_value
+
+    der_value = tot_loss["DER"]
+    if der_value < params.best_valid_der:
+        params.best_valid_epoch = params.cur_epoch
+        params.best_valid_der = der_value
     
-    # 新增：过拟合检测和早停机制
-    if train_der is not None:
-        valid_der = tot_loss["DER"]
-        der_gap = valid_der - train_der
-        
-        # 记录DER差距
-        if writer is not None:
-            writer.add_scalar("Train/Valid_DER_Gap", der_gap, batch_idx_train)
-            writer.add_scalar("Train/Train_DER", train_der, batch_idx_train)
-            writer.add_scalar("Valid/Valid_DER", valid_der, batch_idx_train)
-        
-        # 过拟合警告
-        if der_gap > 0.1:  # DER差距超过10%
-            logging.warning(f"Potential overfitting detected! Train DER: {train_der:.4f}, Valid DER: {valid_der:.4f}, Gap: {der_gap:.4f}")
-        
-        # 早停检查
-        if valid_der < params.best_valid_der_for_early_stop - params.early_stopping_min_delta:
-            params.best_valid_der_for_early_stop = valid_der
-            params.patience_counter = 0
-        else:
-            params.patience_counter += 1
-            
-        if params.patience_counter >= params.early_stopping_patience:
-            logging.warning(f"Early stopping triggered! No improvement for {params.early_stopping_patience} epochs.")
-            logging.warning(f"Best valid DER: {params.best_valid_der_for_early_stop:.4f}, Current valid DER: {valid_der:.4f}")
-        
-        # 记录到日志
-        logging.info(f"[Overfitting Check] Train DER: {train_der:.4f}, Valid DER: {valid_der:.4f}, Gap: {der_gap:.4f}")
-        logging.info(f"[Early Stop] Patience: {params.patience_counter}/{params.early_stopping_patience}, Best DER: {params.best_valid_der_for_early_stop:.4f}")
     
     return tot_loss
 
@@ -587,8 +574,8 @@ def train_one_epoch(
 
         optimizer.zero_grad()
         train_batch_nums.append(batch_idx)
-        batch_size = batch[0].shape[0]
-        params.batch_idx_train += 1
+        #batch_size = batch[0].shape[0]
+        #params.batch_idx_train += 1
         
         loss, loss_info = compute_loss(
             model, batch, is_training=True, use_standard_bce=params.use_standard_bce, params=params
@@ -602,11 +589,11 @@ def train_one_epoch(
                 grad_norm = accelerator.clip_grad_norm_(
                     model.parameters(), max_norm=params.gradient_clip
                 )
-        elif params.grad_clip:
-            if accelerator.sync_gradients:
-                grad_norm = accelerator.clip_grad_norm_(
-                    model.parameters(), max_norm=1.0
-                )
+        #elif params.grad_clip:
+        #    if accelerator.sync_gradients:
+        #        grad_norm = accelerator.clip_grad_norm_(
+        #            model.parameters(), max_norm=1.0
+        #        )
 
         optimizer.step()
         scheduler.step()
@@ -680,14 +667,14 @@ def train_one_epoch(
         if batch_idx > 0 and batch_idx % params.valid_interval == 0:
             logging.info("Computing validation loss")
             # 计算当前训练集的DER
-            current_train_der = tot_loss["DER"] / len(train_batch_nums) if len(train_batch_nums) > 0 else 0.0
+            #current_train_der = tot_loss["DER"] / len(train_batch_nums) if len(train_batch_nums) > 0 else 0.0
             valid_info = compute_validation_loss(
                 params=params,
                 model=model,
                 valid_dl=valid_dl,
                 batch_idx_train=params.batch_idx_train,
                 writer=writer,
-                train_der=current_train_der,  # 传入训练集DER
+                #train_der=current_train_der,  # 传入训练集DER
             )
             model.train()
             logging.info(
@@ -698,11 +685,11 @@ def train_one_epoch(
                 f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
             )
         # 诊断：打印dataloader输出的shape和部分内容
-        if batch_idx == 0:
-            fbanks, labels, spk_label_idx, labels_len = batch
-            print(f"[DIAG] Dataloader batch[0] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
-            print(f"[DIAG] Dataloader batch[0] labels[0, :, :10]: {labels[0, :, :10]}")
-            print(f"[DIAG] Dataloader batch[0] spk_label_idx[0]: {spk_label_idx[0]}")
+        #if batch_idx == 0:
+        #    fbanks, labels, spk_label_idx, labels_len = batch
+        #    print(f"[DIAG] Dataloader batch[0] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
+        #    print(f"[DIAG] Dataloader batch[0] labels[0, :, :10]: {labels[0, :, :10]}")
+        #    print(f"[DIAG] Dataloader batch[0] spk_label_idx[0]: {spk_label_idx[0]}")
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -716,19 +703,19 @@ def train_one_epoch(
         params.best_train_der = der_value
     
     # 新增：过拟合检测和早停
-    if hasattr(params, 'valid_der_history'):
-        params.valid_der_history.append(der_value)
-        if len(params.valid_der_history) > 10:  # 保留最近10个epoch的DER
-            params.valid_der_history.pop(0)
+    #if hasattr(params, 'valid_der_history'):
+    #    params.valid_der_history.append(der_value)
+    #    if len(params.valid_der_history) > 10:  # 保留最近10个epoch的DER
+    #        params.valid_der_history.pop(0)
         
         # 如果最近5个epoch的DER都在上升，触发早停警告
-        if len(params.valid_der_history) >= 5:
-            recent_der = params.valid_der_history[-5:]
-            if all(recent_der[i] >= recent_der[i-1] for i in range(1, len(recent_der))):
-                logging.warning(f"Early stopping warning: DER has been increasing for 5 consecutive epochs!")
-                logging.warning(f"Recent DER values: {recent_der}")
-    else:
-        params.valid_der_history = [der_value]
+    #    if len(params.valid_der_history) >= 5:
+    #        recent_der = params.valid_der_history[-5:]
+    #        if all(recent_der[i] >= recent_der[i-1] for i in range(1, len(recent_der))):
+    #            logging.warning(f"Early stopping warning: DER has been increasing for 5 consecutive epochs!")
+    #            logging.warning(f"Recent DER values: {recent_der}")
+    #else:
+    #    params.valid_der_history = [der_value]
     
 
 
