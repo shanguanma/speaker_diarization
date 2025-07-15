@@ -563,11 +563,13 @@ def train_one_epoch(
         if  params.batch_idx_train < params.extrator_frozen_steps:
             for p in model.module.extractor.speech_encoder.parameters():
                 p.requires_grad = False
-            logging.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
+            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+                logging.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
         elif params.batch_idx_train >= params.extrator_frozen_steps:
             for p in model.module.extractor.speech_encoder.parameters():
                 p.requires_grad = True
-            logging.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
+            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+                logging.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
             #params['extrator_frozen'] = False
         params.batch_idx_train += 1
         batch_size = params.batch_size

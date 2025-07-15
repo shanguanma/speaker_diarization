@@ -562,7 +562,7 @@ class SSNDModel(nn.Module):
             self.zero_grad()
         else:
             arcface_grad_norm = 0.0
-        print(f"[GRAD DIAG] BCE grad norm: {bce_grad_norm:.4f}, ArcFace grad norm: {arcface_grad_norm:.4f}")
+        #print(f"[GRAD DIAG] BCE grad norm: {bce_grad_norm:.4f}, ArcFace grad norm: {arcface_grad_norm:.4f}")
 
     def forward(self, feats, spk_label_idx, vad_labels, spk_labels=None, use_standard_bce=False):
         """
@@ -703,8 +703,8 @@ class SSNDModel(nn.Module):
         #loss = loss + l2_reg
         loss=bce_loss+arcface_loss
         # ========== 新增：分析各loss对参数的主导作用 ==========
-        if self.training and loss.requires_grad:
-            self.print_loss_grad_norms(bce_loss, arcface_loss)
+        #if self.training and loss.requires_grad:
+        #    self.print_loss_grad_norms(bce_loss, arcface_loss)
         # ========== END ==========
 
         # 添加调试信息
