@@ -255,15 +255,15 @@ class SWDecoderBlockV2(nn.Module):
 
         # Cross-attention: Q attends to K, V
         x2, _ = self.cross_attn(Q, K, V)
-        x2 = self.droput1(x2)
+        x2 = self.dropout1(x2)
         x = self.norm1(x_dec + x2)
         # Self-attention
         x2, _ = self.self_attn(x, x, x)
-        x2 = self.droput2(x2)
+        x2 = self.dropout2(x2)
         x = self.norm2(x + x2)
         # FFN
         x2 = self.ffn(x)
-        x2 = self.droput3(x2)
+        x2 = self.dropout3(x2)
         x = self.norm3(x + x2)
         #print(f'Output x shape: {x.shape}')  # [B, N, D]
         return x
