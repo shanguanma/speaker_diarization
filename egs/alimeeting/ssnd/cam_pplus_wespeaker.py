@@ -519,7 +519,7 @@ class CAMPPlusWithGSP(nn.Module):
         #print(f"self.xvector[-1]: {self.xvector[-1]}")
         x = self.xvector[:-2](x) # (B,F,T) # frame level before pool layer
         x = x.permute(0,2,1)#(B,F,T) -> (B,T,F)
-        print(f"x: shape: {x.shape}")
+        #print(f"x: shape: {x.shape}")
         x = self.output_proj(x)# (B,T,out_dim)
         if self.use_gsp:
             x = self.segmental_stat_pooling_time_aligned(
