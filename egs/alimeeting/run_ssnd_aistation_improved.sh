@@ -903,3 +903,68 @@ if [ ${stage} -le 14 ] && [ ${stop_stage} -ge 14 ];then
     --extractor-dropout $extractor_dropout\
     --label-smoothing $label_smoothing
 fi
+
+# compared with stage14, stage15 will reduce wight_decay from 0.01 to 0.001, dropout from 0.1 to 0.05
+if [ ${stage} -le 15 ] && [ ${stop_stage} -ge 15 ];then
+   export NCCL_DEBUG=INFO
+   export PYTHONFAULTHANDLER=1
+   musan_path=/maduo/datasets/musan
+   rir_path=/maduo/datasets/RIRS_NOISES
+   train_wav_dir=/maduo/datasets/alimeeting/Train_Ali_far/audio_dir
+   train_textgrid_dir=/maduo/datasets/alimeeting/Train_Ali_far/textgrid_dir
+   valid_wav_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/audio_dir
+   valid_textgrid_dir=/maduo/datasets/alimeeting/Eval_Ali/Eval_Ali_far/textgrid_dir
+   speaker_pretrain_model_path=/maduo/model_hub/speaker_pretrain_model/zh_cn/modelscope/speech_campplus_sv_zh-cn_16k-common/campplus_cn_common.bin
+   extractor_model_type='CAM++_gsp'
+   #out_bias=-0.5
+   mask_prob=0.5
+   arcface_weight=1
+   arcface_margin=0.2
+   arcface_scale=32.0
+   weight_decay=0.001
+   bce_alpha=0.75
+   bce_gamma=2.0
+   max_speakers=30 #
+   decoder_dropout=0.05
+   extractor_dropout=0.05
+   label_smoothing=0.0
+   standard_bce_loss=true
+   exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr1e-4_batch64_mask_prob_${mask_prob}_arcface_weight_${arcface_weight}_arcface_margin${arcface_margin}_arcface_scale${arcface_scale}_with_global_spk2int_max_speakers${max_speakers}_with_musan_rir_standard_bce_loss_${standard_bce_loss}_dropout0.05_weight_decay${weight_decay}_label_smoothing_${label_smoothing}_no_debug
+
+   mkdir -p $exp_dir
+
+   CUDA_VISIABLE_DEVICES=0,1\
+  TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 16815 \
+   ssnd/train_accelerate_ddp.py\
+    --debug false\
+    --use-standard-bce $standard_bce_loss\
+    --world-size 2 \
+    --num-epochs 30\
+    --batch-size 64 \
+    --start-epoch 1\
+    --keep-last-k 1\
+    --keep-last-epoch 1\
+    --grad-clip true\
+    --lr 1e-4\
+    --exp-dir $exp_dir\
+    --train_wav_dir $train_wav_dir\
+    --train_textgrid_dir $train_textgrid_dir\
+    --valid_wav_dir $valid_wav_dir\
+    --valid_textgrid_dir $valid_textgrid_dir\
+    --arcface-margin $arcface_margin\
+    --arcface-scale $arcface_scale\
+    --mask-prob $mask_prob\
+    --speaker_pretrain_model_path $speaker_pretrain_model_path\
+    --extractor_model_type $extractor_model_type\
+    --warmup-updates 3000\
+    --arcface-weight $arcface_weight\
+    --bce-alpha $bce_alpha\
+    --bce-gamma $bce_gamma\
+    --weight-decay $weight_decay\
+    --max-speakers $max_speakers\
+    --rir-path $rir_path\
+    --musan-path $musan_path\
+    --decoder-dropout $decoder_dropout\
+    --extractor-dropout $extractor_dropout\
+    --label-smoothing $label_smoothing
+fi
