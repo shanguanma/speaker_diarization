@@ -449,7 +449,10 @@ def compute_validation_loss(
     if der_value < params.best_valid_der:
         params.best_valid_epoch = params.cur_epoch
         params.best_valid_der = der_value
-    
+    # log to tensorboard
+    if writer is not None:
+        for key, value in tot_loss.items():
+            writer.add_scalar(f"valid/{key}", value, batch_idx_train)
     
     return tot_loss
 
