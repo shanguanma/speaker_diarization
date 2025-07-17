@@ -493,6 +493,7 @@ if [ ${stage} -le 8 ] && [ ${stop_stage} -ge 8 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
+    --start-batch 3000\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --grad-clip true\
@@ -547,12 +548,13 @@ if [ ${stage} -le 9 ] && [ ${stop_stage} -ge 9 ];then
    CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15515 \
    ssnd/train_accelerate_ddp.py\
-    --debug true\
+    --debug false\
     --use-standard-bce false\
     --world-size 2 \
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
+    --start-batch 3000\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --grad-clip true\
@@ -610,14 +612,15 @@ if [ ${stage} -le 10 ] && [ ${stop_stage} -ge 10 ];then
    CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15615 \
    ssnd/train_accelerate_ddp.py\
-    --debug true\
+    --debug false\
     --use-standard-bce false\
     --world-size 2 \
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
+    --start-batch 3000\
+    --keep-last-k 10\
+    --keep-last-epoch 10\
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
@@ -738,14 +741,15 @@ if [ ${stage} -le 12 ] && [ ${stop_stage} -ge 12 ];then
    CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15815 \
    ssnd/train_accelerate_ddp.py\
-    --debug true\
+    --debug false\
     --use-standard-bce $standard_bce_loss\
     --world-size 2 \
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
+    --start-batch 3000\
+    --keep-last-k 10\
+    --keep-last-epoch 10\
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
@@ -805,14 +809,15 @@ if [ ${stage} -le 13 ] && [ ${stop_stage} -ge 13 ];then
    CUDA_VISIABLE_DEVICES=0,1\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 15915 \
    ssnd/train_accelerate_ddp.py\
-    --debug true\
+    --debug false\
     --use-standard-bce $standard_bce_loss\
     --world-size 2 \
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
+    --start-batch 3000\
+    --keep-last-k 10\
+    --keep-last-epoch 10\
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
@@ -877,8 +882,9 @@ if [ ${stage} -le 14 ] && [ ${stop_stage} -ge 14 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
+    --start-batch 15000\
+    --keep-last-k 10\
+    --keep-last-epoch 10\
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
@@ -942,8 +948,9 @@ if [ ${stage} -le 15 ] && [ ${stop_stage} -ge 15 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
+    --start-batch 7500\
+    --keep-last-k 10\
+    --keep-last-epoch 10\
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
