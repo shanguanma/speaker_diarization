@@ -474,6 +474,7 @@ def compute_validation_loss(
     model: Union[nn.Module, DDP],
     valid_dl: torch.utils.data.DataLoader,
     batch_idx_train: int = 0,
+    writer: Optional[SummaryWriter] = None,
 ) -> MetricsTracker:
     """Run the validation process."""
     model.eval()
@@ -505,6 +506,10 @@ def compute_validation_loss(
     if der_value < params.best_valid_der:
         params.best_valid_epoch = params.cur_epoch
         params.best_valid_der = der_value
+    # log to tensorboard
+    if writer is not None:
+        for key, value in tot_loss.items():
+            writer.add_scalar(f"valid/{key}", value, batch_idx_train)
 
     return tot_loss
 
@@ -585,6 +590,7 @@ def train_one_epoch(
     train_dl: torch.utils.data.DataLoader,
     valid_dl: torch.utils.data.DataLoader,
     model_avg: Optional[nn.Module] = None,
+    writer: Optional[SummaryWriter] = None,
 ) -> None:
     """Train the model for one epoch.
 
@@ -632,6 +638,14 @@ def train_one_epoch(
 
         optimizer.step()
         scheduler.step()
+        
+        # log to tensorboard
+        if writer and accelerator.is_main_process:
+            for key, value in loss_info.items():
+                writer.add_scalar(f"train/{key}", value, params.batch_idx_train)
+            writer.add_scalar("train/lr", scheduler.get_last_lr()[0], params.batch_idx_train)
+            if grad_norm is not None:
+                writer.add_scalar("train/grad_norm", grad_norm.item(), params.batch_idx_train)
 
         ## average checkpoint
         if (
@@ -700,6 +714,7 @@ def train_one_epoch(
                 model=model,
                 valid_dl=valid_dl,
                 batch_idx_train=params.batch_idx_train,
+                writer=writer,
             )
             model.train()
             logging.info(
@@ -934,6 +949,11 @@ def main(args):
     logging.info(f"Number of model parameters: {num_param}")
 
     assert params.save_every_n >= params.average_period
+
+    writer: Optional[SummaryWriter] = None
+    if accelerator.is_main_process and params.tensorboard:
+        writer = SummaryWriter(log_dir=f"{args.exp_dir}/tensorboard")
+
     model_avg: Optional[nn.Module] = None
     if accelerator.is_main_process:  # it is same as rank == 0
         # model_avg is only used with rank 0
@@ -1032,6 +1052,7 @@ def main(args):
             valid_dl=valid_dl,
             accelerator=accelerator,
             model_avg=model_avg,
+            writer=writer,
         )
         if accelerator.is_main_process:
             save_checkpoint(
@@ -1050,6 +1071,12 @@ def main(args):
         #    logging.info(f"batch_idx_train >= {params.max_updates}, stop training")
         #    break
     logging.info("Done!")
+    if writer:
+        writer.close()
+    logging.info("Done!")
+    if accelerator.num_processes > 1:
+        torch.distributed.barrier()
+        dist.destroy_process_group()
 
 
 if __name__ == "__main__":
