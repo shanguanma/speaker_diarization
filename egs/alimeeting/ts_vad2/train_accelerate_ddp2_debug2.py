@@ -879,6 +879,9 @@ def load_checkpoint_if_available(
     for k in keys:
         params[k] = saved_params[k]
 
+    if params.start_batch > 0:
+        if "cur_epoch" in saved_params:
+            params["start_epoch"] = saved_params["cur_epoch"]
     return saved_params
 
 #from memory_profiler import profile
