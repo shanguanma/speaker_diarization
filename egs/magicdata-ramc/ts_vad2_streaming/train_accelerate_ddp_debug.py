@@ -575,6 +575,28 @@ def do_save_and_remove_once(
     )
 
 
+def do_save_and_remove_once_raw(
+    params, model, model_avg, optimizer, scheduler, train_dl, scaler
+):
+    # save model
+    save_checkpoint_with_global_batch_idx(
+        out_dir=params.exp_dir,
+        global_batch_idx=params.batch_idx_train,
+        model=model,
+        model_avg=model_avg,
+        params=params,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        sampler=train_dl.sampler,
+        scaler=scaler,
+    )
+    # remove unsed ckpt
+    remove_checkpoints(
+        out_dir=params.exp_dir,
+        topk=params.keep_last_k,
+    )
+
+
 def train_one_epoch(
     params: AttributeDict,
     model: nn.Module,
@@ -656,7 +678,7 @@ def train_one_epoch(
             and accelerator.is_main_process
         ):
 
-            do_save_and_remove_once(
+            do_save_and_remove_once_raw(
                 params, model, model_avg, optimizer, scheduler, train_dl, scaler
             )
 
@@ -824,10 +846,11 @@ def load_checkpoint_if_available(
     ]
     for k in keys:
         params[k] = saved_params[k]
-    
+
     if params.start_batch > 0:
         if "cur_epoch" in saved_params:
             params["start_epoch"] = saved_params["cur_epoch"]
+
     return saved_params
 
 
