@@ -1310,9 +1310,8 @@ fi
 
 if [ ${stage} -le 141 ] && [ ${stop_stage} -ge 141 ];then
  
- 
- exp_dir=/data/maduo/exp/speaker_diarization/alimeeting/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_epoch40_front_fix_seed_lr1e4_single_backend_transformer_multi_backend_transformer_rs_len4_shift2
- model_file=$exp_dir/best_valid_der.pt
+ exp_dir=/data/maduo/exp/speaker_diarization/alimeeting/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_epoch40_front_fix_seed_lr1e4_single_backend_transformer_multi_backend_transformer_rs_len4_shift2 
+ model_file=$exp_dir/best-valid-der.pt
  rs_len=4
  segment_shift=1
  single_backend_type="transformer"
@@ -1436,7 +1435,7 @@ fi
 
 if [ ${stage} -le 145 ] && [ ${stop_stage} -ge 145 ];then
  exp_dir=/data/maduo/exp/speaker_diarization/alimeeting/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_epoch40_front_fix_seed_lr1e4_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
- model_file=$exp_dir/best_valid_der.pt
+ model_file=$exp_dir/best-valid-der.pt
  rs_len=10
  segment_shift=1
  single_backend_type="mamba2"
