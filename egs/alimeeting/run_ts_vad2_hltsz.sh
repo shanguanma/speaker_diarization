@@ -1356,6 +1356,7 @@ if [ ${stage} -le 141 ] && [ ${stop_stage} -ge 141 ];then
     --split $name\
     --speech-encoder-type $speech_encoder_type\
     --speech-encoder-path $speech_encoder_path \
+    --speech-encoder-config $speech_encoder_config\
     --spk-path $spk_path\
     --speaker-embedding-name-dir $speaker_embedding_name_dir\
     --wavlm-fuse-feat-post-norm false \
