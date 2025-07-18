@@ -23,6 +23,7 @@ class MambaBlockV2(nn.Module):
 
     # note: 2024-12-18, Block class api required offer mlp_cls
     it required nvcc ,if you haven't it, you can install it via conda , i.e. you install pytorch on cuda11.8, you can `conda install nvidia/label/cuda-11.8.0::cuda-nvcc`
+    or conda install -c "nvidia/label/cuda-11.8.0" cuda-nvcc
     you install other version via url `https://anaconda.org/nvidia/cuda-nvcc`
     you need to install mamba-ssm via `pip install mamba-ssm  --no-build-isolation`
     """

@@ -740,7 +740,7 @@ def train_one_epoch(
             grad_scale = ""
             cur_lr = scheduler.get_last_lr()[0]
             logging.info(
-                f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
+                f"end of epoch {params.cur_epoch}, last batch_idx of trainset: {batch_idx} "
                 f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
                 f"lr: {cur_lr}, "

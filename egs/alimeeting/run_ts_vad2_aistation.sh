@@ -2484,7 +2484,7 @@ fi
 
 
 
-
+# compared stage138-139 of run_ts_vad2.sh stage190-191 will use w2v-bert2 to replase cam++
 if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     # # it adds noise and rirs to train tsvad model , grad-clip and freeze update.
     # # speech encoder is cam++ 200k speaker model
@@ -2506,7 +2506,7 @@ if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
-    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr1e4_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2
+    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr5e5_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
     mkdir -p $exp_dir
     data_dir="/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
     rs_len=10
@@ -2522,11 +2522,11 @@ if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     --world-size 2 \
     --num-epochs 40\
     --start-epoch 1\
-    --keep-last-k 10\
-    --keep-last-epoch 10\
+    --keep-last-k 20\
+    --keep-last-epoch 20\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 1e-4\
+    --lr 5e-5\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --speech-encoder-type $speech_encoder_type\
@@ -2545,9 +2545,12 @@ if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     --num-transformer-layer $num_transformer_layer\
     --d-state $d_state
 fi
+# note: lr=1e-4,  end of epoch 4, batch_idx: 1564,  batch_idx_train: 6259, {'loss': nan, 'DER': 1.0, 'ACC': 0.68146875, 'MI': 1.0, 'FA': 0.0, 'CF': 0.0}, batch size: 64, grad_norm: nan, grad_scale: , lr: 7.649444444444445e-05,
+# 
+
 
 if [ ${stage} -le 191 ] && [ ${stop_stage} -ge 191 ];then
- exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr1e4_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2
+ exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr5e5_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
  model_file=$exp_dir/best-valid-der.pt
  rs_len=10
  segment_shift=1
