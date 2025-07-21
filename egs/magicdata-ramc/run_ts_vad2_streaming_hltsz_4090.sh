@@ -1732,7 +1732,7 @@ if [ ${stage} -le 36 ] && [ ${stop_stage} -ge 36 ];then
     speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
-    exp_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2_streaming/magicdata-ramc_ts_vad2_two_gpus_with_musan_rirs_cam++_zh_200k_epoch20_front_fix_seed_lr5e5_single_backend_mamba2_unidirectional_multi_backend_transformer_rs_len16_shift0.8_streaming_epoch13
+    exp_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2_streaming/magicdata-ramc_ts_vad2_two_gpus_with_musan_rirs_cam++_zh_200k_epoch20_front_fix_seed_lr1e5_single_backend_mamba2_unidirectional_multi_backend_transformer_rs_len16_shift0.8_streaming_epoch20
     data_dir="/share/workspace/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format" # oracle target audio , mix audio and labels path
     rs_len=16
     segment_shift=0.8
@@ -1744,11 +1744,10 @@ if [ ${stage} -le 36 ] && [ ${stop_stage} -ge 36 ];then
     --world-size 2 \
     --num-epochs 20\
     --start-epoch 1\
-    --start-batch 73500\
     --keep-last-k 10\
     --keep-last-epoch 10\
     --grad-clip false\
-    --lr 5e-5\
+    --lr 1e-5\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --speech-encoder-type $speech_encoder_type\
@@ -1763,15 +1762,16 @@ if [ ${stage} -le 36 ] && [ ${stop_stage} -ge 36 ];then
     --segment-shift $segment_shift\
     --num-transformer-layer $num_transformer_layer
 fi
-# note: lr=5e-5, epoch=14, loss  and der  are explode 
+# note: lr=1e-4, epoch=14, loss  and der  are explode 
 # you can see the below log
 # grep -r Eval logs/run_ts_vad2_streaming_hltsz_4090_stage36-38_1.log
 # grep -r Eval logs/run_ts_vad2_streaming_hltsz_4090_stage36-38.log
+# lr=5e-5, 2025-07-19 06:39:09,552 (train_accelerate_ddp:679) INFO: [Train] - Epoch 17, batch_idx_train: 92762, num_updates: 83500, {'loss': nan, 'DER': 1.0, 'ACC': np.float64(0.7868553533912078), 'MI': 1.0, 'FA': 0.0, 'CF': 0.0}, batch size: 64, grad_norm: None, grad_scale: , lr: 3.4583333333333334e-06,
 
 
 
 if [ ${stage} -le 37 ] && [ ${stop_stage} -ge 37 ];then
- exp_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2_streaming/magicdata-ramc_ts_vad2_two_gpus_with_musan_rirs_cam++_zh_200k_epoch20_front_fix_seed_lr5e5_single_backend_mamba2_unidirectional_multi_backend_transformer_rs_len16_shift0.8_streaming_epoch13
+ exp_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2_streaming/magicdata-ramc_ts_vad2_two_gpus_with_musan_rirs_cam++_zh_200k_epoch20_front_fix_seed_lr1e5_single_backend_mamba2_unidirectional_multi_backend_transformer_rs_len16_shift0.8_streaming_epoch20
 
  model_file=$exp_dir/best-valid-der.pt
  #model_file=$exp_dir/epoch-1.pt
@@ -1848,7 +1848,7 @@ fi
 if [ ${stage} -le 38 ] && [ ${stop_stage} -ge 38 ];then
    echo "compute CDER for magicdata-ramc"
    threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9"
-   predict_rttm_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2_streaming/magicdata-ramc_ts_vad2_two_gpus_with_musan_rirs_cam++_zh_200k_epoch20_front_fix_seed_lr5e5_single_backend_mamba2_unidirectional_multi_backend_transformer_rs_len16_shift0.8_streaming_epoch13/magicdata-ramc_collar0.0_decoding_chunk_size25_num_decoding_left_chunks-1_simulate_streamingfalse_
+   predict_rttm_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2_streaming/magicdata-ramc_ts_vad2_two_gpus_with_musan_rirs_cam++_zh_200k_epoch20_front_fix_seed_lr1e5_single_backend_mamba2_unidirectional_multi_backend_transformer_rs_len16_shift0.8_streaming_epoch20/magicdata-ramc_collar0.0_decoding_chunk_size25_num_decoding_left_chunks-1_simulate_streamingfalse_
    oracle_rttm_dir=/share/workspace/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
    infer_sets="dev test cssd_testset"
    for name in $infer_sets;do
