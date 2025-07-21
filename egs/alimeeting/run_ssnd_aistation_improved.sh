@@ -493,9 +493,9 @@ if [ ${stage} -le 8 ] && [ ${stop_stage} -ge 8 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 3000\
-    --keep-last-k 1\
-    --keep-last-epoch 1\
+    --start-batch 16500\
+    --keep-last-k 10\
+    --keep-last-epoch 10\
     --grad-clip true\
     --lr 1e-4\
     --exp-dir $exp_dir\
@@ -554,7 +554,7 @@ if [ ${stage} -le 9 ] && [ ${stop_stage} -ge 9 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 3000\
+    --start-batch 18000\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --grad-clip true\
@@ -618,7 +618,7 @@ if [ ${stage} -le 10 ] && [ ${stop_stage} -ge 10 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 3000\
+    --start-batch 18000\
     --keep-last-k 10\
     --keep-last-epoch 10\
     --grad-clip true\
@@ -747,7 +747,7 @@ if [ ${stage} -le 12 ] && [ ${stop_stage} -ge 12 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 3000\
+    --start-batch 18000\
     --keep-last-k 10\
     --keep-last-epoch 10\
     --grad-clip true\
@@ -815,7 +815,7 @@ if [ ${stage} -le 13 ] && [ ${stop_stage} -ge 13 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 3000\
+    --start-batch 30000\
     --keep-last-k 10\
     --keep-last-epoch 10\
     --grad-clip true\
@@ -882,7 +882,7 @@ if [ ${stage} -le 14 ] && [ ${stop_stage} -ge 14 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 15000\
+    --start-batch 30000\
     --keep-last-k 10\
     --keep-last-epoch 10\
     --grad-clip true\
@@ -948,7 +948,7 @@ if [ ${stage} -le 15 ] && [ ${stop_stage} -ge 15 ];then
     --num-epochs 30\
     --batch-size 64 \
     --start-epoch 1\
-    --start-batch 7500\
+    --start-batch 22500\
     --keep-last-k 10\
     --keep-last-epoch 10\
     --grad-clip true\
