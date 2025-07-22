@@ -2506,7 +2506,7 @@ if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     speaker_embedding_name_dir="cam++_zh-cn_200k_feature_dir"
 
     #exp_dir=/mntcephfs/lab_data/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_wav-bert2.0_epoch40_front_fix_seed
-    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr5e5_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
+    exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr1e5_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
     mkdir -p $exp_dir
     data_dir="/maduo/datasets/alimeeting" # oracle target audio , mix audio and labels path
     rs_len=10
@@ -2526,7 +2526,7 @@ if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     --keep-last-epoch 20\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 5e-5\
+    --lr 1e-5\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --speech-encoder-type $speech_encoder_type\
@@ -2546,11 +2546,12 @@ if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
     --d-state $d_state
 fi
 # note: lr=1e-4,  end of epoch 4, batch_idx: 1564,  batch_idx_train: 6259, {'loss': nan, 'DER': 1.0, 'ACC': 0.68146875, 'MI': 1.0, 'FA': 0.0, 'CF': 0.0}, batch size: 64, grad_norm: nan, grad_scale: , lr: 7.649444444444445e-05,
-# 
+# lr=5e-5, 2025-07-21 16:54:31,252 (train_accelerate_ddp2_debug2:731) INFO: [Train] - Epoch 6, batch_idx_train: 9325, num_updates: 9000, {'loss': nan, 'DER': 1.0, 'ACC': 0.684375, 'MI': 1.0, 'FA': 0.0, 'CF': 0.0}, batch size: 64, grad_norm: nan, grad_scale: , lr: 3.0419444444444444e-05, 
+
 
 
 if [ ${stage} -le 191 ] && [ ${stop_stage} -ge 191 ];then
- exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr5e5_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
+ exp_dir=/maduo/exp/speaker_diarization/ts_vad2/ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_zh_200k_feature_dir_epoch40_front_fix_seed_lr1e5_w2v-bert2_speech_encoder_single_backend_mamba2_multi_backend_transformer_rs_len10_shift2_d_state256
  model_file=$exp_dir/best-valid-der.pt
  rs_len=10
  segment_shift=1
