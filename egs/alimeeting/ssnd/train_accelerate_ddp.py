@@ -47,6 +47,8 @@ import textgrid
 
 from ssnd_model import SSNDModel
 from alimeeting_diar_dataset import AlimeetingDiarDataset
+from simu_diar_dataset import SimuDiarMixer
+from funasr import AutoModel # pip install funasr # only for simu data
 import pickle
 
 logging.basicConfig(
@@ -1033,6 +1035,66 @@ def build_test_dl(args, spk2int):
         collate_fn=collate_fn_wrapper
     )
     return test_dl
+def vad_func(wav,sr):
+    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4")
+    if wav.dtype != np.int16:
+        wav = (wav * 32767).astype(np.int16)
+        result = fsmn_vad_model.generate(wav, fs=sr)
+        time_stamp = result[0]['value']
+        return time_stamp # in ms
+
+def build_simu_data_train_dl(args, spk2int):
+    logging.info("Building simu data train dataloader with training spk2int...")
+    def spktochunks():
+        from collections import defaultdict
+        import librosa
+        spk2wav={"spk1":["/data/maduo/datasets/test_wavs/3-sichuan.wav"],
+            'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
+            'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
+            'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
+            }
+        spk2chunks=defaultdict(list)
+        for spk_id in spk2wav.keys():
+            for wav_path in spk2wav[spk_id]:
+                wav, sr = sf.read(wav_path)
+                if sr != 16000:
+                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                time_stamp_list = vad_func(wav,sr=16000)
+                # in ms ->(/1000) in second ->(*16000) in sample points
+                speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                if spk_id in spk2chunks:
+                    spk2chunks[spk_id].append(speech_chunks)
+                else:
+                    spk2chunks[spk_id] = speech_chunks
+        return spk2chunks
+    train_dataset = AlimeetingDiarDataset(
+        wav_dir=args.train_wav_dir,
+        textgrid_dir=args.train_textgrid_dir,
+        sample_rate=16000,
+        frame_shift=0.04, # 25fps to match vad_out_len
+        musan_path=args.musan_path,
+        rir_path=args.rir_path,
+        noise_ratio=args.noise_ratio,
+        window_sec=args.window_sec,
+        window_shift_sec=args.window_shift_sec
+    )
+    vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
+    def collate_fn_wrapper(batch):
+        wavs, labels, spk_ids_list, fbanks, labels_len = train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
+        max_spks_in_batch = labels.shape[1]
+        spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
+        for i, spk_id_sample in enumerate(spk_ids_list):
+            for j, spk_id in enumerate(spk_id_sample):
+                if spk_id and spk_id in spk2int:
+                    spk_label_indices[i, j] = spk2int[spk_id]
+        return fbanks, labels, spk_label_indices, labels_len
+    train_dl = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=collate_fn_wrapper
+    )
+    return train_dl
 
 def main():
     parser = get_parser()
@@ -1181,7 +1243,8 @@ def main():
         )
         if accelerator.is_main_process:
             save_checkpoint(
-                params=params,                                                                                                                                                                                    model=model,
+                params=params,
+                model=model,
                 optimizer=optimizer,
                 scheduler=scheduler,
             )  

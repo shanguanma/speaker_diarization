@@ -35,6 +35,7 @@ class SimuDiarMixer:
         self.spk2chunks = spk2chunks
         self.sr = sample_rate
         self.frame_length = frame_length
+        self.num_mel_bins = num_mel_bins
         self.frame_shift = frame_shift
         self.num_mel_bins = num_mel_bins
         self.max_mix_len = max_mix_len
@@ -197,16 +198,17 @@ class SimuDiarMixer:
             dither=1.0,
             window_type='hamming'
         ).squeeze(0)  # [num_frames, num_mel_bins]
+        fbank = (fbank - fbank.mean(dim=0)) / fbank.std(dim=0).clamp(min=1e-8)
         return fbank
 
-    def collate_fn(self, batch):
+    def collate_fn(self, batch, vad_out_len=200):
         # batch: list of (mix, label, spk_ids)
         max_len = max([len(x[0]) for x in batch])
         # 先提取所有fbank帧数，确定max_frames
         fbanks = []
         fbank_lens = []
         for mix, _, _ in batch:
-            fbank = self.extract_fbank(mix, sample_rate=self.sr, num_mel_bins=getattr(self, 'num_mel_bins', 80), frame_length=self.frame_length, frame_shift=self.frame_shift)
+            fbank = self.extract_fbank(mix, sample_rate=self.sr, num_mel_bins=self.num_mel_bins, frame_length=self.frame_length, frame_shift=self.frame_shift)
             fbanks.append(fbank)
             fbank_lens.append(fbank.shape[0])
         max_frames = max(fbank_lens)
@@ -237,11 +239,15 @@ class SimuDiarMixer:
             pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
             pad_label[:aligned_label.shape[0], :aligned_label.shape[1]] = aligned_label
             labels.append(pad_label)
+
+            labels_len.append(min(label.shape[1], vad_out_len) if label.ndim > 1 else 0)
         import torch
         wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
         fbanks = torch.tensor(np.stack(fbanks_pad), dtype=torch.float32)
-        return wavs, labels, spk_ids_list, fbanks
+        labels_len = torch.tensor(labels_len, dtype=torch.int32)
+
+        return wavs, labels, spk_ids_list, fbanks, labels_len
 
     def collate_fn_wo_feat(self, batch):
         # batch: list of (mix, label, spk_ids)

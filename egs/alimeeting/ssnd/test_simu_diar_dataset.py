@@ -670,10 +670,127 @@ def test_inference():
     plt.savefig("./test4_diarization_compare_online.jpg")
     plt.show()
 
+def test_wo_feat_wo_aug_mix_gen():
+    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4")
+
+    def vad_func(wav, sr):
+        if wav.dtype != np.int16:
+            wav = (wav * 32767).astype(np.int16)
+        result = fsmn_vad_model.generate(wav, fs=sr)
+        print(result)# [{'key': 'rand_key_9GFz6Y1t9EwL5', 'value': [[0, 4530], [4810, 7970]]}] #
+        time_stamp = result[0]['value']
+        print("time_stamp:",time_stamp)
+        return time_stamp # in ms
+    def spktochunks():
+        from collections import defaultdict
+        import librosa
+        spk2wav={"spk1":["/data/maduo/datasets/test_wavs/3-sichuan.wav"],
+            'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
+            'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
+            'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
+            }
+        spk2chunks=defaultdict(list)
+        for spk_id in spk2wav.keys():
+            for wav_path in spk2wav[spk_id]:
+                wav, sr = sf.read(wav_path)
+                if sr != 16000:
+                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                time_stamp_list = vad_func(wav,sr=16000)
+                # in ms ->(/1000) in second ->(*16000) in sample points
+                speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                if spk_id in spk2chunks:
+                    spk2chunks[spk_id].append(speech_chunks)
+                else:
+                    spk2chunks[spk_id] = speech_chunks
+        return spk2chunks
+
+
+    spk2chunks= spktochunks()
+    print("spk2chunks: ", spk2chunks)
+    # 假设你已经有 spk2chunks = {spk: [vad后片段, ...], ...}
+    import time
+    start = time.time()
+    mixer = SimuDiarMixer(
+        spk2chunks,
+        sample_rate=16000,
+        max_mix_len=8.0,
+        min_silence=0.0,
+        max_silence=4.0,
+        target_overlap=0.2
+    )
+    print(f"finish run the SimuDiarMixer time consume: {time.time()-start} seconds")
+    mix, label, spk_ids = mixer.sample()
+    sf.write("mix_clean.wav",mix,16000)
+    print("mix:",mix,"label:",label,"spk_ids: ", spk_ids)
+    print('混合音频 shape:', mix.shape)
+    print('标签 shape:', label.shape)
+    print('活动帧比例:', label.sum() / np.prod(label.shape))
+    print('每个说话人活动帧:', label.sum(axis=1))
+
+def test_wo_feat_w_aug_mix_gen():
+    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4")
+
+    def vad_func(wav, sr):
+        if wav.dtype != np.int16:
+            wav = (wav * 32767).astype(np.int16)
+        result = fsmn_vad_model.generate(wav, fs=sr)
+        print(result)# [{'key': 'rand_key_9GFz6Y1t9EwL5', 'value': [[0, 4530], [4810, 7970]]}] #
+        time_stamp = result[0]['value']
+        print("time_stamp:",time_stamp)
+        return time_stamp # in ms
+    def spktochunks():
+        from collections import defaultdict
+        import librosa
+        spk2wav={"spk1":["/data/maduo/datasets/test_wavs/3-sichuan.wav"],
+            'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
+            'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
+            'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
+            }
+        spk2chunks=defaultdict(list)
+        for spk_id in spk2wav.keys():
+            for wav_path in spk2wav[spk_id]:
+                wav, sr = sf.read(wav_path)
+                if sr != 16000:
+                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                time_stamp_list = vad_func(wav,sr=16000)
+                # in ms ->(/1000) in second ->(*16000) in sample points
+                speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                if spk_id in spk2chunks:
+                    spk2chunks[spk_id].append(speech_chunks)
+                else:
+                    spk2chunks[spk_id] = speech_chunks
+        return spk2chunks
+
+
+    spk2chunks= spktochunks()
+    print("spk2chunks: ", spk2chunks)
+    # 假设你已经有 spk2chunks = {spk: [vad后片段, ...], ...}
+    import time
+    start = time.time()
+    mixer = SimuDiarMixer(
+        spk2chunks,
+        sample_rate=16000,
+        max_mix_len=8.0,
+        min_silence=0.0,
+        max_silence=4.0,
+        target_overlap=0.2,
+        musan_path="/data/maduo/datasets/musan",
+        rir_path="/data/maduo/datasets/RIRS_NOISES",
+    )
+    print(f"finish run the SimuDiarMixer time consume: {time.time()-start} second")
+    mix, label, spk_ids = mixer.sample_post()
+    sf.write("mix_aug.wav",mix,16000)
+    print("mix:",mix,"label:",label,"spk_ids: ", spk_ids)
+    print('混合音频 shape:', mix.shape)
+    print('标签 shape:', label.shape)
+    print('活动帧比例:', label.sum() / np.prod(label.shape))
+    print('每个说话人活动帧:', label.sum(axis=1))
 
 if __name__== "__main__":
     fix_random_seed2(43) 
+    test_wo_feat_wo_aug_mix_gen()
+    test_wo_feat_w_aug_mix_gen()
     #test_wo_feat_wo_aug()
-    test_wo_feats_in_batch()
-    test_w_feats_in_batch()
-    test_inference()
+    #test_wo_feats_in_batch()
+    #test_w_feats_in_batch()
+    #test_inference()
