@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 -u
 """
-基于torchrun的多进程VoxCeleb2数据集处理脚本
-使用简化的多进程模式，参考torchrun_remove_silent_ref.py
+非并行的VoxCeleb2数据集处理脚本
+移除torchrun依赖，顺序处理所有文件并保存为JSON格式
 """
 
 import os
@@ -188,18 +188,24 @@ def process_audio_file(wav_path, spk_id):
             'error': str(e)
         }
 
-def process_local_tasks(local_tasks, output_file):
-    """处理本地任务"""
+def process_all_files(spk2wav, output_file):
+    """处理所有文件"""
     results = defaultdict(list)
     failed_files = []
     
-    logger.info(f"开始处理 {len(local_tasks)} 个文件")
+    # 准备所有任务
+    all_tasks = []
+    for spk_id, wav_paths in spk2wav.items():
+        for wav_path in wav_paths:
+            all_tasks.append((wav_path, spk_id))
+    
+    logger.info(f"开始处理 {len(all_tasks)} 个文件")
     
     # 分批处理，避免内存溢出
     batch_size = 50  # 每批处理50个文件
-    for i in range(0, len(local_tasks), batch_size):
-        batch_tasks = local_tasks[i:i+batch_size]
-        logger.info(f"处理批次 {i//batch_size + 1}/{(len(local_tasks) + batch_size - 1)//batch_size}")
+    for i in range(0, len(all_tasks), batch_size):
+        batch_tasks = all_tasks[i:i+batch_size]
+        logger.info(f"处理批次 {i//batch_size + 1}/{(len(all_tasks) + batch_size - 1)//batch_size}")
         
         for wav_path, spk_id in tqdm(batch_tasks, desc=f"批次 {i//batch_size + 1}"):
             try:
@@ -223,132 +229,68 @@ def process_local_tasks(local_tasks, output_file):
                 })
         
         # 每批处理后保存临时结果
-        temp_output_file = f"{output_file}.rank_{os.environ.get('LOCAL_RANK', 0)}.batch_{i//batch_size}"
-        with open(temp_output_file, "w") as f:
-            for spk_id, spk_results in results.items():
-                spk2chunks = defaultdict(list)
-                spk2wav_paths = defaultdict(list)
-                for item in spk_results:
-                    spk2chunks[spk_id].append(item['time_stamp_list'])
-                    spk2wav_paths[spk_id].append(item['wav_path'])
-                res = {
-                    'spk_id': spk_id,
-                    'wav_paths': spk2wav_paths,
-                    'results': spk2chunks,
-                }
-                json.dump(res, f)
-                f.write("\n")
-        
+        temp_output_file = f"{output_file}.batch_{i//batch_size}"
+        save_results_to_json(results, temp_output_file)
         logger.info(f"批次 {i//batch_size + 1} 完成，临时结果保存到: {temp_output_file}")
         
         # 清理内存
         import gc
         gc.collect()
     
-    # 保存本地结果到临时文件
-    temp_output_file = f"{output_file}.rank_{os.environ.get('LOCAL_RANK', 0)}"
-    with open(temp_output_file, "w") as f:
+    # 保存最终结果
+    save_results_to_json(results, output_file)
+    
+    # 保存失败文件信息
+    if failed_files:
+        failed_output_file = f"{output_file}.failed"
+        with open(failed_output_file, "w") as f:
+            json.dump(failed_files, f, indent=2, ensure_ascii=False)
+        logger.info(f"失败文件信息保存到: {failed_output_file}")
+    
+    logger.info(f"处理完成，结果保存到: {output_file}")
+    logger.info(f"成功: {sum(len(spk_results) for spk_results in results.values())}, 失败: {len(failed_files)}")
+    
+    return results
+
+def save_results_to_json(results, output_file):
+    """保存结果为JSON格式"""
+    with open(output_file, "w") as f:
         for spk_id, spk_results in results.items():
             spk2chunks = defaultdict(list)
             spk2wav_paths = defaultdict(list)
             for item in spk_results:
                 spk2chunks[spk_id].append(item['time_stamp_list'])
                 spk2wav_paths[spk_id].append(item['wav_path'])
-            res = {
-                'spk_id': spk_id,
-                'wav_paths': spk2wav_paths,
-                'results': spk2chunks,
-            }
-            json.dump(res, f)
-            f.write("\n")
-    
-    logger.info(f"本地处理完成，结果保存到: {temp_output_file}")
-    logger.info(f"成功: {sum(len(spk_results) for spk_results in results.values())}, 失败: {len(failed_files)}")
-    
-    return temp_output_file
-
-def merge_results(output_file, world_size):
-    """合并所有进程的结果"""
-    if int(os.environ.get('LOCAL_RANK', 0)) != 0:
-        return  # 只在主进程中合并
-    
-    logger.info("合并所有进程的结果...")
-    
-    merged_results = defaultdict(list)
-        
-    # 读取所有临时文件
-    for rank in range(world_size):
-        temp_file = f"{output_file}.rank_{rank}"
-        if os.path.exists(temp_file):
-            with open(temp_file, 'r') as f:
-                for line in f:
-                    if line.strip():
-                        data = json.loads(line)
-                        spk_id = data['spk_id']
-                        for item in data['results'][spk_id]:
-                            merged_results[spk_id].append(item)
-    
-    # 保存合并后的结果
-    with open(output_file, "w") as f:
-        for spk_id, spk_results in merged_results.items():
-            spk2chunks = defaultdict(list)
-            for item in spk_results:
-                spk2chunks[spk_id].append(item)
             
             res = {
                 'spk_id': spk_id,
-                'results': spk2chunks,
+                'wav_paths': spk2wav_paths[spk_id],
+                'results': spk2chunks[spk_id],
             }
-            json.dump(res, f)
+            json.dump(res, f, ensure_ascii=False)
             f.write("\n")
-    
-    # 清理临时文件
-    for rank in range(world_size):
-        temp_file = f"{output_file}.rank_{rank}"
-        if os.path.exists(temp_file):
-            os.remove(temp_file)
-    
-    logger.info(f"结果合并完成，保存到: {output_file}")
 
 def main():
-    parser = argparse.ArgumentParser(description="基于torchrun的多进程VoxCeleb2数据集处理")
+    parser = argparse.ArgumentParser(description="非并行的VoxCeleb2数据集处理")
     parser.add_argument("--voxceleb2-dataset-dir", type=str, 
                        default="/maduo/datasets/voxceleb2/vox2_dev/", 
                        help="VoxCeleb2数据集Kaldi格式路径")
     parser.add_argument("--out-text", type=str, 
-                       default="/maduo/datasets/voxceleb2/vox2_dev/train_torchrun.json", 
+                       default="/maduo/datasets/voxceleb2/vox2_dev/train.json", 
                        help="输出JSON文件路径")
     
     args = parser.parse_args()
     
-    # 获取分布式环境信息（参考torchrun_remove_silent_ref.py的方式）
-    rank = int(os.environ['LOCAL_RANK'])        # 处理进程ID
-    world_size = int(os.environ['WORLD_SIZE'])  # 进程总数
-    
-    logger.info(f"rank {rank}/{world_size}")
+    logger.info("开始非并行处理VoxCeleb2数据集...")
     
     # 加载数据集信息
     spk2wav = load_dataset_info(args.voxceleb2_dataset_dir)
+    logger.info(f"加载了 {len(spk2wav)} 个说话人的数据")
     
-    # 准备任务列表
-    tasks = []
-    for spk_id, wav_paths in spk2wav.items():
-        for wav_path in wav_paths:
-            tasks.append((wav_path, spk_id))
+    # 处理所有文件
+    results = process_all_files(spk2wav, args.out_text)
     
-    # 按rank分配任务（参考torchrun_remove_silent_ref.py的方式）
-    tasks.sort(key=lambda x: x[1])  # 按说话人ID排序
-    local_tasks = tasks[rank::world_size]
-    
-    logger.info(f"本地任务数: {len(local_tasks)}")
-    
-    # 处理本地任务
-    temp_output_file = process_local_tasks(local_tasks, args.out_text)
-    
-    # 合并结果
-    merge_results(args.out_text, world_size)
-    
-    logger.info(f"rank {rank} 处理完成!")
+    logger.info("处理完成!")
 
 if __name__ == "__main__":
     main() 
