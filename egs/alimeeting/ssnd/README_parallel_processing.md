@@ -134,6 +134,36 @@ python remove_silent_and_get_spk2chunks.py \
     --max-workers 16
 ```
 
+### 2. VAD处理失败: Sizes of tensors must match
+
+**错误信息**: `ERROR:__main__:VAD处理失败: Sizes of tensors must match except in dimension 1. Expected size 4 but got size 1 for tensor number 1 in the list.`
+
+**原因**: 
+- VAD模型在处理音频时遇到张量尺寸不匹配问题
+- 音频数据格式与模型期望的输入格式不一致
+- 并发处理导致模型状态混乱
+
+**解决方案**:
+1. **使用串行处理**: 添加 `--serial` 参数避免所有并发问题
+2. **使用进程池**: 添加 `--use-process-pool` 参数避免线程冲突
+3. **降低并发度**: 使用较少的线程数
+
+**推荐设置**:
+```bash
+# 最安全的串行处理
+python remove_silent_and_get_spk2chunks.py \
+    --voxceleb2-dataset-dir /path/to/dataset \
+    --out-text /path/to/output.json \
+    --serial
+
+# 或使用进程池避免线程冲突
+python remove_silent_and_get_spk2chunks.py \
+    --voxceleb2-dataset-dir /path/to/dataset \
+    --out-text /path/to/output.json \
+    --max-workers 8 \
+    --use-process-pool
+```
+
 ### 2. 内存不足
 
 **解决方案**:

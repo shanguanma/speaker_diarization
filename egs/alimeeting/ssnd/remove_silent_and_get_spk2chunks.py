@@ -5,11 +5,12 @@ import soundfile as sf
 import json
 import argparse
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 import os
 import logging
 from tqdm import tqdm
 import threading
+import multiprocessing as mp
 
 # 设置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,14 +19,19 @@ logger = logging.getLogger(__name__)
 # 全局VAD模型，使用线程本地存储
 _vad_model_local = threading.local()
 
+# 添加线程锁来保护VAD模型
+_vad_model_lock = threading.Lock()
+
 def get_vad_model():
     """获取线程本地的VAD模型"""
     if not hasattr(_vad_model_local, 'model'):
-        try:
-            _vad_model_local.model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
-        except Exception as e:
-            logger.error(f"VAD模型初始化失败: {e}")
-            return None
+        with _vad_model_lock:  # 使用锁保护模型初始化
+            if not hasattr(_vad_model_local, 'model'):  # 双重检查
+                try:
+                    _vad_model_local.model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
+                except Exception as e:
+                    logger.error(f"VAD模型初始化失败: {e}")
+                    return None
     return _vad_model_local.model
 
 def vad_func(wav, sr):
@@ -72,8 +78,20 @@ def vad_func(wav, sr):
             logger.warning(f"音频太长，跳过处理: {len(wav_int16)} samples")
             return []
         
-        result = fsmn_vad_model.generate(wav_int16, fs=sr)
-        time_stamp = result[0]['value']
+        # 确保音频数据是连续的numpy数组
+        wav_int16 = np.ascontiguousarray(wav_int16)
+        
+        # 使用锁保护VAD模型推理过程
+        with _vad_model_lock:
+            # 确保输入格式正确
+            if wav_int16.ndim == 1:
+                # 如果是1D数组，确保它是正确的形状
+                wav_input = wav_int16.reshape(1, -1)  # 转换为2D数组 (1, samples)
+            else:
+                wav_input = wav_int16
+            
+            result = fsmn_vad_model.generate(wav_input, fs=sr)
+            time_stamp = result[0]['value']
         return time_stamp  # in ms
     except Exception as e:
         logger.error(f"VAD处理失败: {e}")
@@ -210,35 +228,101 @@ def spktochunks(args):
         # 默认使用较少的线程数，避免内存和资源竞争问题
         max_workers = min(16, os.cpu_count() + 2)
     
-    logger.info(f"使用 {max_workers} 个线程进行并行处理")
-    logger.info(f"系统CPU核心数: {os.cpu_count()}")
+    # 检查处理模式
+    use_process_pool = hasattr(args, 'use_process_pool') and args.use_process_pool
+    use_serial = hasattr(args, 'serial') and args.serial
     
-    # 如果线程数设置过高，给出警告
-    if max_workers > 32:
-        logger.warning(f"线程数设置较高 ({max_workers})，可能会导致内存不足或VAD模型冲突")
-        logger.warning("建议将线程数设置为16-24之间")
+    if use_serial:
+        logger.info("使用串行处理模式，避免所有并发问题")
+    elif use_process_pool:
+        logger.info(f"使用进程池并行处理，进程数: {max_workers}")
+        logger.info("注意：进程池模式会消耗更多内存，但可以避免VAD模型线程冲突")
+    else:
+        logger.info(f"使用线程池并行处理，线程数: {max_workers}")
+        logger.info(f"系统CPU核心数: {os.cpu_count()}")
+        
+        # 如果线程数设置过高，给出警告
+        if max_workers > 32:
+            logger.warning(f"线程数设置较高 ({max_workers})，可能会导致内存不足或VAD模型冲突")
+            logger.warning("建议将线程数设置为16-24之间，或使用 --use-process-pool 选项")
     
     results = defaultdict(list)
     failed_files = []
     
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 提交所有任务
-        future_to_task = {executor.submit(process_single_wav, task): task for task in tasks}
-        
-        # 使用tqdm显示进度
-        with tqdm(total=len(tasks), desc="处理音频文件") as pbar:
-            for future in as_completed(future_to_task):
-                result = future.result()
-                pbar.update(1)
-                
-                if result['success']:
-                    spk_id = result['spk_id']
-                    results[spk_id].append({
-                        'wav_path': result['wav_path'],
-                        'time_stamp_list': result['time_stamp_list']
+    if use_serial:
+        # 串行处理
+        logger.info("开始串行处理...")
+        with tqdm(total=len(tasks), desc="处理音频文件(串行)") as pbar:
+            for task in tasks:
+                try:
+                    result = process_single_wav(task)
+                    pbar.update(1)
+                    
+                    if result['success']:
+                        spk_id = result['spk_id']
+                        results[spk_id].append({
+                            'wav_path': result['wav_path'],
+                            'time_stamp_list': result['time_stamp_list']
+                        })
+                    else:
+                        failed_files.append(result)
+                except Exception as e:
+                    pbar.update(1)
+                    failed_files.append({
+                        'wav_path': task[0],
+                        'spk_id': task[1],
+                        'success': False,
+                        'error': f"串行处理失败: {e}"
                     })
-                else:
-                    failed_files.append(result)
+    elif use_process_pool:
+        # 使用进程池处理
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            # 提交所有任务
+            future_to_task = {executor.submit(process_single_wav, task): task for task in tasks}
+            
+            # 使用tqdm显示进度
+            with tqdm(total=len(tasks), desc="处理音频文件(进程池)") as pbar:
+                for future in as_completed(future_to_task):
+                    try:
+                        result = future.result(timeout=300)  # 5分钟超时
+                        pbar.update(1)
+                        
+                        if result['success']:
+                            spk_id = result['spk_id']
+                            results[spk_id].append({
+                                'wav_path': result['wav_path'],
+                                'time_stamp_list': result['time_stamp_list']
+                            })
+                        else:
+                            failed_files.append(result)
+                    except Exception as e:
+                        pbar.update(1)
+                        failed_files.append({
+                            'wav_path': future_to_task[future][0],
+                            'spk_id': future_to_task[future][1],
+                            'success': False,
+                            'error': f"进程执行失败: {e}"
+                        })
+    else:
+        # 使用线程池处理
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # 提交所有任务
+            future_to_task = {executor.submit(process_single_wav, task): task for task in tasks}
+            
+            # 使用tqdm显示进度
+            with tqdm(total=len(tasks), desc="处理音频文件(线程池)") as pbar:
+                for future in as_completed(future_to_task):
+                    result = future.result()
+                    pbar.update(1)
+                    
+                    if result['success']:
+                        spk_id = result['spk_id']
+                        results[spk_id].append({
+                            'wav_path': result['wav_path'],
+                            'time_stamp_list': result['time_stamp_list']
+                        })
+                    else:
+                        failed_files.append(result)
     
     # 输出处理结果统计
     logger.info(f"成功处理: {len(tasks) - len(failed_files)} 个文件")
@@ -278,6 +362,10 @@ def get_args():
                        help="输出JSON文件路径，包含移除静音后的说话人片段信息")
     parser.add_argument("--max-workers", type=int, default=None,
                        help="最大工作线程数，默认为CPU核心数+4")
+    parser.add_argument("--use-process-pool", action="store_true",
+                       help="使用进程池而不是线程池，可以避免VAD模型线程冲突")
+    parser.add_argument("--serial", action="store_true",
+                       help="使用串行处理，避免所有并发问题")
     args = parser.parse_args()
     return args
 
