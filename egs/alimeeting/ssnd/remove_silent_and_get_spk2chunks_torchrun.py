@@ -56,22 +56,22 @@ def load_dataset_info(voxceleb2_dataset_dir):
 def vad_detect(wav, sr):
     """VAD检测函数"""
     try:
-        # 检查音频长度
-        if len(wav) < sr * 0.1:  # 小于0.1秒的音频跳过
-            return []
-        
-        # 确保音频是1D数组
-        if wav.ndim > 1:
-            wav = wav.flatten()
-        
-        # 检查音频数据是否包含NaN或无穷大值
-        if np.any(np.isnan(wav)) or np.any(np.isinf(wav)):
-            return []
-        
-        # 确保音频数据在合理范围内
-        wav = np.clip(wav, -1.0, 1.0)
-        
-        # 初始化VAD模型
+#        # 检查音频长度
+#        if len(wav) < sr * 0.1:  # 小于0.1秒的音频跳过
+#            return []
+#        
+#        # 确保音频是1D数组
+#        if wav.ndim > 1:
+#            wav = wav.flatten()
+#        
+#        # 检查音频数据是否包含NaN或无穷大值
+#        if np.any(np.isnan(wav)) or np.any(np.isinf(wav)):
+#            return []
+#        
+#        # 确保音频数据在合理范围内
+#        wav = np.clip(wav, -1.0, 1.0)
+#        
+#        # 初始化VAD模型
         vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
         
         # 更安全的数据类型转换
@@ -81,23 +81,24 @@ def vad_detect(wav, sr):
         else:
             wav_int16 = wav
         
-        # 检查转换后的数据是否有效
-        if len(wav_int16) == 0:
-            return []
-        
-        # 添加额外的安全检查
-        if len(wav_int16) > sr * 3600:  # 超过1小时的音频跳过
-            return []
-        
-        # 确保音频数据是连续的numpy数组
-        wav_int16 = np.ascontiguousarray(wav_int16)
-        
-        # 确保输入格式正确
-        if wav_int16.ndim == 1:
-            wav_input = wav_int16.reshape(1, -1)  # 转换为2D数组 (1, samples)
-        else:
-            wav_input = wav_int16
-        
+#        # 检查转换后的数据是否有效
+#        if len(wav_int16) == 0:
+#            return []
+#        
+#        # 添加额外的安全检查
+#        if len(wav_int16) > sr * 3600:  # 超过1小时的音频跳过
+#            return []
+#        
+#        # 确保音频数据是连续的numpy数组
+#        wav_int16 = np.ascontiguousarray(wav_int16)
+#        
+#        # 确保输入格式正确
+#        if wav_int16.ndim == 1:
+#            wav_input = wav_int16.reshape(1, -1)  # 转换为2D数组 (1, samples)
+#        else:
+#            wav_input = wav_int16
+#       
+        wav_input=wav_int16
         result = vad_model.generate(wav_input, fs=sr)
         time_stamp = result[0]['value']
         return time_stamp  # in ms

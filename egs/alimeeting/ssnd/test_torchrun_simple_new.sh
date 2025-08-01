@@ -32,6 +32,7 @@ export NCCL_DEBUG=INFO
 export PYTHONFAULTHANDLER=1
 
 # 运行新的简化版本
+NUM_PROCESSES=10
 echo "运行新的简化torchrun版本..."
 torchrun \
     --nproc_per_node=$NUM_PROCESSES \
@@ -39,7 +40,7 @@ torchrun \
     --node_rank=0 \
     --master_addr=localhost \
     --master_port=29500 \
-    remove_silent_and_get_spk2chunks_torchrun.py \
+    ssnd/remove_silent_and_get_spk2chunks_torchrun.py \
     --voxceleb2-dataset-dir /maduo/datasets/voxceleb2/vox2_dev/ \
     --out-text /maduo/datasets/voxceleb2/vox2_dev/train_torchrun_simple.json
 
