@@ -233,7 +233,17 @@ def process_worker(rank, world_size, spk2wav, output_file):
     """工作进程函数"""
     try:
         # 初始化分布式环境
-        backend = 'nccl' if torch.cuda.is_available() else 'gloo'
+        # 对于单GPU环境，使用gloo后端避免NCCL冲突
+        if torch.cuda.is_available():
+            num_gpus = torch.cuda.device_count()
+            if num_gpus == 1 and world_size > 1:
+                logger.info(f"Rank {rank}: 检测到单GPU环境，使用gloo后端")
+                backend = 'gloo'
+            else:
+                backend = 'nccl'
+        else:
+            backend = 'gloo'
+        
         logger.info(f"Rank {rank}: 初始化分布式环境，backend={backend}")
         dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
         logger.info(f"Rank {rank}: 分布式环境初始化成功")
@@ -242,10 +252,21 @@ def process_worker(rank, world_size, spk2wav, output_file):
         return
     
     # 设置设备
-    device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
-    torch.cuda.set_device(device) if torch.cuda.is_available() else None
-    
-    logger.info(f"Rank {rank}: 使用设备 {device}")
+    if torch.cuda.is_available():
+        num_gpus = torch.cuda.device_count()
+        if num_gpus == 1 and world_size > 1:
+            # 单GPU多进程环境，所有进程共享同一个GPU
+            device = torch.device('cuda:0')
+            torch.cuda.set_device(device)
+            logger.info(f"Rank {rank}: 单GPU环境，使用设备 {device}")
+        else:
+            # 多GPU环境，每个进程使用不同的GPU
+            device = torch.device(f'cuda:{rank}')
+            torch.cuda.set_device(device)
+            logger.info(f"Rank {rank}: 多GPU环境，使用设备 {device}")
+    else:
+        device = torch.device('cpu')
+        logger.info(f"Rank {rank}: 使用设备 {device}")
     
     # 创建数据集
     dataset = VoxCeleb2Dataset(spk2wav, rank, world_size)

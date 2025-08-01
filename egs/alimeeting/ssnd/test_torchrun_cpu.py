@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-简化的torchrun测试版本
-用于验证基本的多进程功能
+CPU版本的torchrun测试
+专门用于单GPU或CPU环境
 """
 
 import os
@@ -42,7 +42,8 @@ def process_single_file(wav_path, rank):
         # 读取音频
         wav, sr = sf.read(wav_path)
         
-        # 初始化VAD模型（在单GPU环境中，所有进程共享同一个GPU）
+        # 初始化VAD模型（强制使用CPU）
+        os.environ['CUDA_VISIBLE_DEVICES'] = ''  # 禁用GPU
         vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
         
         # 执行VAD检测
@@ -70,7 +71,7 @@ def process_single_file(wav_path, rank):
         }
 
 def main():
-    parser = argparse.ArgumentParser(description="简化的torchrun测试")
+    parser = argparse.ArgumentParser(description="CPU版本的torchrun测试")
     parser.add_argument("--local_rank", type=int, default=0)
     args = parser.parse_args()
     
@@ -80,22 +81,14 @@ def main():
     
     logger.info(f"进程信息: rank={rank}, world_size={world_size}")
     
-    # 初始化分布式环境
+    # 强制使用CPU
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+    torch.cuda.is_available = lambda: False
+    
+    # 初始化分布式环境（使用gloo后端）
     try:
-        # 对于单GPU环境，使用gloo后端避免NCCL冲突
-        if torch.cuda.is_available():
-            # 检查GPU数量
-            num_gpus = torch.cuda.device_count()
-            if num_gpus == 1 and world_size > 1:
-                logger.info(f"Rank {rank}: 检测到单GPU环境，使用gloo后端")
-                backend = 'gloo'
-            else:
-                backend = 'nccl'
-        else:
-            backend = 'gloo'
-        
-        dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
-        logger.info(f"Rank {rank}: 分布式环境初始化成功，backend={backend}")
+        dist.init_process_group(backend='gloo', rank=rank, world_size=world_size)
+        logger.info(f"Rank {rank}: 分布式环境初始化成功，使用gloo后端")
     except Exception as e:
         logger.error(f"Rank {rank}: 分布式环境初始化失败: {e}")
         return
