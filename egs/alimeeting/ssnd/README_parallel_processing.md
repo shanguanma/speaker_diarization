@@ -217,15 +217,35 @@ python remove_silent_and_get_spk2chunks.py \
 
 ### 文件说明
 
-- `remove_silent_and_get_spk2chunks_torchrun.py`: 基于torchrun的多进程版本
+- `remove_silent_and_get_spk2chunks_torchrun.py`: 基于torchrun的简化多进程版本（推荐）
+- `torchrun_remove_silent_ref.py`: 参考文件，展示了简化的torchrun模式
 - `run_torchrun.sh`: 自动检测GPU数量的运行脚本
 - `run_torchrun_flexible.sh`: 支持自定义进程数的运行脚本
 - `test_torchrun_simple.py`: 简化的torchrun测试版本
 - `test_torchrun_basic.sh`: 测试torchrun基本功能的脚本
+- `test_torchrun_simple_new.sh`: 测试新的简化torchrun版本的脚本
 
 ### 使用方法
 
-#### 1. 基本使用
+#### 1. 基本使用（推荐）
+```bash
+# 测试新的简化版本
+chmod +x test_torchrun_simple_new.sh
+./test_torchrun_simple_new.sh
+
+# 或者直接运行
+torchrun \
+    --nproc_per_node=4 \
+    --nnodes=1 \
+    --node_rank=0 \
+    --master_addr=localhost \
+    --master_port=29500 \
+    remove_silent_and_get_spk2chunks_torchrun.py \
+    --voxceleb2-dataset-dir /path/to/dataset \
+    --out-text /path/to/output.json
+```
+
+#### 2. 自动检测GPU数量
 ```bash
 # 自动检测GPU数量
 chmod +x run_torchrun.sh
@@ -266,6 +286,8 @@ torchrun \
 2. **GPU资源隔离**: 每个进程使用独立的GPU资源
 3. **更好的稳定性**: 避免了Python线程池的复杂性
 4. **原生PyTorch支持**: 使用PyTorch官方的分布式框架
+5. **简化的架构**: 参考成熟的torchrun模式，代码更简洁可靠
+6. **文件级并行**: 每个进程处理不同的文件，避免复杂的分布式通信
 
 ### 注意事项
 
