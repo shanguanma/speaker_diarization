@@ -34,7 +34,6 @@ torchrun \
     --nproc_per_node=$NUM_PROCESSES \
     --nnodes=1 \
     --node_rank=0 \
-    --master_addr=localhost \
     --master_port=29500 \
     test_torchrun_simple.py
 
@@ -52,7 +51,6 @@ if [[ $choice == "y" || $choice == "Y" ]]; then
         --nproc_per_node=$NUM_PROCESSES \
         --nnodes=1 \
         --node_rank=0 \
-        --master_addr=localhost \
         --master_port=29501 \
         remove_silent_and_get_spk2chunks_torchrun.py \
         --voxceleb2-dataset-dir /maduo/datasets/voxceleb2/vox2_dev/ \

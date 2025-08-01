@@ -44,7 +44,7 @@ torchrun \
     --node_rank=0 \
     --master_addr=localhost \
     --master_port=29500 \
-    remove_silent_and_get_spk2chunks_torchrun.py \
+    ssnd/remove_silent_and_get_spk2chunks_torchrun.py \
     --voxceleb2-dataset-dir $VOXCELEB2_DIR \
     --out-text $OUTPUT_FILE
 
