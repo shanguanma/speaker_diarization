@@ -231,9 +231,15 @@ def load_dataset_info(voxceleb2_dataset_dir):
 
 def process_worker(rank, world_size, spk2wav, output_file):
     """工作进程函数"""
-    # 初始化分布式环境
-    dist.init_process_group(backend='nccl' if torch.cuda.is_available() else 'gloo', 
-                           rank=rank, world_size=world_size)
+    try:
+        # 初始化分布式环境
+        backend = 'nccl' if torch.cuda.is_available() else 'gloo'
+        logger.info(f"Rank {rank}: 初始化分布式环境，backend={backend}")
+        dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
+        logger.info(f"Rank {rank}: 分布式环境初始化成功")
+    except Exception as e:
+        logger.error(f"Rank {rank}: 分布式环境初始化失败: {e}")
+        return
     
     # 设置设备
     device = torch.device(f'cuda:{rank}' if torch.cuda.is_available() else 'cpu')
@@ -241,9 +247,8 @@ def process_worker(rank, world_size, spk2wav, output_file):
     
     logger.info(f"Rank {rank}: 使用设备 {device}")
     
-    # 创建数据集和数据加载器
+    # 创建数据集
     dataset = VoxCeleb2Dataset(spk2wav, rank, world_size)
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
     
     # 初始化VAD处理器
     vad_processor = VADProcessor(device)
@@ -254,8 +259,9 @@ def process_worker(rank, world_size, spk2wav, output_file):
     
     logger.info(f"Rank {rank}: 开始处理 {len(dataset)} 个文件")
     
-    for batch in tqdm(dataloader, desc=f"Rank {rank}", disable=rank != 0):
-        wav_path, spk_id = batch[0]
+    # 直接遍历数据集，避免DataLoader的复杂性
+    for i in tqdm(range(len(dataset)), desc=f"Rank {rank}", disable=rank != 0):
+        wav_path, spk_id = dataset[i]
         result = vad_processor.process_audio(wav_path, spk_id)
         
         if result['success']:
@@ -267,8 +273,8 @@ def process_worker(rank, world_size, spk2wav, output_file):
             failed_files.append(result)
     
     # 收集所有进程的结果
-    all_results = [results]
-    all_failed = [failed_files]
+    all_results = [None] * world_size
+    all_failed = [None] * world_size
     
     # 使用all_gather收集所有进程的结果
     dist.all_gather_object(all_results, results)

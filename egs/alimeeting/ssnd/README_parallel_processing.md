@@ -209,4 +209,67 @@ python remove_silent_and_get_spk2chunks.py \
 1. **GPU加速**: 对于VAD模型，可以考虑使用GPU加速
 2. **分布式处理**: 对于超大规模数据集，可以考虑分布式处理
 3. **缓存机制**: 添加处理结果缓存，避免重复处理
-4. **断点续传**: 支持中断后继续处理的功能 
+4. **断点续传**: 支持中断后继续处理的功能
+
+## torchrun多进程分布式处理
+
+为了解决GPU线程冲突问题，我们提供了基于`torchrun`的多进程分布式处理方案。
+
+### 文件说明
+
+- `remove_silent_and_get_spk2chunks_torchrun.py`: 基于torchrun的多进程版本
+- `run_torchrun.sh`: 自动检测GPU数量的运行脚本
+- `run_torchrun_flexible.sh`: 支持自定义进程数的运行脚本
+- `test_torchrun_simple.py`: 简化的torchrun测试版本
+- `test_torchrun_basic.sh`: 测试torchrun基本功能的脚本
+
+### 使用方法
+
+#### 1. 基本使用
+```bash
+# 自动检测GPU数量
+chmod +x run_torchrun.sh
+./run_torchrun.sh
+```
+
+#### 2. 自定义进程数
+```bash
+# 交互式选择进程数
+chmod +x run_torchrun_flexible.sh
+./run_torchrun_flexible.sh
+```
+
+#### 3. 测试功能
+```bash
+# 先测试基本功能
+chmod +x test_torchrun_basic.sh
+./test_torchrun_basic.sh
+```
+
+#### 4. 手动运行
+```bash
+# 使用2个进程
+torchrun \
+    --nproc_per_node=2 \
+    --nnodes=1 \
+    --node_rank=0 \
+    --master_addr=localhost \
+    --master_port=29500 \
+    remove_silent_and_get_spk2chunks_torchrun.py \
+    --voxceleb2-dataset-dir /path/to/dataset \
+    --out-text /path/to/output.json
+```
+
+### 优势
+
+1. **完全避免线程冲突**: 每个进程独立运行，不存在线程竞争
+2. **GPU资源隔离**: 每个进程使用独立的GPU资源
+3. **更好的稳定性**: 避免了Python线程池的复杂性
+4. **原生PyTorch支持**: 使用PyTorch官方的分布式框架
+
+### 注意事项
+
+1. **内存使用**: 每个进程都会加载独立的VAD模型，内存使用量会增加
+2. **进程数限制**: 建议进程数不超过GPU数量
+3. **端口冲突**: 确保使用的端口没有被其他程序占用
+4. **环境要求**: 需要正确安装PyTorch和NCCL（GPU模式） 
