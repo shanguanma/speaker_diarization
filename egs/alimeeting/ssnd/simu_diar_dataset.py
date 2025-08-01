@@ -13,7 +13,7 @@ class SimuDiarMixer:
                  spk2chunks: Dict[str, List[np.ndarray]],
                  sample_rate: int = 16000,
                  frame_length: float = 0.025, # 25ms
-                 frame_shift: float = 0.01, # 10ms
+                 frame_shift: float = 0.04, # 40ms only for preparing label,0.04s means 25 frames in 1s, means 1s has 25 labels, means downsample rate is 4.
                  num_mel_bins: int = 80,
                  max_mix_len: float = 30.0,
                  min_silence: float = 0.0,
@@ -191,8 +191,8 @@ class SimuDiarMixer:
         fbank = torchaudio.compliance.kaldi.fbank(
             wav_tensor.unsqueeze(0),
             num_mel_bins=num_mel_bins,
-            frame_length=int(frame_length*1000),
-            frame_shift=int(frame_shift*1000),
+            frame_length=25,
+            frame_shift=10,
             sample_frequency=sample_rate,
             use_log_fbank=True,
             dither=1.0,
@@ -208,7 +208,7 @@ class SimuDiarMixer:
         fbanks = []
         fbank_lens = []
         for mix, _, _ in batch:
-            fbank = self.extract_fbank(mix, sample_rate=self.sr, num_mel_bins=self.num_mel_bins, frame_length=self.frame_length, frame_shift=self.frame_shift)
+            fbank = self.extract_fbank(mix)
             fbanks.append(fbank)
             fbank_lens.append(fbank.shape[0])
         max_frames = max(fbank_lens)
@@ -225,14 +225,14 @@ class SimuDiarMixer:
             # fbank pad
             pad_fbank = np.pad(fbank, ((0, max_frames - fbank.shape[0]), (0, 0)), 'constant')
             fbanks_pad.append(pad_fbank)
-            # label对齐到fbank帧
+            # label对齐到fbank帧(这里的fbank 帧的帧移是40ms 也就是考虑了fbank 特征送入ResNetExtractor 后输出是下采样4倍的 )
             N, T_sample = label.shape
             T_fbank = fbank.shape[0]
             aligned_label = np.zeros((N, T_fbank), dtype=np.float32)
             win_length = int(self.frame_length * self.sr)
             hop_length = int(self.frame_shift * self.sr)
             for n in range(N):
-                for t in range(T_fbank):
+                for t in range(int(T_fbank/4)):
                     start = t * hop_length
                     end = min(start + win_length, T_sample)
                     aligned_label[n, t] = label[n, start:end].max()
@@ -248,6 +248,7 @@ class SimuDiarMixer:
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
 
         return wavs, labels, spk_ids_list, fbanks, labels_len
+    
 
     def collate_fn_wo_feat(self, batch):
         # batch: list of (mix, label, spk_ids)

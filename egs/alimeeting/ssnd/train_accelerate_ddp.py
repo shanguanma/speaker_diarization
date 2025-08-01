@@ -5,6 +5,10 @@ import warnings
 from pathlib import Path
 from shutil import copyfile
 from typing import Any, Dict, Optional, Tuple, Union, List
+from collections import defaultdict
+import librosa
+import soundfile as sf
+import numpy as np
 
 # import optim
 import torch
@@ -229,6 +233,8 @@ def get_parser():
     #parser.add_argument("--focal-gamma", type=float, default=2.0, help="Focal loss gamma parameter")
     parser.add_argument("--decoder-dropout", type=float, default=0.0, help="two decoder dropout rate")
     parser.add_argument("--extractor-dropout", type=float, default=0.0, help="apply dropout into output of extractor")
+    parser.add_argument("--voxceleb2-dataset-dir", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/", help="voxceleb2 kaldi format data dir")
+    parser.add_argument("--train-stage", type=int, default=1, help="use numbers to determine train stage")
     add_finetune_arguments(parser)
     return parser
 
@@ -1036,52 +1042,105 @@ def build_test_dl(args, spk2int):
     )
     return test_dl
 def vad_func(wav,sr):
-    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4")
+    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
     if wav.dtype != np.int16:
         wav = (wav * 32767).astype(np.int16)
         result = fsmn_vad_model.generate(wav, fs=sr)
         time_stamp = result[0]['value']
         return time_stamp # in ms
 
+def spktochunks(args):
+    voxceleb2_dataset_dir=args.voxceleb2_dataset_dir
+    wavscp =  f"{args.voxceleb2_dataset_dir}/wav.scp"
+    spk2utt = f"{args.voxceleb2_dataset_dir}/spk2utt"
+    spk2wav = defaultdict(list)
+    wav2scp = {}
+    with open(wavscp,'r')as fscp:
+        for line in fscp:
+            line = line.strip().split()
+            key = line[0]
+            wav2scp[key] = line[1]
+
+    with open(spk2utt, 'r')as fspk:
+        for line in fspk:
+            line = line.strip().split()
+            key = line[0]
+            paths = [wav2scp[i] for i in line[1:]]
+            if key in spk2wav:
+                spk2wav[key].append(paths)
+            else:
+                spk2wav[key] = paths
+
+    spk2chunks=defaultdict(list)
+    for spk_id in spk2wav.keys():
+        for wav_path in spk2wav[spk_id]:
+            wav, sr = sf.read(wav_path)
+            if sr != 16000:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            time_stamp_list = vad_func(wav,sr=16000)
+            # in ms ->(/1000) in second ->(*16000) in sample points
+            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+            if spk_id in spk2chunks:
+                spk2chunks[spk_id].append(speech_chunks)
+            else:
+                spk2chunks[spk_id] = speech_chunks
+
+
+def build_global_spk2int(args):
+    """
+    统计给定TextGrid目录下的说话人，生成spk2int。
+    支持多个目录联合统计。
+    """
+    spk_ids = set()
+    # 1. real dataset  speaker i.e. alimeeting
+    textgrid_dirs=[args.train_textgrid_dir, args.valid_textgrid_dir]
+    for textgrid_dir in textgrid_dirs:
+        tg_dir = Path(textgrid_dir)
+        for tg_file in tg_dir.glob('*.TextGrid'):
+            try:
+                tg = textgrid.TextGrid.fromFile(str(tg_file))
+                for tier in tg:
+                    if tier.name.strip():
+                        spk_ids.add(tier.name[-9:]) # 保证和AlimeetingDiarDataset一致
+            except Exception as e:
+                logging.warning(f"Could not process {tg_file}: {e}")
+
+    # 2. simu dataset speaker i.e. we use voxceleb2 audio to simulate mix audio, so I use speakers of voxceleb2.
+    utt2spk = f"{args.voxceleb2_dataset_dir}/utt2spk"
+    with open(utt2spk, 'r') as f:
+        for line in f:
+            line = line.strip().split()
+            spkid = line[1]
+            spk_ids.add(spkid)
+
+
+    spk2int = {spk: i for i, spk in enumerate(sorted(list(spk_ids)))}
+    logging.info(f"Found {len(spk2int)} unique speakers in the provided set.")
+    logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
+    return spk2int
+
 def build_simu_data_train_dl(args, spk2int):
     logging.info("Building simu data train dataloader with training spk2int...")
-    def spktochunks():
-        from collections import defaultdict
-        import librosa
-        spk2wav={"spk1":["/data/maduo/datasets/test_wavs/3-sichuan.wav"],
-            'spk2':["/data/maduo/datasets/test_wavs/5-henan.wav"],
-            'spk3':["/data/maduo/datasets/test_wavs/zh.wav"],
-            'spk4':["/data/maduo/datasets/test_wavs/yue.wav"],
-            }
-        spk2chunks=defaultdict(list)
-        for spk_id in spk2wav.keys():
-            for wav_path in spk2wav[spk_id]:
-                wav, sr = sf.read(wav_path)
-                if sr != 16000:
-                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-                time_stamp_list = vad_func(wav,sr=16000)
-                # in ms ->(/1000) in second ->(*16000) in sample points
-                speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-                if spk_id in spk2chunks:
-                    spk2chunks[spk_id].append(speech_chunks)
-                else:
-                    spk2chunks[spk_id] = speech_chunks
-        return spk2chunks
-    train_dataset = AlimeetingDiarDataset(
-        wav_dir=args.train_wav_dir,
-        textgrid_dir=args.train_textgrid_dir,
+    train_dataset = SimuDiarMixer(
+        spk2chunks=spktochunks(args),
         sample_rate=16000,
-        frame_shift=0.04, # 25fps to match vad_out_len
+        frame_length=0.025, # 25ms
+        frame_shift=0.04, # 25fps(1s audio 25 labels, 8s audio 200 labels) to match vad_out_len, vad_out_len=200
+        num_mel_bins=80,
+        max_mix_len=8.0, # 8s
+        min_silence=0.0,
+        max_silence=4.0,
+        min_speakers=1,
+        max_speakers=3,
+        target_overlap=0.2,
         musan_path=args.musan_path,
         rir_path=args.rir_path,
         noise_ratio=args.noise_ratio,
-        window_sec=args.window_sec,
-        window_shift_sec=args.window_shift_sec
     )
     vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
     def collate_fn_wrapper(batch):
         wavs, labels, spk_ids_list, fbanks, labels_len = train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
-        max_spks_in_batch = labels.shape[1]
+        max_spks_in_batch = labels.shape[1] # b,spks,vad_out_len
         spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
         for i, spk_id_sample in enumerate(spk_ids_list):
             for j, spk_id in enumerate(spk_id_sample):
@@ -1121,23 +1180,25 @@ def main():
         project_dir=args.exp_dir,
     )
 
-    # 构建spk2int (用训练集和验证集联合)
-    spk2int = build_spk2int(args.train_textgrid_dir, args.valid_textgrid_dir)
+    # 构建global spk2int (用真实的训练集和验证集和模拟的训练集)
+    spk2int = build_global_spk2int(args)
     logging.info(f"spk2int: {spk2int}")
     params.n_all_speakers = len(spk2int)
     
     
     # build train/valid dataloader
-    train_dl = build_train_dl(args, spk2int)
-    valid_dl = build_valid_dl(args, spk2int)
-    # build train/vaild dataloader with local spk2int
-    #train_dl = build_train_dl_with_local_spk2int(args)
-    #valid_dl = build_valid_dl_with_local_spk2int(args)
-    #batch = next(iter(train_dl))
-    #_, _, spk_label_idx, _ = batch
-    #params.n_all_speakers = int((spk_label_idx.max() + 1).item()) if (spk_label_idx >= 0).any() else args.max_speakers
-    #if args.test_textgrid_dir and args.test_wav_dir:
-    #    test_dl = build_test_dl(args, spk2int)
+    if args.train_stage==1:
+        # using simulated training set as trainset, dev set of alimeeting as devset.
+        train_dl_simu = build_simu_data_train_dl(args, spk2int)
+        valid_dl = build_valid_dl(args, spk2int)
+    elif args.train_stage==2:
+        # using 80% simulated training set as trainset and 20% train set of alimeeting as trainset, dev set of alimeeting as devset.
+        train_dl_simu = build_simu_data_train_dl(args, spk2int)
+        train_dl = build_train_dl(args, spk2int)
+        valid_dl = build_valid_dl(args, spk2int)
+    elif args.train_stage==3:
+        train_dl = build_train_dl(args, spk2int)
+        valid_dl = build_valid_dl(args, spk2int)
 
     writer: Optional[SummaryWriter] = None
     if accelerator.is_main_process and params.tensorboard:
