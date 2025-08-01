@@ -98,24 +98,7 @@ def vad_detect(wav, sr):
             wav_int16 = (wav_normalized * 32767).astype(np.int16)
         else:
             wav_int16 = wav
-        
-#        # 检查转换后的数据是否有效
-#        if len(wav_int16) == 0:
-#            return []
-#        
-#        # 添加额外的安全检查
-#        if len(wav_int16) > sr * 3600:  # 超过1小时的音频跳过
-#            return []
-#        
-#        # 确保音频数据是连续的numpy数组
-#        wav_int16 = np.ascontiguousarray(wav_int16)
-#        
-#        # 确保输入格式正确
-#        if wav_int16.ndim == 1:
-#            wav_input = wav_int16.reshape(1, -1)  # 转换为2D数组 (1, samples)
-#        else:
-#            wav_input = wav_int16
-#       
+
         wav_input=wav_int16
         result = vad_model.generate(wav_input, fs=sr)
         time_stamp = result[0]['value']
@@ -133,7 +116,7 @@ def process_audio_file(wav_path, spk_id):
             return {
                 'spk_id': spk_id,
                 'wav_path': wav_path,
-                'speech_chunks': [],
+                'time_stamp_list': [],
                 'success': False,
                 'error': f"文件不存在: {wav_path}"
             }
@@ -144,7 +127,7 @@ def process_audio_file(wav_path, spk_id):
             return {
                 'spk_id': spk_id,
                 'wav_path': wav_path,
-                'speech_chunks': [],
+                'time_stamp_list': [],
                 'success': False,
                 'error': f"文件大小为0: {wav_path}"
             }
@@ -156,7 +139,7 @@ def process_audio_file(wav_path, spk_id):
             return {
                 'spk_id': spk_id,
                 'wav_path': wav_path,
-                'speech_chunks': [],
+                'time_stamp_list': [],
                 'success': False,
                 'error': f"音频文件读取失败: {e}"
             }
@@ -166,7 +149,7 @@ def process_audio_file(wav_path, spk_id):
             return {
                 'spk_id': spk_id,
                 'wav_path': wav_path,
-                'speech_chunks': [],
+                'time_stamp_list': [],
                 'success': False,
                 'error': f"音频数据为空: {wav_path}"
             }
@@ -179,19 +162,19 @@ def process_audio_file(wav_path, spk_id):
                 return {
                     'spk_id': spk_id,
                     'wav_path': wav_path,
-                    'speech_chunks': [],
+                    'time_stamp_list': [],
                     'success': False,
                     'error': f"音频重采样失败: {e}"
                 }
         
         # 执行VAD检测
-        speech_chunks = vad_detect(wav, sr=16000)
+        time_stamp_list = vad_detect(wav, sr=16000)
         # in ms ->(/1000) in second ->(*16000) in sample points
-        speech_chunks = [wav[int(s*16):int(e*16)].tolist() for s, e in speech_chunks]        
+        #time_stamp_list = [wav[int(s*16):int(e*16)].tolist() for s, e in time_stamp_list]        
         return {
             'spk_id': spk_id,
             'wav_path': wav_path,
-            'speech_chunks': speech_chunks,
+            'time_stamp_list': time_stamp_list,
             'success': True
         }
         
@@ -200,7 +183,7 @@ def process_audio_file(wav_path, spk_id):
         return {
             'spk_id': spk_id,
             'wav_path': wav_path,
-            'speech_chunks': [],
+            'time_stamp_list': [],
             'success': False,
             'error': str(e)
         }
@@ -225,7 +208,7 @@ def process_local_tasks(local_tasks, output_file):
                 if result['success']:
                     results[spk_id].append({
                         'wav_path': result['wav_path'],
-                        'speech_chunks': result['speech_chunks']
+                        'time_stamp_list': result['time_stamp_list']
                     })
                 else:
                     failed_files.append(result)
@@ -234,7 +217,7 @@ def process_local_tasks(local_tasks, output_file):
                 failed_files.append({
                     'spk_id': spk_id,
                     'wav_path': wav_path,
-                    'speech_chunks': [],
+                    'time_stamp_list': [],
                     'success': False,
                     'error': str(e)
                 })
@@ -245,7 +228,7 @@ def process_local_tasks(local_tasks, output_file):
             for spk_id, spk_results in results.items():
                 spk2chunks = defaultdict(list)
                 for item in spk_results:
-                    spk2chunks[spk_id].append(item['speech_chunks'])
+                    spk2chunks[spk_id].append(item['time_stamp_list'])
                 
                 res = {
                     'spk_id': spk_id,
@@ -267,7 +250,7 @@ def process_local_tasks(local_tasks, output_file):
             spk2chunks = defaultdict(list)
             #spk2wav_paths = defaultdict(list)
             for item in spk_results:
-                spk2chunks[spk_id].append(item['speech_chunks'])
+                spk2chunks[spk_id].append(item['time_stamp_list'])
                 #spk2wav_paths[spk_id].append(item['wav_path'])
             res = {
                 'spk_id': spk_id,
