@@ -53,26 +53,44 @@ def load_dataset_info(voxceleb2_dataset_dir):
     
     return spk2wav
 
+# 全局VAD模型，避免重复初始化
+_vad_model = None
+
+def get_vad_model():
+    """获取VAD模型（单例模式）"""
+    global _vad_model
+    if _vad_model is None:
+        try:
+            logger.info("初始化VAD模型...")
+            _vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
+            logger.info("VAD模型初始化成功")
+        except Exception as e:
+            logger.error(f"VAD模型初始化失败: {e}")
+            return None
+    return _vad_model
+
 def vad_detect(wav, sr):
     """VAD检测函数"""
     try:
-#        # 检查音频长度
-#        if len(wav) < sr * 0.1:  # 小于0.1秒的音频跳过
-#            return []
-#        
-#        # 确保音频是1D数组
-#        if wav.ndim > 1:
-#            wav = wav.flatten()
-#        
-#        # 检查音频数据是否包含NaN或无穷大值
-#        if np.any(np.isnan(wav)) or np.any(np.isinf(wav)):
-#            return []
-#        
-#        # 确保音频数据在合理范围内
-#        wav = np.clip(wav, -1.0, 1.0)
-#        
-#        # 初始化VAD模型
-        vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
+        # 检查音频长度
+        if len(wav) < sr * 0.1:  # 小于0.1秒的音频跳过
+            return []
+        
+        # 确保音频是1D数组
+        if wav.ndim > 1:
+            wav = wav.flatten()
+        
+        # 检查音频数据是否包含NaN或无穷大值
+        if np.any(np.isnan(wav)) or np.any(np.isinf(wav)):
+            return []
+        
+        # 确保音频数据在合理范围内
+        wav = np.clip(wav, -1.0, 1.0)
+        
+        # 获取VAD模型
+        vad_model = get_vad_model()
+        if vad_model is None:
+            return []
         
         # 更安全的数据类型转换
         if wav.dtype != np.int16:
@@ -194,16 +212,53 @@ def process_local_tasks(local_tasks, output_file):
     
     logger.info(f"开始处理 {len(local_tasks)} 个文件")
     
-    for wav_path, spk_id in tqdm(local_tasks, desc="处理音频文件"):
-        result = process_audio_file(wav_path, spk_id)
+    # 分批处理，避免内存溢出
+    batch_size = 50  # 每批处理50个文件
+    for i in range(0, len(local_tasks), batch_size):
+        batch_tasks = local_tasks[i:i+batch_size]
+        logger.info(f"处理批次 {i//batch_size + 1}/{(len(local_tasks) + batch_size - 1)//batch_size}")
         
-        if result['success']:
-            results[spk_id].append({
-                'wav_path': result['wav_path'],
-                'speech_chunks': result['speech_chunks']
-            })
-        else:
-            failed_files.append(result)
+        for wav_path, spk_id in tqdm(batch_tasks, desc=f"批次 {i//batch_size + 1}"):
+            try:
+                result = process_audio_file(wav_path, spk_id)
+                
+                if result['success']:
+                    results[spk_id].append({
+                        'wav_path': result['wav_path'],
+                        'speech_chunks': result['speech_chunks']
+                    })
+                else:
+                    failed_files.append(result)
+            except Exception as e:
+                logger.error(f"处理文件失败 {wav_path}: {e}")
+                failed_files.append({
+                    'spk_id': spk_id,
+                    'wav_path': wav_path,
+                    'speech_chunks': [],
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        # 每批处理后保存临时结果
+        temp_output_file = f"{output_file}.rank_{os.environ.get('LOCAL_RANK', 0)}.batch_{i//batch_size}"
+        with open(temp_output_file, "w") as f:
+            for spk_id, spk_results in results.items():
+                spk2chunks = defaultdict(list)
+                for item in spk_results:
+                    spk2chunks[spk_id].append(item['speech_chunks'])
+                
+                res = {
+                    'spk_id': spk_id,
+                    'results': spk2chunks,
+                }
+                json.dump(res, f)
+                f.write("\n")
+        
+        logger.info(f"批次 {i//batch_size + 1} 完成，临时结果保存到: {temp_output_file}")
+        
+        # 清理内存
+        import gc
+        gc.collect()
     
     # 保存本地结果到临时文件
     temp_output_file = f"{output_file}.rank_{os.environ.get('LOCAL_RANK', 0)}"
