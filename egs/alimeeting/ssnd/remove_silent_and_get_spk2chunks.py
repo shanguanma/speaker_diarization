@@ -9,18 +9,70 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import logging
 from tqdm import tqdm
+import threading
 
 # 设置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# 全局VAD模型，使用线程本地存储
+_vad_model_local = threading.local()
+
+def get_vad_model():
+    """获取线程本地的VAD模型"""
+    if not hasattr(_vad_model_local, 'model'):
+        try:
+            _vad_model_local.model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
+        except Exception as e:
+            logger.error(f"VAD模型初始化失败: {e}")
+            return None
+    return _vad_model_local.model
+
 def vad_func(wav, sr):
     """VAD函数，检测语音活动"""
     try:
-        fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
+        # 检查音频长度，如果太短则跳过
+        if len(wav) < sr * 0.1:  # 小于0.1秒的音频跳过
+            logger.warning(f"音频太短，跳过处理: {len(wav)} samples")
+            return []
+        
+        # 确保音频是1D数组
+        if wav.ndim > 1:
+            wav = wav.flatten()
+        
+        # 检查音频数据是否包含NaN或无穷大值
+        if np.any(np.isnan(wav)) or np.any(np.isinf(wav)):
+            logger.warning(f"音频数据包含NaN或无穷大值，跳过处理")
+            return []
+        
+        # 确保音频数据在合理范围内
+        wav = np.clip(wav, -1.0, 1.0)
+        
+        # 获取VAD模型
+        fsmn_vad_model = get_vad_model()
+        if fsmn_vad_model is None:
+            return []
+        
+        # 更安全的数据类型转换
         if wav.dtype != np.int16:
-            wav = (wav * 32767).astype(np.int16)
-        result = fsmn_vad_model.generate(wav, fs=sr)
+            # 确保音频数据在[-1, 1]范围内
+            wav_normalized = np.clip(wav, -1.0, 1.0)
+            # 转换为int16，避免溢出
+            wav_int16 = (wav_normalized * 32767).astype(np.int16)
+        else:
+            wav_int16 = wav
+        
+        # 检查转换后的数据是否有效
+        if len(wav_int16) == 0:
+            logger.warning(f"转换后的音频数据为空")
+            return []
+        
+        # 添加额外的安全检查
+        if len(wav_int16) > sr * 3600:  # 超过1小时的音频跳过
+            logger.warning(f"音频太长，跳过处理: {len(wav_int16)} samples")
+            return []
+        
+        result = fsmn_vad_model.generate(wav_int16, fs=sr)
         time_stamp = result[0]['value']
         return time_stamp  # in ms
     except Exception as e:
@@ -31,10 +83,61 @@ def process_single_wav(args):
     """处理单个音频文件的函数，用于并行执行"""
     wav_path, spk_id = args
     try:
+        # 检查文件是否存在
+        if not os.path.exists(wav_path):
+            return {
+                'spk_id': spk_id,
+                'wav_path': wav_path,
+                'time_stamp_list': [],
+                'success': False,
+                'error': f"文件不存在: {wav_path}"
+            }
+        
+        # 检查文件大小
+        file_size = os.path.getsize(wav_path)
+        if file_size == 0:
+            return {
+                'spk_id': spk_id,
+                'wav_path': wav_path,
+                'time_stamp_list': [],
+                'success': False,
+                'error': f"文件大小为0: {wav_path}"
+            }
+        
         # 读取音频文件
-        wav, sr = sf.read(wav_path)
+        try:
+            wav, sr = sf.read(wav_path)
+        except Exception as e:
+            return {
+                'spk_id': spk_id,
+                'wav_path': wav_path,
+                'time_stamp_list': [],
+                'success': False,
+                'error': f"音频文件读取失败: {e}"
+            }
+        
+        # 检查音频数据
+        if wav is None or len(wav) == 0:
+            return {
+                'spk_id': spk_id,
+                'wav_path': wav_path,
+                'time_stamp_list': [],
+                'success': False,
+                'error': f"音频数据为空: {wav_path}"
+            }
+        
+        # 重采样到16kHz
         if sr != 16000:
-            wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            try:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            except Exception as e:
+                return {
+                    'spk_id': spk_id,
+                    'wav_path': wav_path,
+                    'time_stamp_list': [],
+                    'success': False,
+                    'error': f"音频重采样失败: {e}"
+                }
         
         # 执行VAD检测
         time_stamp_list = vad_func(wav, sr=16000)
@@ -101,8 +204,19 @@ def spktochunks(args):
     logger.info(f"总共需要处理 {len(tasks)} 个音频文件，涉及 {len(spk2wav)} 个说话人")
     
     # 使用线程池并行处理
-    max_workers = args.max_workers if hasattr(args, 'max_workers') else min(32, os.cpu_count() + 4)
+    if hasattr(args, 'max_workers') and args.max_workers is not None:
+        max_workers = args.max_workers
+    else:
+        # 默认使用较少的线程数，避免内存和资源竞争问题
+        max_workers = min(16, os.cpu_count() + 2)
+    
     logger.info(f"使用 {max_workers} 个线程进行并行处理")
+    logger.info(f"系统CPU核心数: {os.cpu_count()}")
+    
+    # 如果线程数设置过高，给出警告
+    if max_workers > 32:
+        logger.warning(f"线程数设置较高 ({max_workers})，可能会导致内存不足或VAD模型冲突")
+        logger.warning("建议将线程数设置为16-24之间")
     
     results = defaultdict(list)
     failed_files = []
