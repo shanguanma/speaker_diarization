@@ -1368,7 +1368,56 @@ if [ ${stage} -le 141 ] && [ ${stop_stage} -ge 141 ];then
  done
 done
 fi
+#grep -r Eval logs/run_ts_vad2_hltsz_stage141.log
+#2025-07-18 19:08:04,313 (infer2:255) INFO: currently, it will infer Eval set.
+# Eval of alimeeting, collar=0.0
+#Eval for threshold 0.20: DER 16.52%, MS 2.16%, FA 13.64%, SC 0.72%
+#Eval for threshold 0.30: DER 13.10%, MS 3.29%, FA 8.97%, SC 0.84%
+#Eval for threshold 0.35: DER 12.20%, MS 3.87%, FA 7.47%, SC 0.86%
+#Eval for threshold 0.40: DER 11.64%, MS 4.48%, FA 6.29%, SC 0.87%
+#Eval for threshold 0.45: DER 11.27%, MS 5.13%, FA 5.27%, SC 0.87%
+#Eval for threshold 0.50: DER 11.14%, MS 5.86%, FA 4.45%, SC 0.83%
+#Eval for threshold 0.55: DER 11.17%, MS 6.57%, FA 3.78%, SC 0.81%
+#Eval for threshold 0.60: DER 11.42%, MS 7.47%, FA 3.22%, SC 0.73%
+#Eval for threshold 0.70: DER 12.46%, MS 9.60%, FA 2.27%, SC 0.59%
+#Eval for threshold 0.80: DER 14.57%, MS 12.64%, FA 1.51%, SC 0.41%
 
+# Test of alimeeting, collar=0.0
+#Eval for threshold 0.20: DER 16.65%, MS 2.21%, FA 13.59%, SC 0.85%
+#Eval for threshold 0.30: DER 13.39%, MS 3.44%, FA 8.94%, SC 1.01%
+#Eval for threshold 0.35: DER 12.56%, MS 4.11%, FA 7.37%, SC 1.08%
+#Eval for threshold 0.40: DER 12.07%, MS 4.82%, FA 6.13%, SC 1.12%
+#Eval for threshold 0.45: DER 11.88%, MS 5.59%, FA 5.15%, SC 1.13%
+#Eval for threshold 0.50: DER 11.87%, MS 6.44%, FA 4.32%, SC 1.10%
+#Eval for threshold 0.55: DER 12.09%, MS 7.38%, FA 3.65%, SC 1.05%
+#Eval for threshold 0.60: DER 12.45%, MS 8.41%, FA 3.05%, SC 0.99%
+#Eval for threshold 0.70: DER 13.76%, MS 10.90%, FA 2.03%, SC 0.83%
+#Eval for threshold 0.80: DER 16.39%, MS 14.51%, FA 1.26%, SC 0.62%
+#2025-07-18 19:23:31,574 (infer2:255) INFO: currently, it will infer Eval set.
+
+# Eval of alimeeting, collar=0.25
+#Eval for threshold 0.20: DER 6.55%, MS 0.80%, FA 5.57%, SC 0.18%
+#Eval for threshold 0.30: DER 4.61%, MS 1.18%, FA 3.20%, SC 0.22%
+#Eval for threshold 0.35: DER 4.16%, MS 1.41%, FA 2.54%, SC 0.21%
+#Eval for threshold 0.40: DER 3.93%, MS 1.66%, FA 2.06%, SC 0.21%
+#Eval for threshold 0.45: DER 3.75%, MS 1.90%, FA 1.63%, SC 0.22%
+#Eval for threshold 0.50: DER 3.71%, MS 2.20%, FA 1.30%, SC 0.22% # as report
+#Eval for threshold 0.55: DER 3.75%, MS 2.51%, FA 1.05%, SC 0.19%
+#Eval for threshold 0.60: DER 4.02%, MS 2.97%, FA 0.88%, SC 0.17%
+#Eval for threshold 0.70: DER 4.78%, MS 4.05%, FA 0.60%, SC 0.13%
+#Eval for threshold 0.80: DER 6.22%, MS 5.71%, FA 0.44%, SC 0.07%
+
+# Test of alimeeting, collar-0.25
+#Eval for threshold 0.20: DER 7.08%, MS 0.93%, FA 5.82%, SC 0.33%
+#Eval for threshold 0.30: DER 5.09%, MS 1.47%, FA 3.24%, SC 0.38%
+#Eval for threshold 0.35: DER 4.65%, MS 1.78%, FA 2.46%, SC 0.41%
+#Eval for threshold 0.40: DER 4.41%, MS 2.09%, FA 1.87%, SC 0.45%
+#Eval for threshold 0.45: DER 4.35%, MS 2.45%, FA 1.45%, SC 0.45%
+#Eval for threshold 0.50: DER 4.46%, MS 2.89%, FA 1.13%, SC 0.45% as report
+#Eval for threshold 0.55: DER 4.69%, MS 3.38%, FA 0.89%, SC 0.42%
+#Eval for threshold 0.60: DER 4.98%, MS 3.94%, FA 0.66%, SC 0.39%
+#Eval for threshold 0.70: DER 6.00%, MS 5.36%, FA 0.34%, SC 0.30%
+#Eval for threshold 0.80: DER 7.90%, MS 7.52%, FA 0.19%, SC 0.20%
 
 
 # compared stage138-139 of run_ts_vad2.sh stage144-145 use cam++_200k to replese cam++ zh_en
