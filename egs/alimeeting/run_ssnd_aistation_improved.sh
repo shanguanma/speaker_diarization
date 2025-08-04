@@ -1106,14 +1106,38 @@ if [ ${stage} -le 17 ] && [ ${stop_stage} -ge 17 ];then
     --label-smoothing $label_smoothing
 fi
 
-
+if [ ${stage} -le 18 ] && [ ${stop_stage} -ge 18 ];then
+   # prepare voxceleb2 kaldi format
+   rawdata_dir=/F00120240032/VoxCeleb/vox2/dev/
+   data=/maduo/datasets/voxceleb2
+   find ${rawdata_dir} -name "*.wav" | awk -F"/" '{print $(NF-2)"/"$(NF-1)"/"$NF,$0}' | sort >${data}/vox2_dev/wav.scp
+   head ${data}/vox2_dev/wav.scp
+    awk '{print $1}' ${data}/vox2_dev/wav.scp | awk -F "/" '{print $0,$1}' >${data}/vox2_dev/utt2spk
+  ./utils/utt2spk_to_spk2utt.pl ${data}/vox2_dev/utt2spk >${data}/vox2_dev/spk2utt
+fi
 if [ ${stage} -le 19 ] && [ ${stop_stage} -ge 19 ];then
   # prepare spk2chunks files, it is removed silent clips from raw voxceleb2 audio
-  voxceleb2_dataset_dir=/maduo/datasets/voxceleb2/vox2_dev
-  python ssnd/remove_silent_and_get_spk2chunks.py\
-	   --voxceleb2-dataset-dir $voxceleb2_dataset_dir\
-	   --out-text $voxceleb2_dataset_dir/train.json
+  # 设置环境变量
+#   export NCCL_DEBUG=INFO
+#   export PYTHONFAULTHANDLER=1
+#
+#  # 运行新的简化版本
+#	NUM_PROCESSES=4
+#	echo "运行新的简化torchrun版本..."
+#	torchrun \
+#	    --nproc_per_node=$NUM_PROCESSES \
+#	    --nnodes=1 \
+#	    --node_rank=0 \
+#	    --master_addr=localhost \
+#	    --master_port=29500 \
+#	    ssnd/remove_silent_and_get_spk2chunks_torchrun.py \
+#	    --voxceleb2-dataset-dir /maduo/datasets/voxceleb2/vox2_dev/ \
+#	    --out-text /maduo/datasets/voxceleb2/vox2_dev/train_torchrun_simple.json
+#
 
+ python ssnd/remove_silent_and_get_spk2chunks.py\
+	 --voxceleb2-dataset-dir  /maduo/datasets/voxceleb2/vox2_dev/\
+	 --out-text /maduo/datasets/voxceleb2/vox2_dev/train.json
 fi
 # 
 if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
@@ -1142,6 +1166,7 @@ if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
    standard_bce_loss=true
    train_stage=1
    voxceleb2_dataset_dir=/maduo/datasets/voxceleb2/vox2_dev
+   voxceleb2_spk2chunks_json=$voxceleb2_dataset_dir/train.json
    #exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr1e-4_batch64_mask_prob_${mask_prob}_arcface_weight_${arcface_weight}_arcface_margin${arcface_margin}_arcface_scale${arcface_scale}_with_global_spk2int_max_speakers${max_speakers}_with_musan_rir_standard_bce_loss_${standard_bce_loss}_dropout0.05_weight_decay${weight_decay}_label_smoothing_${label_smoothing}_warmup4000_epoch20_train_stage1_voxceleb2
    exp_dir=/maduo/exp/speaker_diarization/ssnd/cam++_gsp_lr1e-4_batch64_standard_bce_loss_${standard_bce_loss}_train_stage1_voxceleb2
    mkdir -p $exp_dir
@@ -1181,6 +1206,7 @@ if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
     --extractor-dropout $extractor_dropout\
     --label-smoothing $label_smoothing\
     --train-stage $train_stage\
-    --voxceleb2-dataset-dir $voxceleb2_dataset_dir
+    --voxceleb2-dataset-dir $voxceleb2_dataset_dir\
+    --voxceleb2-spk2chunks-json $voxceleb2_spk2chunks_json
 fi
 

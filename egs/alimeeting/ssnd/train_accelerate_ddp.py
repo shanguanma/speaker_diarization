@@ -235,6 +235,8 @@ def get_parser():
     parser.add_argument("--extractor-dropout", type=float, default=0.0, help="apply dropout into output of extractor")
     parser.add_argument("--voxceleb2-dataset-dir", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/", help="voxceleb2 kaldi format data dir")
     parser.add_argument("--train-stage", type=int, default=1, help="use numbers to determine train stage")
+    parser.add_argument("--voxceleb2-spk2chunks-json", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/train.json", help="vad timestamp and spk_id  and wav_path")
+
     add_finetune_arguments(parser)
     return parser
 
@@ -1041,50 +1043,73 @@ def build_test_dl(args, spk2int):
         collate_fn=collate_fn_wrapper
     )
     return test_dl
-def vad_func(wav,sr):
-    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
-    if wav.dtype != np.int16:
-        wav = (wav * 32767).astype(np.int16)
-        result = fsmn_vad_model.generate(wav, fs=sr)
-        time_stamp = result[0]['value']
-        return time_stamp # in ms
-
+#def vad_func(wav,sr):
+#    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
+#    if wav.dtype != np.int16:
+#        wav = (wav * 32767).astype(np.int16)
+#        result = fsmn_vad_model.generate(wav, fs=sr)
+#        time_stamp = result[0]['value']
+#        return time_stamp # in ms
+#
+#def spktochunks(args):
+#    voxceleb2_dataset_dir=args.voxceleb2_dataset_dir
+#    wavscp =  f"{args.voxceleb2_dataset_dir}/wav.scp"
+#    spk2utt = f"{args.voxceleb2_dataset_dir}/spk2utt"
+#    spk2wav = defaultdict(list)
+#    wav2scp = {}
+#    with open(wavscp,'r')as fscp:
+#        for line in fscp:
+#            line = line.strip().split()
+#            key = line[0]
+#            wav2scp[key] = line[1]
+#
+#    with open(spk2utt, 'r')as fspk:
+#        for line in fspk:
+#            line = line.strip().split()
+#            key = line[0]
+#            paths = [wav2scp[i] for i in line[1:]]
+#            if key in spk2wav:
+#                spk2wav[key].append(paths)
+#            else:
+#                spk2wav[key] = paths
+#
+#    spk2chunks=defaultdict(list)
+#    for spk_id in spk2wav.keys():
+#        for wav_path in spk2wav[spk_id]:
+#            wav, sr = sf.read(wav_path)
+#            if sr != 16000:
+#                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+#            time_stamp_list = vad_func(wav,sr=16000)
+#            # in ms ->(/1000) in second ->(*16000) in sample points
+#            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+#            if spk_id in spk2chunks:
+#                spk2chunks[spk_id].append(speech_chunks)
+#            else:
+#                spk2chunks[spk_id] = speech_chunks
+#
 def spktochunks(args):
-    voxceleb2_dataset_dir=args.voxceleb2_dataset_dir
-    wavscp =  f"{args.voxceleb2_dataset_dir}/wav.scp"
-    spk2utt = f"{args.voxceleb2_dataset_dir}/spk2utt"
-    spk2wav = defaultdict(list)
-    wav2scp = {}
-    with open(wavscp,'r')as fscp:
-        for line in fscp:
-            line = line.strip().split()
-            key = line[0]
-            wav2scp[key] = line[1]
+    from tqdm import tqdm
+    lines = open(args.voxceleb2_spk2chunks_json).read().splitlines()
+    spk2chunks = defaultdict(list)
+    for line in lines:
+         dict = json.loads(line)
+         spk_id = dict["spk_id"]
+         wav_paths = dict["wav_paths"]
+         time_stamps = dict["result"]
+         assert len(wav_paths) == len(time_stamps), f"len(wav_paths): {len(wav_paths)} vs len(time_stamps): {len(time_stamps)}"
+         for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+             wav, sr = sf.read(wav_path)
+             if sr != 16000:
+                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+             # time_stamp_list is start /end , its unit is millisecond
+             # in ms ->(/1000) in second ->(*16000) in sample points
+             speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list] 
+             if spk_id in spk2chunks:
+                 spk2chunks[spk_id].append(speech_chunks)
+             else:
+                 spk2chunks[spk_id] = speech_chunks
 
-    with open(spk2utt, 'r')as fspk:
-        for line in fspk:
-            line = line.strip().split()
-            key = line[0]
-            paths = [wav2scp[i] for i in line[1:]]
-            if key in spk2wav:
-                spk2wav[key].append(paths)
-            else:
-                spk2wav[key] = paths
-
-    spk2chunks=defaultdict(list)
-    for spk_id in spk2wav.keys():
-        for wav_path in spk2wav[spk_id]:
-            wav, sr = sf.read(wav_path)
-            if sr != 16000:
-                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-            time_stamp_list = vad_func(wav,sr=16000)
-            # in ms ->(/1000) in second ->(*16000) in sample points
-            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-            if spk_id in spk2chunks:
-                spk2chunks[spk_id].append(speech_chunks)
-            else:
-                spk2chunks[spk_id] = speech_chunks
-
+    return spk2chunks
 
 def build_global_spk2int(args):
     """

@@ -102,6 +102,7 @@ def vad_detect(wav, sr):
         wav_input=wav_int16
         result = vad_model.generate(wav_input, fs=sr)
         time_stamp = result[0]['value']
+        # https://github.com/modelscope/FunASR/blob/main/examples/industrial_data_pretraining/fsmn_vad_streaming/demo.py#L16
         return time_stamp  # in ms
         
     except Exception as e:
@@ -229,13 +230,13 @@ def process_all_files(spk2wav, output_file):
                 })
         
         # 每批处理后保存临时结果
-        temp_output_file = f"{output_file}.batch_{i//batch_size}"
-        save_results_to_json(results, temp_output_file)
-        logger.info(f"批次 {i//batch_size + 1} 完成，临时结果保存到: {temp_output_file}")
+        #temp_output_file = f"{output_file}.batch_{i//batch_size}"
+        #save_results_to_json(results, temp_output_file)
+        #logger.info(f"批次 {i//batch_size + 1} 完成，临时结果保存到: {temp_output_file}")
         
         # 清理内存
-        import gc
-        gc.collect()
+        #import gc
+        #gc.collect()
     
     # 保存最终结果
     save_results_to_json(results, output_file)
