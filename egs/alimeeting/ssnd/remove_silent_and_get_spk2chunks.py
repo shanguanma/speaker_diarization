@@ -37,9 +37,22 @@ except ImportError:
     HAS_ZSTD = False
 
 # 设置日志
-formatter = "%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s"
-logging.basicConfig(format=formatter, level=logging.INFO)
-logger = logging.getLogger(__name__)
+def setup_logging():
+    """设置日志配置"""
+    # 强制重新配置日志
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',
+        force=True,
+        handlers=[
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    
+    return logging.getLogger(__name__)
+
+# 初始化日志
+logger = setup_logging()
 
 def load_dataset_info(voxceleb2_dataset_dir):
     """加载数据集信息"""
@@ -429,20 +442,49 @@ def main():
                        help="输出格式和压缩类型")
     parser.add_argument("--compression-level", type=int, default=6,
                        help="压缩级别 (1-9, 越高压缩率越好但速度越慢)")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                       help="详细输出模式")
     
     args = parser.parse_args()
     
+    # 测试日志是否正常工作
+    print("="*50)
+    print("日志测试开始")
+    print("="*50)
+    
     logger.info("开始非并行处理VoxCeleb2数据集...")
+    logger.info(f"数据集路径: {args.voxceleb2_dataset_dir}")
+    logger.info(f"输出文件: {args.out_text}")
+    logger.info(f"输出格式: {args.format}")
+    logger.info(f"压缩级别: {args.compression_level}")
     logger.info(f"可用压缩库: bz2={HAS_BZ2}, lzma={HAS_LZMA}, zstd={HAS_ZSTD}")
     
+    # 检查数据集路径是否存在
+    if not os.path.exists(args.voxceleb2_dataset_dir):
+        logger.error(f"数据集路径不存在: {args.voxceleb2_dataset_dir}")
+        return
+    
     # 加载数据集信息
-    spk2wav = load_dataset_info(args.voxceleb2_dataset_dir)
-    logger.info(f"加载了 {len(spk2wav)} 个说话人的数据")
-    
-    # 处理所有文件
-    results = process_all_files(spk2wav, args.out_text, args.format, args.compression_level)
-    
-    logger.info("处理完成!")
+    try:
+        spk2wav = load_dataset_info(args.voxceleb2_dataset_dir)
+        logger.info(f"加载了 {len(spk2wav)} 个说话人的数据")
+        
+        # 显示前几个说话人的信息
+        for i, (spk_id, wav_paths) in enumerate(spk2wav.items()):
+            if i < 3:  # 只显示前3个
+                logger.info(f"说话人 {spk_id}: {len(wav_paths)} 个文件")
+            else:
+                break
+        
+        # 处理所有文件
+        results = process_all_files(spk2wav, args.out_text, args.format, args.compression_level)
+        
+        logger.info("处理完成!")
+        
+    except Exception as e:
+        logger.error(f"处理过程中发生错误: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
 
 if __name__ == "__main__":
     main() 
