@@ -1090,27 +1090,53 @@ def build_test_dl(args, spk2int):
 #
 def spktochunks(args):
     import tqdm import tqdm
-    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
-    spk2chunks = defaultdict(list)
-    for line in tqdm(lines, desc=f"lines: "):
-         dict = json.loads(line)
-         spk_id = dict["spk_id"]
-         wav_paths = dict["wav_paths"]
-         time_stamps = dict["result"]
-         assert len(wav_paths) == len(time_stamps), f"len(wav_paths): {len(wav_paths)} vs len(time_stamps): {len(time_stamps)}"
-         for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
-             wav, sr = sf.read(wav_path)
-             if sr != 16000:
-                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-             # time_stamp_list is start /end , its unit is millisecond
-             # in ms ->(/1000) in second ->(*16000) in sample points
-             speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list] 
-             if spk_id in spk2chunks:
-                 spk2chunks[spk_id].append(speech_chunks)
-             else:
-                 spk2chunks[spk_id] = speech_chunks
-
-    return spk2chunks
+    if compression_type == "gzip":
+        spk2chunks = defaultdict(list)
+        with gzip.open(file_path, "rt", encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if line:  # 跳过空行
+                    try:
+                        data = json.loads(line)
+                        spk_id = data["spk_id"]
+                        wav_paths = data["wav_paths"]
+                        time_stamps = data["result"]
+                        assert len(wav_paths) == len(time_stamps), f"len(wav_paths): {len(wav_paths)} vs len(time_stamps): {len(time_stamps)}"
+                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+                            wav, sr = sf.read(wav_path)
+                            if sr != 16000:
+                                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                            # time_stamp_list is start /end , its unit is millisecond
+                            # in ms ->(/1000) in second ->(*16000) in sample points
+                            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                            if spk_id in spk2chunks:
+                                spk2chunks[spk_id].append(speech_chunks)
+                            else:
+                                spk2chunks[spk_id] = speech_chunks
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"第{line_num}行JSON解析失败: {e}")
+        return spk2chunks
+#    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
+#    spk2chunks = defaultdict(list)
+#    for line in tqdm(lines, desc=f"lines: "):
+#         dict = json.loads(line)
+#         spk_id = dict["spk_id"]
+#         wav_paths = dict["wav_paths"]
+#         time_stamps = dict["result"]
+#         assert len(wav_paths) == len(time_stamps), f"len(wav_paths): {len(wav_paths)} vs len(time_stamps): {len(time_stamps)}"
+#         for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+#             wav, sr = sf.read(wav_path)
+#             if sr != 16000:
+#                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+#             # time_stamp_list is start /end , its unit is millisecond
+#             # in ms ->(/1000) in second ->(*16000) in sample points
+#             speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list] 
+#             if spk_id in spk2chunks:
+#                 spk2chunks[spk_id].append(speech_chunks)
+#             else:
+#                 spk2chunks[spk_id] = speech_chunks
+#
+#    return spk2chunks
 
 def build_global_spk2int(args):
     """
