@@ -2,6 +2,7 @@
 """
 非并行的VoxCeleb2数据集处理脚本
 移除torchrun依赖，顺序处理所有文件并保存为JSON格式
+支持多种压缩格式：gzip, bz2, lzma, zstandard
 """
 import gzip
 import os
@@ -15,6 +16,25 @@ import soundfile as sf
 import librosa
 from funasr import AutoModel
 from tqdm import tqdm
+
+# 尝试导入更好的压缩库
+try:
+    import bz2
+    HAS_BZ2 = True
+except ImportError:
+    HAS_BZ2 = False
+
+try:
+    import lzma
+    HAS_LZMA = True
+except ImportError:
+    HAS_LZMA = False
+
+try:
+    import zstandard as zstd
+    HAS_ZSTD = True
+except ImportError:
+    HAS_ZSTD = False
 
 # 设置日志
 formatter = "%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s"
@@ -189,7 +209,154 @@ def process_audio_file(wav_path, spk_id):
             'error': str(e)
         }
 
-def process_all_files(spk2wav, output_file):
+def save_results_to_json(results, output_file, format_type="jsonl_gzip", compression_level=6):
+    """
+    保存结果为JSON格式，支持多种压缩方式
+    
+    Args:
+        results: 处理结果
+        output_file: 输出文件路径
+        format_type: 格式类型
+            - "jsonl_gzip": JSONL格式 + gzip压缩 (默认)
+            - "jsonl_bz2": JSONL格式 + bzip2压缩
+            - "jsonl_lzma": JSONL格式 + lzma压缩
+            - "jsonl_zstd": JSONL格式 + zstandard压缩
+            - "json_gzip": 单个JSON对象 + gzip压缩
+            - "json_bz2": 单个JSON对象 + bzip2压缩
+            - "json_lzma": 单个JSON对象 + lzma压缩
+            - "json_zstd": 单个JSON对象 + zstandard压缩
+        compression_level: 压缩级别 (1-9, 越高压缩率越好但速度越慢)
+    """
+    logger.info(f"保存结果，格式: {format_type}, 压缩级别: {compression_level}")
+    
+    # 准备数据
+    if format_type.startswith("jsonl_"):
+        # JSONL格式：每行一个JSON对象
+        save_jsonl_format(results, output_file, format_type, compression_level)
+    elif format_type.startswith("json_"):
+        # 单个JSON对象格式
+        save_single_json_format(results, output_file, format_type, compression_level)
+    else:
+        raise ValueError(f"不支持的格式类型: {format_type}")
+
+def save_jsonl_format(results, output_file, format_type, compression_level):
+    """保存为JSONL格式"""
+    compression_type = format_type.split("_", 1)[1]
+    
+    if compression_type == "gzip":
+        with gzip.open(output_file, "wt", encoding='utf-8', compresslevel=compression_level) as f:
+            for spk_id, spk_results in results.items():
+                spk2chunks = defaultdict(list)
+                spk2wav_paths = defaultdict(list)
+                for item in spk_results:
+                    spk2chunks[spk_id].append(item['time_stamp_list'])
+                    spk2wav_paths[spk_id].append(item['wav_path'])
+                
+                res = {
+                    'spk_id': spk_id,
+                    'wav_paths': spk2wav_paths[spk_id],
+                    'results': spk2chunks[spk_id],
+                }
+                json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
+                f.write("\n")
+    
+    elif compression_type == "bz2" and HAS_BZ2:
+        with bz2.open(output_file, "wt", encoding='utf-8', compresslevel=compression_level) as f:
+            for spk_id, spk_results in results.items():
+                spk2chunks = defaultdict(list)
+                spk2wav_paths = defaultdict(list)
+                for item in spk_results:
+                    spk2chunks[spk_id].append(item['time_stamp_list'])
+                    spk2wav_paths[spk_id].append(item['wav_path'])
+                
+                res = {
+                    'spk_id': spk_id,
+                    'wav_paths': spk2wav_paths[spk_id],
+                    'results': spk2chunks[spk_id],
+                }
+                json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
+                f.write("\n")
+    
+    elif compression_type == "lzma" and HAS_LZMA:
+        with lzma.open(output_file, "wt", encoding='utf-8', preset=compression_level) as f:
+            for spk_id, spk_results in results.items():
+                spk2chunks = defaultdict(list)
+                spk2wav_paths = defaultdict(list)
+                for item in spk_results:
+                    spk2chunks[spk_id].append(item['time_stamp_list'])
+                    spk2wav_paths[spk_id].append(item['wav_path'])
+                
+                res = {
+                    'spk_id': spk_id,
+                    'wav_paths': spk2wav_paths[spk_id],
+                    'results': spk2chunks[spk_id],
+                }
+                json.dump(res, f, ensure_ascii=False, separators=(',', ':'))
+                f.write("\n")
+    
+    elif compression_type == "zstd" and HAS_ZSTD:
+        cctx = zstd.ZstdCompressor(level=compression_level)
+        with open(output_file, "wb") as f:
+            for spk_id, spk_results in results.items():
+                spk2chunks = defaultdict(list)
+                spk2wav_paths = defaultdict(list)
+                for item in spk_results:
+                    spk2chunks[spk_id].append(item['time_stamp_list'])
+                    spk2wav_paths[spk_id].append(item['wav_path'])
+                
+                res = {
+                    'spk_id': spk_id,
+                    'wav_paths': spk2wav_paths[spk_id],
+                    'results': spk2chunks[spk_id],
+                }
+                json_str = json.dumps(res, ensure_ascii=False, separators=(',', ':')) + "\n"
+                compressed_data = cctx.compress(json_str.encode('utf-8'))
+                f.write(compressed_data)
+    
+    else:
+        raise ValueError(f"不支持的压缩类型: {compression_type}")
+
+def save_single_json_format(results, output_file, format_type, compression_level):
+    """保存为单个JSON对象格式"""
+    compression_type = format_type.split("_", 1)[1]
+    
+    # 构建完整的JSON对象
+    complete_data = {}
+    for spk_id, spk_results in results.items():
+        spk2chunks = defaultdict(list)
+        spk2wav_paths = defaultdict(list)
+        for item in spk_results:
+            spk2chunks[spk_id].append(item['time_stamp_list'])
+            spk2wav_paths[spk_id].append(item['wav_path'])
+        
+        complete_data[spk_id] = {
+            'wav_paths': spk2wav_paths[spk_id],
+            'results': spk2chunks[spk_id],
+        }
+    
+    if compression_type == "gzip":
+        with gzip.open(output_file, "wt", encoding='utf-8', compresslevel=compression_level) as f:
+            json.dump(complete_data, f, ensure_ascii=False, separators=(',', ':'))
+    
+    elif compression_type == "bz2" and HAS_BZ2:
+        with bz2.open(output_file, "wt", encoding='utf-8', compresslevel=compression_level) as f:
+            json.dump(complete_data, f, ensure_ascii=False, separators=(',', ':'))
+    
+    elif compression_type == "lzma" and HAS_LZMA:
+        with lzma.open(output_file, "wt", encoding='utf-8', preset=compression_level) as f:
+            json.dump(complete_data, f, ensure_ascii=False, separators=(',', ':'))
+    
+    elif compression_type == "zstd" and HAS_ZSTD:
+        cctx = zstd.ZstdCompressor(level=compression_level)
+        json_str = json.dumps(complete_data, ensure_ascii=False, separators=(',', ':'))
+        compressed_data = cctx.compress(json_str.encode('utf-8'))
+        with open(output_file, "wb") as f:
+            f.write(compressed_data)
+    
+    else:
+        raise ValueError(f"不支持的压缩类型: {compression_type}")
+
+def process_all_files(spk2wav, output_file, format_type="jsonl_gzip", compression_level=6):
     """处理所有文件"""
     results = defaultdict(list)
     failed_files = []
@@ -229,17 +396,12 @@ def process_all_files(spk2wav, output_file):
                     'error': str(e)
                 })
         
-        # 每批处理后保存临时结果
-        #temp_output_file = f"{output_file}.batch_{i//batch_size}"
-        #save_results_to_json(results, temp_output_file)
-        #logger.info(f"批次 {i//batch_size + 1} 完成，临时结果保存到: {temp_output_file}")
-        
         # 清理内存
         import gc
         gc.collect()
     
     # 保存最终结果
-    save_results_to_json(results, output_file)
+    save_results_to_json(results, output_file, format_type, compression_level)
     
     # 保存失败文件信息
     if failed_files:
@@ -253,24 +415,6 @@ def process_all_files(spk2wav, output_file):
     
     return results
 
-def save_results_to_json(results, output_file):
-    """保存结果为JSON格式"""
-    with gzip.open(output_file, "wt",encoding='utf-8') as f:
-        for spk_id, spk_results in results.items():
-            spk2chunks = defaultdict(list)
-            spk2wav_paths = defaultdict(list)
-            for item in spk_results:
-                spk2chunks[spk_id].append(item['time_stamp_list'])
-                spk2wav_paths[spk_id].append(item['wav_path'])
-            
-            res = {
-                'spk_id': spk_id,
-                'wav_paths': spk2wav_paths[spk_id],
-                'results': spk2chunks[spk_id],
-            }
-            json.dump(res, f, ensure_ascii=False)
-            f.write("\n")
-
 def main():
     parser = argparse.ArgumentParser(description="非并行的VoxCeleb2数据集处理")
     parser.add_argument("--voxceleb2-dataset-dir", type=str, 
@@ -279,17 +423,24 @@ def main():
     parser.add_argument("--out-text", type=str, 
                        default="/maduo/datasets/voxceleb2/vox2_dev/train.json.gz", 
                        help="输出JSON文件路径")
+    parser.add_argument("--format", type=str, default="jsonl_gzip",
+                       choices=["jsonl_gzip", "jsonl_bz2", "jsonl_lzma", "jsonl_zstd", 
+                               "json_gzip", "json_bz2", "json_lzma", "json_zstd"],
+                       help="输出格式和压缩类型")
+    parser.add_argument("--compression-level", type=int, default=6,
+                       help="压缩级别 (1-9, 越高压缩率越好但速度越慢)")
     
     args = parser.parse_args()
     
     logger.info("开始非并行处理VoxCeleb2数据集...")
+    logger.info(f"可用压缩库: bz2={HAS_BZ2}, lzma={HAS_LZMA}, zstd={HAS_ZSTD}")
     
     # 加载数据集信息
     spk2wav = load_dataset_info(args.voxceleb2_dataset_dir)
     logger.info(f"加载了 {len(spk2wav)} 个说话人的数据")
     
     # 处理所有文件
-    results = process_all_files(spk2wav, args.out_text)
+    results = process_all_files(spk2wav, args.out_text, args.format, args.compression_level)
     
     logger.info("处理完成!")
 
