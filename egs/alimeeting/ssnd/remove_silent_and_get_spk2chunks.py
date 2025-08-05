@@ -3,7 +3,7 @@
 非并行的VoxCeleb2数据集处理脚本
 移除torchrun依赖，顺序处理所有文件并保存为JSON格式
 """
-
+import gzip
 import os
 import sys
 import json
@@ -235,8 +235,8 @@ def process_all_files(spk2wav, output_file):
         #logger.info(f"批次 {i//batch_size + 1} 完成，临时结果保存到: {temp_output_file}")
         
         # 清理内存
-        #import gc
-        #gc.collect()
+        import gc
+        gc.collect()
     
     # 保存最终结果
     save_results_to_json(results, output_file)
@@ -244,7 +244,7 @@ def process_all_files(spk2wav, output_file):
     # 保存失败文件信息
     if failed_files:
         failed_output_file = f"{output_file}.failed"
-        with open(failed_output_file, "w") as f:
+        with gzip.open(failed_output_file, "wt", encoding='utf-8') as f:
             json.dump(failed_files, f, indent=2, ensure_ascii=False)
         logger.info(f"失败文件信息保存到: {failed_output_file}")
     
@@ -255,7 +255,7 @@ def process_all_files(spk2wav, output_file):
 
 def save_results_to_json(results, output_file):
     """保存结果为JSON格式"""
-    with open(output_file, "w") as f:
+    with gzip.open(output_file, "wt",encoding='utf-8') as f:
         for spk_id, spk_results in results.items():
             spk2chunks = defaultdict(list)
             spk2wav_paths = defaultdict(list)
@@ -277,7 +277,7 @@ def main():
                        default="/maduo/datasets/voxceleb2/vox2_dev/", 
                        help="VoxCeleb2数据集Kaldi格式路径")
     parser.add_argument("--out-text", type=str, 
-                       default="/maduo/datasets/voxceleb2/vox2_dev/train.json", 
+                       default="/maduo/datasets/voxceleb2/vox2_dev/train.json.gz", 
                        help="输出JSON文件路径")
     
     args = parser.parse_args()

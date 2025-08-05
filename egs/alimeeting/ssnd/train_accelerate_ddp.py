@@ -2,6 +2,7 @@ import argparse
 import copy
 import logging
 import warnings
+import gzip
 from pathlib import Path
 from shutil import copyfile
 from typing import Any, Dict, Optional, Tuple, Union, List
@@ -1088,10 +1089,10 @@ def build_test_dl(args, spk2int):
 #                spk2chunks[spk_id] = speech_chunks
 #
 def spktochunks(args):
-    from tqdm import tqdm
-    lines = open(args.voxceleb2_spk2chunks_json).read().splitlines()
+    import tqdm import tqdm
+    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
     spk2chunks = defaultdict(list)
-    for line in lines:
+    for line in tqdm(lines, desc=f"lines: "):
          dict = json.loads(line)
          spk_id = dict["spk_id"]
          wav_paths = dict["wav_paths"]
