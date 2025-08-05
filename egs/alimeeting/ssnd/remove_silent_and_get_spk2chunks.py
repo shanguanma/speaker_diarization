@@ -369,7 +369,7 @@ def save_single_json_format(results, output_file, format_type, compression_level
     else:
         raise ValueError(f"不支持的压缩类型: {compression_type}")
 
-def process_all_files(spk2wav, output_file, format_type="jsonl_gzip", compression_level=6):
+def process_all_files(spk2wav, output_file, format_type="jsonl_gzip", compression_level=6, max_batches=None):
     """处理所有文件"""
     results = defaultdict(list)
     failed_files = []
@@ -381,14 +381,25 @@ def process_all_files(spk2wav, output_file, format_type="jsonl_gzip", compressio
             all_tasks.append((wav_path, spk_id))
     
     logger.info(f"开始处理 {len(all_tasks)} 个文件")
+    if max_batches:
+        logger.info(f"限制处理前 {max_batches} 个批次")
     
     # 分批处理，避免内存溢出
     batch_size = 50  # 每批处理50个文件
+    total_batches = (len(all_tasks) + batch_size - 1) // batch_size
+    
     for i in range(0, len(all_tasks), batch_size):
-        batch_tasks = all_tasks[i:i+batch_size]
-        logger.info(f"处理批次 {i//batch_size + 1}/{(len(all_tasks) + batch_size - 1)//batch_size}")
+        batch_num = i // batch_size + 1
         
-        for wav_path, spk_id in tqdm(batch_tasks, desc=f"批次 {i//batch_size + 1}"):
+        # 如果设置了最大批次限制，检查是否超过
+        if max_batches and batch_num > max_batches:
+            logger.info(f"已达到最大批次限制 {max_batches}，停止处理")
+            break
+            
+        batch_tasks = all_tasks[i:i+batch_size]
+        logger.info(f"处理批次 {batch_num}/{total_batches} (包含 {len(batch_tasks)} 个文件)")
+        
+        for wav_path, spk_id in tqdm(batch_tasks, desc=f"批次 {batch_num}"):
             try:
                 result = process_audio_file(wav_path, spk_id)
                 
@@ -408,6 +419,12 @@ def process_all_files(spk2wav, output_file, format_type="jsonl_gzip", compressio
                     'success': False,
                     'error': str(e)
                 })
+        
+        # 每处理完一个批次就保存一次临时结果
+        if max_batches:  # 只在测试模式下保存临时结果
+            temp_output_file = f"{output_file}.batch_{batch_num}"
+            save_results_to_json(results, temp_output_file, format_type, compression_level)
+            logger.info(f"批次 {batch_num} 临时结果保存到: {temp_output_file}")
         
         # 清理内存
         import gc
@@ -444,6 +461,8 @@ def main():
                        help="压缩级别 (1-9, 越高压缩率越好但速度越慢)")
     parser.add_argument("--verbose", "-v", action="store_true",
                        help="详细输出模式")
+    parser.add_argument("--max-batches", type=int, default=None,
+                       help="最大处理批次数量（用于测试，如设置为3则只处理前3个批次）")
     
     args = parser.parse_args()
     
@@ -477,7 +496,7 @@ def main():
                 break
         
         # 处理所有文件
-        results = process_all_files(spk2wav, args.out_text, args.format, args.compression_level)
+        results = process_all_files(spk2wav, args.out_text, args.format, args.compression_level, args.max_batches)
         
         logger.info("处理完成!")
         
