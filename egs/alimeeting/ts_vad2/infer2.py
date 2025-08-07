@@ -262,6 +262,9 @@ def main(args):
         drop_last=False,  # drops the last incomplete batch in case the dataset size is not divisible by 64
         shuffle=False,  # shuffles the dataset before every epoch
         collate_fn=infer_dataset.collater,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )
 
     device = torch.device("cpu")
@@ -321,7 +324,7 @@ def main(args):
                 speaker_ids=batch["net_input"]["speaker_ids"],
                 start=batch["net_input"]["start"],
             )
-            logging.info(f"res_dict: {res_dict}!!!")
+            #logging.info(f"res_dict: {res_dict}!!!") 6244: [0.66246545, 0.8592827, 0.8361818, 0.7373294]
         for filename in res_dict:
             for time_step in res_dict[filename]:
                 res_dict_all[filename][time_step].extend(res_dict[filename][time_step])
