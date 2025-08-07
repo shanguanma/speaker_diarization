@@ -1080,17 +1080,18 @@ if [ ${stage} -le 150 ] && [ ${stop_stage} -ge 150 ];then
    multi_backend_type="transformer"
    num_transformer_layer=2
   CUDA_VISIABLE_DEVICES=0,1 \
+   NCCL_BLOCKING_WAIT=1 \
+ NCCL_TIMEOUT_IN_MS=1800000\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 18915 \
    ts_vad2/train_accelerate_ddp.py \
     --world-size 2 \
     --num-epochs 40\
     --start-epoch 1\
-    --start-batch 4500\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --freeze-updates 4000\
     --grad-clip true\
-    --lr 1e-4\
+    --lr 5e-5\
     --musan-path $musan_path \
     --rir-path $rir_path \
     --rs-len $rs_len\
@@ -1110,8 +1111,9 @@ if [ ${stage} -le 150 ] && [ ${stop_stage} -ge 150 ];then
 
 fi
 
+# note: lr=1e-4, epoch1 is valid set DER=1, train loss is nan
 if [ ${stage} -le 151 ] && [ ${stop_stage} -ge 151 ];then
- exp_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_speaker_embed_w2v-bert2_speech_encoder_epoch40_front_fix_seed_lr1e4_single_backend_2mamba2_multi_backend_transformer_rs_len6_shift0.8 
+ exp_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_speaker_embed_w2v-bert2_speech_encoder_epoch40_front_fix_seed_lr5e5_single_backend_2mamba2_multi_backend_transformer_rs_len6_shift0.8 
  model_file=$exp_dir/best-valid-der.pt
  rs_len=6
  segment_shift=0.8
@@ -1176,7 +1178,7 @@ fi
 if [ ${stage} -le 152 ] && [ ${stop_stage} -ge 152 ];then
    echo "compute CDER for magicdata-ramc"
    threshold="0.2 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.7 0.8 0.9" # total 11
-   predict_rttm_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_speaker_embed_w2v-bert2_speech_encoder_epoch40_front_fix_seed_lr1e4_single_backend_2mamba2_multi_backend_transformer_rs_len6_shift0.8
+   predict_rttm_dir=/share/workspace/maduo/exp/speaker_diarization/ts_vad2/magicdata-ramc-ts_vad2_two_gpus_freeze_with_musan_rirs_cam++_200k_zh_cn_speaker_embed_w2v-bert2_speech_encoder_epoch40_front_fix_seed_lr5e5_single_backend_2mamba2_multi_backend_transformer_rs_len6_shift0.8
    oracle_rttm_dir=/share/workspace/maduo/datasets/MagicData-RAMC/maduo_processed/kaldi_format
    infer_sets="dev test cssd_testset"
    c=0.0
@@ -1225,11 +1227,13 @@ if [ ${stage} -le 153 ] && [ ${stop_stage} -ge 153 ];then
    multi_backend_type="transformer"
    num_transformer_layer=2
   CUDA_VISIABLE_DEVICES=0,1 \
+ NCCL_BLOCKING_WAIT=1 \
+ NCCL_TIMEOUT_IN_MS=1800000\
   TORCH_DISTRIBUTED_DEBUG=DETAIL accelerate launch --main_process_port 19915 \
    ts_vad2/train_accelerate_ddp.py \
     --world-size 2 \
     --num-epochs 40\
-    --start-epoch 1\
+    --start-epoch 2\
     --keep-last-k 1\
     --keep-last-epoch 1\
     --freeze-updates 4000\
