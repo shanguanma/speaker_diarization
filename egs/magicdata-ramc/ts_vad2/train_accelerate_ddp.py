@@ -909,6 +909,9 @@ def main(args):
         shuffle=False,  # shuffles the dataset before every epoch
         collate_fn=valid_dataset.collater,
         sampler=None,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )
 
     train_dl = DataLoader(
@@ -919,6 +922,9 @@ def main(args):
         shuffle=True,
         collate_fn=train_dataset.collater,
         sampler=None,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )
 
     from accelerate import (
