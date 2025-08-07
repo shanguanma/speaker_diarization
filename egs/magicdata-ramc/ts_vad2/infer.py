@@ -276,6 +276,9 @@ def main(args):
         drop_last=False,  # drops the last incomplete batch in case the dataset size is not divisible by 64
         shuffle=False,  # shuffles the dataset before every epoch
         collate_fn=infer_dataset.collater,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )
 
     device = torch.device("cpu")
