@@ -48,6 +48,18 @@ class SimuDiarMixer:
         self.musan_path = musan_path
         self.rir_path = rir_path
         self.noise_ratio = noise_ratio
+        
+        # 计算数据集大小，用于PyTorch DataLoader
+        self.dataset_size = max(1000, len(spk2chunks) * 10)  # 每个epoch随机生成样本
+        
+    def __len__(self):
+        """返回数据集大小"""
+        return self.dataset_size
+    
+    def __getitem__(self, idx):
+        """获取数据样本"""
+        # 忽略idx，每次都随机生成新样本
+        return self.sample()
 
     def load_musan_or_rirs(self, musan_path, rir_path):
         # add noise and rir augment
@@ -218,6 +230,7 @@ class SimuDiarMixer:
         labels = []
         spk_ids_list = []
         fbanks_pad = []
+        labels_len = []
         for (mix, label, spk_ids), fbank in zip(batch, fbanks):
             pad_wav = np.pad(mix, (0, max_len - len(mix)), 'constant')
             wavs.append(pad_wav)

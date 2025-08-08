@@ -212,9 +212,18 @@ python test_spktochunks_speed.py --test-cache
 
 ## 最新修复
 
+### SimuDiarMixer兼容性修复 🆕
+
+在最新版本中，我们修复了`SimuDiarMixer`类与PyTorch DataLoader的兼容性问题：
+
+1. **添加__len__方法**：使SimuDiarMixer能够被DataLoader正确识别
+2. **添加__getitem__方法**：实现标准的PyTorch Dataset接口
+3. **修复collate_fn**：解决变量定义问题，确保正常运行
+4. **完全兼容**：现在可以与所有版本的spktochunks函数配合使用
+
 ### 懒加载版本兼容性修复
 
-在最新版本中，我们修复了懒加载版本与`SimuDiarMixer`的兼容性问题：
+在之前版本中，我们修复了懒加载版本与`SimuDiarMixer`的兼容性问题：
 
 1. **数据结构兼容**：确保返回的数据结构与原始版本完全一致
 2. **并行处理优化**：使用ThreadPoolExecutor提升处理速度
@@ -231,6 +240,9 @@ python test_lazy_loading_fix.py
 
 # 测试内存安全版本修复（推荐用于OOM问题）
 python test_memory_safe_fix.py
+
+# 测试SimuDiarMixer修复（解决DataLoader兼容性问题）
+python test_simu_diar_mixer_fix.py
 
 # 测试内存优化的加速版本（推荐）
 python test_fast_memory_optimized.py
@@ -257,13 +269,19 @@ python test_spktochunks_speed.py
    --max-files-per-speaker-test 5
    ```
 
-3. **兼容性问题**
+3. **DataLoader兼容性错误**
+   ```bash
+   # 错误信息: TypeError: object of type 'SimuDiarMixer' has no len()
+   # 解决方案: 已在最新版本中修复，更新代码即可
+   ```
+
+4. **兼容性问题**
    ```bash
    # 使用懒加载版本（更好的兼容性）
    --use-lazy-loading True
    ```
 
-4. **处理速度慢**
+5. **处理速度慢**
    ```bash
    # 检查CPU核心数，调整线程数
    # 默认使用 min(8, cpu_count) 个线程
