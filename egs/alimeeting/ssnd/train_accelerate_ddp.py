@@ -11,7 +11,7 @@ from collections import defaultdict
 import librosa
 import soundfile as sf
 import numpy as np
-import random.Random as rng
+#import random.Random as rng
 
 # import optim
 import torch
@@ -811,7 +811,7 @@ def train_one_epoch_multi(
     batch_idx = 0
 
     while True:
-        idx = rng.choices((0, 1), weights=dl_weights, k=1)[0]
+        idx = random.Random.choices((0, 1), weights=dl_weights, k=1)[0]
         dl = iter_real if idx == 0 else iter_simu
 
         try:
