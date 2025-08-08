@@ -241,6 +241,13 @@ def get_parser():
     parser.add_argument("--voxceleb2-spk2chunks-json", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/train.jsonl_gzip", help="vad timestamp and spk_id  and wav_path")
     
     parser.add_argument("--compression-type", type=str, default="gzip", help="compression method type for vad json files.")
+    
+    # 加速处理相关参数
+    parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
+    parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（节省内存但可能稍慢）")
+    parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
+    parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
+    parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
 
     add_finetune_arguments(parser)
     return parser
@@ -1108,7 +1115,7 @@ def build_test_dl(args, spk2int):
 #                spk2chunks[spk_id] = speech_chunks
 #
 def spktochunks(args):
-    #import tqdm import tqdm
+    """原始版本的spktochunks函数"""
     if args.compression_type == "gzip":
         spk2chunks = defaultdict(list)
         with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
@@ -1135,6 +1142,242 @@ def spktochunks(args):
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
     return spk2chunks
+
+def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_cache=None):
+    """
+    加速版本的spktochunks函数
+    
+    Args:
+        args: 参数对象
+        max_speakers: 最大处理说话人数量（用于测试）
+        max_files_per_speaker: 每个说话人最大文件数量（用于测试）
+        use_cache: 是否使用缓存
+    """
+    import os
+    import pickle
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from functools import lru_cache
+    
+    # 缓存文件路径
+    cache_file = f"{args.voxceleb2_spk2chunks_json}.cache"
+    
+    # 确定是否使用缓存
+    if use_cache is None:
+        use_cache = not getattr(args, 'disable_cache', False)
+    
+    # 如果启用缓存且缓存文件存在，直接加载
+    if use_cache and os.path.exists(cache_file):
+        logging.info(f"从缓存加载数据: {cache_file}")
+        with open(cache_file, 'rb') as f:
+            return pickle.load(f)
+    
+    logging.info("开始加速处理spktochunks...")
+    
+    # 第一步：解析JSON文件，收集所有需要处理的音频文件
+    audio_tasks = []
+    speaker_count = 0
+    
+    if args.compression_type == "gzip":
+        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if line:
+                    try:
+                        data = json.loads(line)
+                        spk_id = data["spk_id"]
+                        
+                        # 限制说话人数量（用于测试）
+                        if max_speakers and speaker_count >= max_speakers:
+                            break
+                        
+                        wav_paths = data["wav_paths"]
+                        time_stamps = data["results"]
+                        assert len(wav_paths) == len(time_stamps)
+                        
+                        # 限制每个说话人的文件数量（用于测试）
+                        if max_files_per_speaker:
+                            wav_paths = wav_paths[:max_files_per_speaker]
+                            time_stamps = time_stamps[:max_files_per_speaker]
+                        
+                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+                            audio_tasks.append({
+                                'spk_id': spk_id,
+                                'wav_path': wav_path,
+                                'time_stamp_list': time_stamp_list
+                            })
+                        
+                        speaker_count += 1
+                        
+                    except json.JSONDecodeError as e:
+                        logging.warning(f"第{line_num}行JSON解析失败: {e}")
+    
+    logging.info(f"收集到 {len(audio_tasks)} 个音频处理任务，涉及 {speaker_count} 个说话人")
+    
+    # 第二步：并行处理音频文件
+    @lru_cache(maxsize=1000)  # 缓存最近处理的1000个音频文件
+    def process_audio_file(wav_path, time_stamp_list_str):
+        """处理单个音频文件"""
+        try:
+            # 将时间戳字符串转换回列表
+            time_stamp_list = eval(time_stamp_list_str)
+            
+            # 检查文件是否存在
+            if not os.path.exists(wav_path):
+                logging.warning(f"音频文件不存在: {wav_path}")
+                return None
+            
+            # 读取音频文件
+            wav, sr = sf.read(wav_path)
+            if sr != 16000:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            
+            # 提取语音片段
+            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+            return speech_chunks
+            
+        except Exception as e:
+            logging.warning(f"处理音频文件失败 {wav_path}: {e}")
+            return None
+    
+    # 使用线程池并行处理
+    spk2chunks = defaultdict(list)
+    max_workers = min(8, os.cpu_count() or 4)  # 限制线程数
+    
+    logging.info(f"使用 {max_workers} 个线程并行处理音频文件...")
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # 提交所有任务
+        future_to_task = {}
+        for task in audio_tasks:
+            # 将时间戳列表转换为字符串以便缓存
+            time_stamp_list_str = str(task['time_stamp_list'])
+            future = executor.submit(
+                process_audio_file, 
+                task['wav_path'], 
+                time_stamp_list_str
+            )
+            future_to_task[future] = task
+        
+        # 收集结果
+        completed_count = 0
+        for future in tqdm(as_completed(future_to_task), total=len(future_to_task), desc="处理音频文件"):
+            task = future_to_task[future]
+            try:
+                speech_chunks = future.result()
+                if speech_chunks is not None:
+                    spk2chunks[task['spk_id']].append(speech_chunks)
+                completed_count += 1
+                
+                # 每处理100个文件输出一次进度
+                if completed_count % 100 == 0:
+                    logging.info(f"已处理 {completed_count}/{len(audio_tasks)} 个音频文件")
+                    
+            except Exception as e:
+                logging.error(f"处理任务失败: {e}")
+    
+    logging.info(f"处理完成！共处理了 {len(spk2chunks)} 个说话人的数据")
+    
+    # 保存缓存
+    if use_cache:
+        logging.info(f"保存缓存到: {cache_file}")
+        with open(cache_file, 'wb') as f:
+            pickle.dump(spk2chunks, f)
+    
+    return spk2chunks
+
+def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
+    """
+    懒加载版本的spktochunks函数
+    只在需要时才加载音频数据，节省内存
+    """
+    import os
+    from collections import defaultdict
+    
+    logging.info("使用懒加载模式处理spktochunks...")
+    
+    # 第一步：解析JSON文件，只收集元数据
+    spk2metadata = defaultdict(list)
+    speaker_count = 0
+    
+    if args.compression_type == "gzip":
+        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if line:
+                    try:
+                        data = json.loads(line)
+                        spk_id = data["spk_id"]
+                        
+                        # 限制说话人数量（用于测试）
+                        if max_speakers and speaker_count >= max_speakers:
+                            break
+                        
+                        wav_paths = data["wav_paths"]
+                        time_stamps = data["results"]
+                        assert len(wav_paths) == len(time_stamps)
+                        
+                        # 限制每个说话人的文件数量（用于测试）
+                        if max_files_per_speaker:
+                            wav_paths = wav_paths[:max_files_per_speaker]
+                            time_stamps = time_stamps[:max_files_per_speaker]
+                        
+                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+                            spk2metadata[spk_id].append({
+                                'wav_path': wav_path,
+                                'time_stamp_list': time_stamp_list
+                            })
+                        
+                        speaker_count += 1
+                        
+                    except json.JSONDecodeError as e:
+                        logging.warning(f"第{line_num}行JSON解析失败: {e}")
+    
+    logging.info(f"收集到 {speaker_count} 个说话人的元数据")
+    
+    # 第二步：创建懒加载的数据结构
+    class LazySpk2Chunks:
+        def __init__(self, spk2metadata):
+            self.spk2metadata = spk2metadata
+            self._cache = {}
+        
+        def __getitem__(self, spk_id):
+            if spk_id not in self._cache:
+                # 懒加载：只在需要时加载音频数据
+                self._cache[spk_id] = []
+                for metadata in self.spk2metadata[spk_id]:
+                    try:
+                        wav_path = metadata['wav_path']
+                        time_stamp_list = metadata['time_stamp_list']
+                        
+                        if not os.path.exists(wav_path):
+                            logging.warning(f"音频文件不存在: {wav_path}")
+                            continue
+                        
+                        wav, sr = sf.read(wav_path)
+                        if sr != 16000:
+                            wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                        
+                        speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                        self._cache[spk_id].append(speech_chunks)
+                        
+                    except Exception as e:
+                        logging.warning(f"处理音频文件失败 {wav_path}: {e}")
+                        continue
+                
+                logging.info(f"懒加载完成说话人 {spk_id} 的数据，包含 {len(self._cache[spk_id])} 个音频文件")
+            
+            return self._cache[spk_id]
+        
+        def keys(self):
+            return self.spk2metadata.keys()
+        
+        def __len__(self):
+            return len(self.spk2metadata)
+        
+        def __contains__(self, key):
+            return key in self.spk2metadata
+    
+    return LazySpk2Chunks(spk2metadata)
 #    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
 #    spk2chunks = defaultdict(list)
 #    for line in tqdm(lines, desc=f"lines: "):
@@ -1190,10 +1433,33 @@ def build_global_spk2int(args):
     logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
-def build_simu_data_train_dl(args, spk2int):
+def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=None, max_files_per_speaker=None):
+    """
+    构建模拟数据训练数据加载器
+    
+    Args:
+        args: 参数对象
+        spk2int: 说话人到整数的映射
+        use_fast_version: 是否使用加速版本
+        max_speakers: 最大处理说话人数量（用于测试）
+        max_files_per_speaker: 每个说话人最大文件数量（用于测试）
+    """
     logging.info("Building simu data train dataloader with training spk2int...")
+    
+    # 选择使用哪个版本的spktochunks函数
+    if use_fast_version:
+        if hasattr(args, 'use_lazy_loading') and args.use_lazy_loading:
+            logging.info("使用懒加载版本")
+            spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
+        else:
+            logging.info("使用加速版本")
+            spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
+    else:
+        logging.info("使用原始版本")
+        spk2chunks = spktochunks(args)
+    
     train_dataset = SimuDiarMixer(
-        spk2chunks=spktochunks(args),
+        spk2chunks=spk2chunks,
         sample_rate=16000,
         frame_length=0.025, # 25ms
         frame_shift=0.04, # 25fps(1s audio 25 labels, 8s audio 200 labels) to match vad_out_len, vad_out_len=200
@@ -1264,11 +1530,21 @@ def main():
     # build train/valid dataloader
     if args.train_stage==1:
         # using simulated training set as trainset, dev set of alimeeting as devset.
-        train_dl_simu = build_simu_data_train_dl(args, spk2int)
+        train_dl_simu = build_simu_data_train_dl(
+            args, spk2int, 
+            use_fast_version=args.use_fast_spktochunks,
+            max_speakers=args.max_speakers_test,
+            max_files_per_speaker=args.max_files_per_speaker_test
+        )
         valid_dl = build_valid_dl(args, spk2int)
     elif args.train_stage==2:
         # using 80% simulated training set as trainset and 20% train set of alimeeting as trainset, dev set of alimeeting as devset.
-        train_dl_simu = build_simu_data_train_dl(args, spk2int)
+        train_dl_simu = build_simu_data_train_dl(
+            args, spk2int,
+            use_fast_version=args.use_fast_spktochunks,
+            max_speakers=args.max_speakers_test,
+            max_files_per_speaker=args.max_files_per_speaker_test
+        )
         train_dl = build_train_dl(args, spk2int)
         valid_dl = build_valid_dl(args, spk2int)
     elif args.train_stage==3:
