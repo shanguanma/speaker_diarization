@@ -264,6 +264,8 @@ def get_parser():
     parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
     parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（内存优化）")
     parser.add_argument("--use-memory-safe", type=str2bool, default=False, help="是否使用超级内存安全模式（避免OOM）")
+    parser.add_argument("--fast-batch-size", type=int, default=20, help="加速版本的批处理大小（控制内存使用）")
+    parser.add_argument("--fast-max-memory-mb", type=int, default=6144, help="加速版本的最大内存限制（MB）")
     parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
     parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
     parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
@@ -1164,7 +1166,8 @@ def spktochunks(args):
 
 def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_cache=None):
     """
-    加速版本的spktochunks函数
+    内存优化的加速版本spktochunks函数
+    使用批量处理和内存监控避免OOM
     
     Args:
         args: 参数对象
@@ -1173,6 +1176,7 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
         use_cache: 是否使用缓存
     """
     import os
+    import gc
     import pickle
     from concurrent.futures import ThreadPoolExecutor, as_completed
     from functools import lru_cache
@@ -1190,14 +1194,31 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
         with open(cache_file, 'rb') as f:
             return pickle.load(f)
     
-    logger.info("开始加速处理spktochunks...")
+    logger.info("开始内存优化的加速处理spktochunks...")
     
-    # 第一步：解析JSON文件，收集所有需要处理的音频文件
-    audio_tasks = []
+    # 内存监控
+    try:
+        import psutil
+        process = psutil.Process()
+        initial_memory = process.memory_info().rss / 1024 / 1024
+        logger.info(f"初始内存使用: {initial_memory:.1f} MB")
+        max_memory_mb = getattr(args, 'fast_max_memory_mb', 6144)  # 可配置的内存限制
+        logger.info(f"设置内存限制: {max_memory_mb} MB")
+    except ImportError:
+        logger.warning("psutil未安装，无法监控内存")
+        process = None
+        max_memory_mb = None
+    
+    # 按说话人批量处理，避免一次性加载所有任务
+    spk2chunks = defaultdict(list)
     speaker_count = 0
+    batch_size = getattr(args, 'fast_batch_size', 20)  # 可配置的批处理大小
+    logger.info(f"使用批处理大小: {batch_size} 个说话人/批")
     
     if args.compression_type == "gzip":
         with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+            current_batch = []
+            
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if line:
@@ -1205,7 +1226,7 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                         data = json.loads(line)
                         spk_id = data["spk_id"]
                         
-                        # 限制说话人数量（用于测试）
+                        # 限制说话人数量
                         if max_speakers and speaker_count >= max_speakers:
                             break
                         
@@ -1213,86 +1234,37 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                         time_stamps = data["results"]
                         assert len(wav_paths) == len(time_stamps)
                         
-                        # 限制每个说话人的文件数量（用于测试）
+                        # 限制每个说话人的文件数量
                         if max_files_per_speaker:
                             wav_paths = wav_paths[:max_files_per_speaker]
                             time_stamps = time_stamps[:max_files_per_speaker]
                         
+                        # 收集当前说话人的任务
+                        speaker_tasks = []
                         for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
-                            audio_tasks.append({
+                            speaker_tasks.append({
                                 'spk_id': spk_id,
                                 'wav_path': wav_path,
                                 'time_stamp_list': time_stamp_list
                             })
                         
+                        current_batch.append((spk_id, speaker_tasks))
                         speaker_count += 1
+                        
+                        # 当批次达到指定大小时，处理这一批
+                        if len(current_batch) >= batch_size:
+                            process_batch(current_batch, spk2chunks, process, max_memory_mb)
+                            current_batch = []
+                            gc.collect()  # 强制垃圾回收
                         
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
-    
-    logger.info(f"收集到 {len(audio_tasks)} 个音频处理任务，涉及 {speaker_count} 个说话人")
-    
-    # 第二步：并行处理音频文件
-    @lru_cache(maxsize=1000)  # 缓存最近处理的1000个音频文件
-    def process_audio_file(wav_path, time_stamp_list_str):
-        """处理单个音频文件"""
-        try:
-            # 将时间戳字符串转换回列表
-            time_stamp_list = eval(time_stamp_list_str)
             
-            # 检查文件是否存在
-            if not os.path.exists(wav_path):
-                logger.warning(f"音频文件不存在: {wav_path}")
-                return None
-            
-            # 读取音频文件
-            wav, sr = sf.read(wav_path)
-            if sr != 16000:
-                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-            
-            # 提取语音片段
-            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-            return speech_chunks
-            
-        except Exception as e:
-            logger.warning(f"处理音频文件失败 {wav_path}: {e}")
-            return None
-    
-    # 使用线程池并行处理
-    spk2chunks = defaultdict(list)
-    max_workers = min(8, os.cpu_count() or 4)  # 限制线程数
-    
-    logger.info(f"使用 {max_workers} 个线程并行处理音频文件...")
-    
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 提交所有任务
-        future_to_task = {}
-        for task in audio_tasks:
-            # 将时间戳列表转换为字符串以便缓存
-            time_stamp_list_str = str(task['time_stamp_list'])
-            future = executor.submit(
-                process_audio_file, 
-                task['wav_path'], 
-                time_stamp_list_str
-            )
-            future_to_task[future] = task
-        
-        # 收集结果
-        completed_count = 0
-        for future in tqdm(as_completed(future_to_task), total=len(future_to_task), desc="处理音频文件"):
-            task = future_to_task[future]
-            try:
-                speech_chunks = future.result()
-                if speech_chunks is not None:
-                    spk2chunks[task['spk_id']].append(speech_chunks)
-                completed_count += 1
-                
-                # 每处理100个文件输出一次进度
-                if completed_count % 100 == 0:
-                    logger.info(f"已处理 {completed_count}/{len(audio_tasks)} 个音频文件")
-                    
-            except Exception as e:
-                logger.error(f"处理任务失败: {e}")
+            # 处理最后一批
+            if current_batch:
+                process_batch(current_batch, spk2chunks, process, max_memory_mb)
+                current_batch = []
+                gc.collect()
     
     logger.info(f"处理完成！共处理了 {len(spk2chunks)} 个说话人的数据")
     
@@ -1302,7 +1274,83 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
         with open(cache_file, 'wb') as f:
             pickle.dump(spk2chunks, f)
     
+    # 最终内存统计
+    if process:
+        final_memory = process.memory_info().rss / 1024 / 1024
+        logger.info(f"最终内存使用: {final_memory:.1f} MB (增加: {final_memory - initial_memory:.1f} MB)")
+    
     return spk2chunks
+
+def process_batch(batch, spk2chunks, process=None, max_memory_mb=None):
+    """处理一批说话人的音频数据"""
+    import os
+    import gc
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    
+    # 检查内存使用
+    if process and max_memory_mb:
+        current_memory = process.memory_info().rss / 1024 / 1024
+        if current_memory > max_memory_mb:
+            logger.warning(f"内存使用超过限制 {current_memory:.1f} MB > {max_memory_mb} MB，强制垃圾回收")
+            gc.collect()
+            current_memory = process.memory_info().rss / 1024 / 1024
+            if current_memory > max_memory_mb:
+                logger.error(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，跳过当前批次")
+                return
+    
+    # 收集当前批次的所有任务
+    all_tasks = []
+    for spk_id, speaker_tasks in batch:
+        all_tasks.extend(speaker_tasks)
+    
+    logger.info(f"处理批次: {len(batch)} 个说话人，{len(all_tasks)} 个音频文件")
+    
+    def process_audio_file_simple(task):
+        """简化的音频处理函数，减少内存使用"""
+        try:
+            wav_path = task['wav_path']
+            time_stamp_list = task['time_stamp_list']
+            
+            if not os.path.exists(wav_path):
+                return None
+            
+            wav, sr = sf.read(wav_path)
+            if sr != 16000:
+                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+            
+            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+            
+            # 立即释放wav数据
+            del wav
+            
+            return {
+                'spk_id': task['spk_id'],
+                'chunks': speech_chunks
+            }
+            
+        except Exception as e:
+            logger.warning(f"处理音频文件失败 {task['wav_path']}: {e}")
+            return None
+    
+    # 使用较少的线程以控制内存
+    max_workers = min(4, os.cpu_count() or 2)
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # 提交任务
+        futures = [executor.submit(process_audio_file_simple, task) for task in all_tasks]
+        
+        # 收集结果
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                if result is not None:
+                    spk2chunks[result['spk_id']].append(result['chunks'])
+            except Exception as e:
+                logger.error(f"处理任务失败: {e}")
+    
+    # 批次处理完成后立即清理
+    del all_tasks, futures
+    gc.collect()
 
 def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
     """
