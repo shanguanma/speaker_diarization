@@ -59,7 +59,10 @@ class SimuDiarMixer:
     def __getitem__(self, idx):
         """获取数据样本"""
         # 忽略idx，每次都随机生成新样本
-        return self.sample()
+        mix, label, spk_ids = self.sample()
+        # 添加数据来源标识：1表示模拟数据
+        data_source = 1  # 0: real data, 1: simulated data
+        return mix, label, spk_ids, data_source
 
     def load_musan_or_rirs(self, musan_path, rir_path):
         # add noise and rir augment
@@ -215,12 +218,12 @@ class SimuDiarMixer:
         return fbank
 
     def collate_fn(self, batch, vad_out_len=200):
-        # batch: list of (mix, label, spk_ids)
+        # batch: list of (mix, label, spk_ids, data_source)
         max_len = max([len(x[0]) for x in batch])
         # 先提取所有fbank帧数，确定max_frames
         fbanks = []
         fbank_lens = []
-        for mix, _, _ in batch:
+        for mix, _, _, _ in batch:
             fbank = self.extract_fbank(mix)
             fbanks.append(fbank)
             fbank_lens.append(fbank.shape[0])
@@ -231,7 +234,8 @@ class SimuDiarMixer:
         spk_ids_list = []
         fbanks_pad = []
         labels_len = []
-        for (mix, label, spk_ids), fbank in zip(batch, fbanks):
+        data_sources = []
+        for (mix, label, spk_ids, data_source), fbank in zip(batch, fbanks):
             pad_wav = np.pad(mix, (0, max_len - len(mix)), 'constant')
             wavs.append(pad_wav)
             pad_spk_ids = list(spk_ids) + [None] * (max_spks - len(spk_ids))
@@ -253,6 +257,7 @@ class SimuDiarMixer:
             pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
             pad_label[:aligned_label.shape[0], :aligned_label.shape[1]] = aligned_label
             labels.append(pad_label)
+            data_sources.append(data_source)
 
             labels_len.append(min(label.shape[1], vad_out_len) if label.ndim > 1 else 0)
         import torch
@@ -260,8 +265,9 @@ class SimuDiarMixer:
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
         fbanks = torch.tensor(np.stack(fbanks_pad), dtype=torch.float32)
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
-
-        return wavs, labels, spk_ids_list, fbanks, labels_len
+        data_sources = torch.tensor(data_sources, dtype=torch.int32)
+        
+        return wavs, labels, spk_ids_list, fbanks, labels_len, data_sources
     
 
     def collate_fn_wo_feat(self, batch):

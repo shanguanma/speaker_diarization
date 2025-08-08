@@ -92,7 +92,9 @@ class AlimeetingDiarDataset(Dataset):
         spk_ids = [spk for spk, active in zip(spk_ids, active_mask) if active]
         if self.musan_path or self.rir_path:
             wav, label, spk_ids = self.sample_post_window(wav, label, spk_ids)
-        return wav, label, spk_ids
+        # 添加数据来源标识：1表示真实数据
+        data_source = 1  # 1: real data, 0: simulated data
+        return wav, label, spk_ids, data_source
 
     def sample_post_window(self, wav, label, spk_ids):
         import numpy as np
@@ -119,14 +121,14 @@ class AlimeetingDiarDataset(Dataset):
     def collate_fn(self, batch, vad_out_len=200):
         if not isinstance(batch, (list, tuple)) or not hasattr(batch[0], '__getitem__'):
             raise ValueError("collate_fn expects a list of samples, not a Dataset object! Please pass [dataset[i] for i in ...]")
-        # batch: list of (wav, label, spk_ids)
-        batch = [(x[0], np.array(x[1]) if not isinstance(x[1], np.ndarray) else x[1], x[2]) for x in batch]
-        fbanks_unpadded = [self.extract_fbank(wav) for wav, _, _ in batch]
+        # batch: list of (wav, label, spk_ids, data_source)
+        batch = [(x[0], np.array(x[1]) if not isinstance(x[1], np.ndarray) else x[1], x[2], x[3]) for x in batch]
+        fbanks_unpadded = [self.extract_fbank(wav) for wav, _, _, _ in batch]
         max_fbank_frames = max(f.shape[0] for f in fbanks_unpadded) if fbanks_unpadded else 0
         max_spks = max([x[1].shape[0] for x in batch if x[1].ndim > 1], default=0)
         max_wav_len = max([len(x[0]) for x in batch])
-        wavs, labels, spk_ids_list, fbanks, labels_len = [], [], [], [], []
-        for i, (wav, label, spk_ids) in enumerate(batch):
+        wavs, labels, spk_ids_list, fbanks, labels_len, data_sources = [], [], [], [], [], []
+        for i, (wav, label, spk_ids, data_source) in enumerate(batch):
             pad_wav = np.pad(wav, (0, max_wav_len - len(wav)), 'constant')
             wavs.append(pad_wav)
             # Pad/crop label to vad_out_len
@@ -141,12 +143,14 @@ class AlimeetingDiarDataset(Dataset):
             pad_spk_ids = spk_ids + [None] * (max_spks - len(spk_ids))
             spk_ids_list.append(pad_spk_ids)
             labels_len.append(min(label.shape[1], vad_out_len) if label.ndim > 1 else 0)
+            data_sources.append(data_source)
         wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
         fbanks = torch.tensor(np.stack(fbanks), dtype=torch.float32) # torch.Size([64, 798, 80])
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
+        data_sources = torch.tensor(data_sources, dtype=torch.int32)
         #print(f"fbanks shape: {fbanks.shape}")
-        return wavs, labels, spk_ids_list, fbanks, labels_len
+        return wavs, labels, spk_ids_list, fbanks, labels_len, data_sources
 
     @staticmethod
     def compute_overlap(label):

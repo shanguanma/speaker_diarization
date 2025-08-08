@@ -11,6 +11,7 @@ from collections import defaultdict
 import librosa
 import soundfile as sf
 import numpy as np
+import random.Random as rng
 
 # import optim
 import torch
@@ -745,6 +746,8 @@ def train_one_epoch(
         params.best_train_der = der_value
     
     
+def is_real(batch):
+    return torch.any(batch[-1] == 0)
 
 def train_one_epoch_multi(
     params: AttributeDict,
@@ -843,12 +846,12 @@ def train_one_epoch_multi(
             real_tot_loss = (
                 real_tot_loss * (1 - 1 / params.reset_interval)
             ) + loss_info
-            prefix = "real"  # for logging only
+            #prefix = "real"  # for logging only
         else:
             simu_tot_loss = (
                 simu_tot_loss * (1 - 1 / params.reset_interval)
             ) + loss_info
-            prefix = "simu"
+            #prefix = "simu"
 
         accelerator.backward(loss)  # instead of loss.backward()
 
@@ -868,6 +871,8 @@ def train_one_epoch_multi(
             for key, value in loss_info.items():
                 writer.add_scalar(f"train/{key}", value, params.batch_idx_train)
             writer.add_scalar("train/lr", scheduler.get_last_lr()[0], params.batch_idx_train)
+            writer.add_scalar("train/real_loss", real_tot_loss["loss"], params.batch_idx_train)
+            writer.add_scalar("train/simu_loss", simu_tot_loss["loss"], params.batch_idx_train)
             if grad_norm is not None:
                 writer.add_scalar("train/grad_norm", grad_norm.item(), params.batch_idx_train)
 
