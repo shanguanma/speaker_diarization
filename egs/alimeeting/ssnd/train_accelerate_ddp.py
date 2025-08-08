@@ -588,6 +588,8 @@ def train_one_epoch(
         The model for training.
       optimizer:
         The optimizer we are using.
+      train_dl_simu:
+        Dataloader for the simu training dataset.
       train_dl:
         Dataloader for the training dataset.
       valid_dl:
@@ -601,9 +603,7 @@ def train_one_epoch(
 
     tot_loss = MetricsTracker()
     train_batch_nums = []
-    # extrator冻结/解冻逻辑
-    #extrator_frozen_steps = 100000
-    #extrator_frozen = params.get('extrator_frozen', True)
+ 
     for batch_idx, batch in enumerate(train_dl):
         # 每个batch前判断是否需要冻结/解冻extrator
         if  params.batch_idx_train < params.extrator_frozen_steps:
@@ -732,12 +732,6 @@ def train_one_epoch(
             logger.info(
                 f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
             )
-        # 诊断：打印dataloader输出的shape和部分内容
-        #if batch_idx == 0:
-        #    fbanks, labels, spk_label_idx, labels_len = batch
-        #    print(f"[DIAG] Dataloader batch[0] fbanks.shape: {fbanks.shape}, labels.shape: {labels.shape}, spk_label_idx.shape: {spk_label_idx.shape}, labels_len: {labels_len}")
-        #    print(f"[DIAG] Dataloader batch[0] labels[0, :, :10]: {labels[0, :, :10]}")
-        #    print(f"[DIAG] Dataloader batch[0] spk_label_idx[0]: {spk_label_idx[0]}")
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -750,28 +744,227 @@ def train_one_epoch(
         params.best_train_epoch = params.cur_epoch
         params.best_train_der = der_value
     
-    # 新增：过拟合检测和早停
-    #if hasattr(params, 'valid_der_history'):
-    #    params.valid_der_history.append(der_value)
-    #    if len(params.valid_der_history) > 10:  # 保留最近10个epoch的DER
-    #        params.valid_der_history.pop(0)
-        
-        # 如果最近5个epoch的DER都在上升，触发早停警告
-    #    if len(params.valid_der_history) >= 5:
-    #        recent_der = params.valid_der_history[-5:]
-    #        if all(recent_der[i] >= recent_der[i-1] for i in range(1, len(recent_der))):
-    #            logging.warning(f"Early stopping warning: DER has been increasing for 5 consecutive epochs!")
-    #            logging.warning(f"Recent DER values: {recent_der}")
-    #else:
-    #    params.valid_der_history = [der_value]
     
 
+def train_one_epoch_multi(
+    params: AttributeDict,
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler._LRScheduler,
+    scaler: GradScaler,
+    accelerator,
+    train_dl_simu: torch.utils.data.DataLoader,
+    train_dl: torch.utils.data.DataLoader,
+    valid_dl: torch.utils.data.DataLoader,
+    model_avg: Optional[nn.Module] = None,
+    writer: Optional[SummaryWriter] = None,
+) -> bool:
+    """Train the model for one epoch.
+
+    The training loss from the mean of all frames is saved in
+    `params.train_loss`. It runs the validation process every
+    `params.valid_interval` batches.
+
+    Args:
+      params:
+        It is returned by :func:`get_params`.
+      model:
+        The model for training.
+      optimizer:
+        The optimizer we are using.
+      train_dl_simu:
+        Dataloader for the simu training dataset.
+      train_dl:
+        Dataloader for the training dataset.
+      valid_dl:
+        Dataloader for the validation dataset.
+    """
+    assert train_dl_simu is not None, f"train_dl_simu is None"
+    assert train_dl is not None, f"train_dl is None"
+
+    if hasattr(model, 'module'):
+        model.module.cur_epoch = params.cur_epoch
+    else:
+        model.cur_epoch = params.cur_epoch
+    model.train()
+
+    real_tot_loss = MetricsTracker()
+    simu_tot_loss = MetricsTracker()
+    tot_loss = MetricsTracker()
+    
+    train_batch_nums = []
+
+    # index 0: for real dataset
+    # index 1: for simu dataset
+    # This sets the probabilities for choosing which datasets
+    dl_weights = [1 - params.real_dataset_prob, params.real_dataset_prob]
+
+    iter_real = iter(train_dl)
+    iter_simu = iter(train_dl_simu)
+
+    batch_idx = 0
+
+    while True:
+        idx = rng.choices((0, 1), weights=dl_weights, k=1)[0]
+        dl = iter_real if idx == 0 else iter_simu
+
+        try:
+            batch = next(dl)
+        except StopIteration:
+            break
+
+        batch_idx += 1
+
+#    for batch_idx, batch in enumerate(train_dl):
+#        # 每个batch前判断是否需要冻结/解冻extrator
+#        if  params.batch_idx_train < params.extrator_frozen_steps:
+#            for p in model.module.extractor.speech_encoder.parameters():
+#                p.requires_grad = False
+#            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+#                logger.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
+#        elif params.batch_idx_train >= params.extrator_frozen_steps:
+#            for p in model.module.extractor.speech_encoder.parameters():
+#                p.requires_grad = True
+#            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+#                logger.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
+            #params['extrator_frozen'] = False
+        params.batch_idx_train += 1
+        batch_size = params.batch_size
+
+        optimizer.zero_grad()
+        train_batch_nums.append(batch_idx)
+        real = is_real(batch) 
+        loss, loss_info = compute_loss(
+            model, batch, is_training=True, use_standard_bce=params.use_standard_bce, params=params
+        )
+         # summary stats
+        tot_loss = (tot_loss * (1 - 1 / params.reset_interval)) + loss_info
+        if real:
+            real_tot_loss = (
+                real_tot_loss * (1 - 1 / params.reset_interval)
+            ) + loss_info
+            prefix = "real"  # for logging only
+        else:
+            simu_tot_loss = (
+                simu_tot_loss * (1 - 1 / params.reset_interval)
+            ) + loss_info
+            prefix = "simu"
+
+        accelerator.backward(loss)  # instead of loss.backward()
+
+        # 应用梯度裁剪
+        grad_norm = None
+        if params.gradient_clip > 0:
+            if accelerator.sync_gradients:
+                grad_norm = accelerator.clip_grad_norm_(
+                    model.parameters(), max_norm=params.gradient_clip
+                )
+
+        optimizer.step()
+        scheduler.step()
+
+        # log to tensorboard
+        if writer and accelerator.is_main_process:
+            for key, value in loss_info.items():
+                writer.add_scalar(f"train/{key}", value, params.batch_idx_train)
+            writer.add_scalar("train/lr", scheduler.get_last_lr()[0], params.batch_idx_train)
+            if grad_norm is not None:
+                writer.add_scalar("train/grad_norm", grad_norm.item(), params.batch_idx_train)
+
+        ## average checkpoint
+        if (
+            params.train_on_average
+            and accelerator.is_main_process
+            and params.batch_idx_train > 0
+            and params.batch_idx_train % params.average_period == 0
+        ):
+            logger.info(
+                f"Currently, model averaging is being used during the training process."
+            )
+            update_averaged_model(
+                params=params,
+                model_cur=model,
+                model_avg=model_avg,
+            )
+
+        ## save and remove unuse checkpoint
+        if (
+            params.batch_idx_train > 0
+            and params.batch_idx_train % params.save_every_n == 0
+            and accelerator.is_main_process
+        ):
+            do_save_and_remove_once(
+                params, model, model_avg, optimizer, scheduler, train_dl, scaler
+            )
+        if batch_idx % params.log_interval == 0:
+            ## To align with the numbers in fairseq iter
+            num_updates = 0
+            if params.cur_epoch == 1:
+                num_updates = batch_idx
+            else:
+                integer_multi_num = (
+                    len(train_dl) - len(train_dl) % params.log_interval
+                )  # 3128 - 3128%500=3000
+                num_updates = (params.cur_epoch - 1) * integer_multi_num + batch_idx
+
+            ## get grad_scale and lr
+            # grad_scale = scale_result.new_scale
+            grad_scale = ""
+            cur_lr = scheduler.get_last_lr()[0]
+
+            logger.info(
+                f"[Train] - Epoch {params.cur_epoch}, "
+                f"batch_idx_train: {params.batch_idx_train-1}, num_updates: {num_updates}, {loss_info}, "
+                f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
+                f"lr: {cur_lr}, "
+            )
+        # log end-of-epoch stats
+        if batch_idx == len(train_dl) - 1:
+            # grad_scale = scale_result.new_scale
+            grad_scale = ""
+            cur_lr = scheduler.get_last_lr()[0]
+            logger.info(
+                f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
+                f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
+                f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
+                f"lr: {cur_lr}, "
+            )
+        if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+            logger.info("Computing validation loss")
+            # 计算当前训练集的DER
+            #current_train_der = tot_loss["DER"] / len(train_batch_nums) if len(train_batch_nums) > 0 else 0.0
+            valid_info = compute_validation_loss(
+                params=params,
+                model=model,
+                valid_dl=valid_dl,
+                batch_idx_train=params.batch_idx_train,
+                writer=writer,
+                #train_der=current_train_der,  # 传入训练集DER
+            )
+            model.train()
+            logger.info(
+                f"[Eval] - Epoch {params.cur_epoch}, batch_idx_train: {params.batch_idx_train-1}, "
+                f" validation: {valid_info}"
+            )
+            logger.info(
+                f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
+            )
+    loss_value = tot_loss["loss"] / len(train_batch_nums)
+    params.train_loss = loss_value
+
+    if params.train_loss < params.best_train_loss:
+        params.best_train_epoch = params.cur_epoch
+        params.best_train_loss = params.train_loss
+
+    der_value = tot_loss["DER"] / len(train_batch_nums)
+    if der_value < params.best_train_der:
+        params.best_train_epoch = params.cur_epoch
+        params.best_train_der = der_value
 
 def load_model_params(
     ckpt: str, model: nn.Module, init_modules: List[str] = None, strict: bool = True
 ):
     """Load model params from checkpoint
-
     Args:
         ckpt (str): Path to the checkpoint
         model (nn.Module): model to be loaded
@@ -1793,9 +1986,19 @@ def main():
     optimizer, scheduler = get_optimizer_scheduler(params, model)
 
     ## accelerated model, optimizer, scheduler ,train_dl, valid_dl
-    model, optimizer, scheduler, train_dl, valid_dl = accelerator.prepare(
-        model, optimizer, scheduler, train_dl, valid_dl
-    )
+    if args.train_stage==1:
+        model, optimizer, scheduler, train_dl_simu, valid_dl = accelerator.prepare(
+            model, optimizer, scheduler, train_dl_simu, valid_dl
+        )
+        train_dl=train_dl_simu
+    elif args.train_stage==2:
+        model, optimizer, scheduler, train_dl_simu, train_dl, valid_dl = accelerator.prepare(
+            model, optimizer, scheduler, train_dl_simu, train_dl,valid_dl
+        )
+    elif args.train_stage==3:
+        model, optimizer, scheduler, train_dl, valid_dl = accelerator.prepare(
+            model, optimizer, scheduler, train_dl,valid_dl
+        )
     # logging.info(f"After accelerator: model: {model}")
     scaler: Optional[GradScaler] = None
     logger.info(f"start training from epoch {params.start_epoch}")
@@ -1808,25 +2011,48 @@ def main():
     for epoch in range(params.start_epoch, params.num_epochs + 1):
         # fix_random_seed(params.seed + epoch-1) # fairseq1 seed=1337
         params.cur_epoch = epoch
-        train_one_epoch(
-            params=params,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            scaler=scaler,
-            train_dl=train_dl,
-            valid_dl=valid_dl,
-            accelerator=accelerator,
-            model_avg=model_avg,
-            writer=writer,
-        )
-        if accelerator.is_main_process:
-            save_checkpoint(
+        if args.train_stage==2:
+            train_one_epoch_multi(
                 params=params,
                 model=model,
                 optimizer=optimizer,
                 scheduler=scheduler,
-            )  
+                scaler=scaler,
+                train_dl_simu=train_dl_simu,
+                train_dl=train_dl,
+                valid_dl=valid_dl,
+                accelerator=accelerator,
+                model_avg=model_avg,
+                writer=writer,
+            )
+            if accelerator.is_main_process:
+                save_checkpoint(
+                    params=params,
+                    model=model,
+                    optimizer=optimizer,
+                    scheduler=scheduler,
+                )
+        else:
+            train_one_epoch(
+                params=params,
+                model=model,
+                optimizer=optimizer,
+                scheduler=scheduler,
+                scaler=scaler,
+                #train_dl_simu=train_dl_simu,
+                train_dl=train_dl,
+                valid_dl=valid_dl,
+                accelerator=accelerator,
+                model_avg=model_avg,
+                writer=writer,
+            )
+            if accelerator.is_main_process:
+                save_checkpoint(
+                    params=params,
+                    model=model,
+                    optimizer=optimizer,
+                    scheduler=scheduler,
+                )  
         #if params.batch_idx_train >= extrator_frozen_steps and extrator_frozen:
         #    extrator_frozen = False
         #    for p in model.module.extractor.speech_encoder.parameters():
