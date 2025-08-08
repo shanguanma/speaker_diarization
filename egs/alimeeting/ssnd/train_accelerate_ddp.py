@@ -606,12 +606,12 @@ def train_one_epoch(
             for p in model.module.extractor.speech_encoder.parameters():
                 p.requires_grad = False
             if batch_idx > 0 and batch_idx % params.valid_interval == 0:
-                logging.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
+                logger.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
         elif params.batch_idx_train >= params.extrator_frozen_steps:
             for p in model.module.extractor.speech_encoder.parameters():
                 p.requires_grad = True
             if batch_idx > 0 and batch_idx % params.valid_interval == 0:
-                logging.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
+                logger.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
             #params['extrator_frozen'] = False
         params.batch_idx_train += 1
         batch_size = params.batch_size
@@ -657,7 +657,7 @@ def train_one_epoch(
             and params.batch_idx_train > 0
             and params.batch_idx_train % params.average_period == 0
         ):
-            logging.info(
+            logger.info(
                 f"Currently, model averaging is being used during the training process."
             )
             update_averaged_model(
@@ -691,7 +691,7 @@ def train_one_epoch(
             grad_scale = ""
             cur_lr = scheduler.get_last_lr()[0]
 
-            logging.info(
+            logger.info(
                 f"[Train] - Epoch {params.cur_epoch}, "
                 f"batch_idx_train: {params.batch_idx_train-1}, num_updates: {num_updates}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
@@ -702,14 +702,14 @@ def train_one_epoch(
             # grad_scale = scale_result.new_scale
             grad_scale = ""
             cur_lr = scheduler.get_last_lr()[0]
-            logging.info(
+            logger.info(
                 f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
                 f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
                 f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
                 f"lr: {cur_lr}, "
             )
         if batch_idx > 0 and batch_idx % params.valid_interval == 0:
-            logging.info("Computing validation loss")
+            logger.info("Computing validation loss")
             # 计算当前训练集的DER
             #current_train_der = tot_loss["DER"] / len(train_batch_nums) if len(train_batch_nums) > 0 else 0.0
             valid_info = compute_validation_loss(
@@ -721,11 +721,11 @@ def train_one_epoch(
                 #train_der=current_train_der,  # 传入训练集DER
             )
             model.train()
-            logging.info(
+            logger.info(
                 f"[Eval] - Epoch {params.cur_epoch}, batch_idx_train: {params.batch_idx_train-1}, "
                 f" validation: {valid_info}"
             )
-            logging.info(
+            logger.info(
                 f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
             )
         # 诊断：打印dataloader输出的shape和部分内容
@@ -774,13 +774,13 @@ def load_model_params(
         init_modules (list[str]): List of modules to be initialized
 
     """
-    logging.info(f"Loading checkpoint from {ckpt}")
+    logger.info(f"Loading checkpoint from {ckpt}")
     checkpoint = torch.load(ckpt, map_location="cpu")
 
     # if module list is empty, load the whole model from ckpt
     if not init_modules:
         if next(iter(checkpoint["model"])).startswith("module."):
-            logging.info("Loading checkpoint saved by DDP")
+            logger.info("Loading checkpoint saved by DDP")
 
             dst_state_dict = model.state_dict()
             src_state_dict = checkpoint["model"]
@@ -795,7 +795,7 @@ def load_model_params(
         src_state_dict = checkpoint["model"]
         dst_state_dict = model.state_dict()
         for module in init_modules:
-            logging.info(f"Loading parameters starting with prefix {module}")
+            logger.info(f"Loading parameters starting with prefix {module}")
             src_keys = [
                 k for k in src_state_dict.keys() if k.startswith(module.strip() + ".")
             ]
@@ -883,8 +883,8 @@ def build_spk2int(*textgrid_dirs: str):
             except Exception as e:
                 logging.warning(f"Could not process {tg_file}: {e}")
     spk2int = {spk: i for i, spk in enumerate(sorted(list(spk_ids)))}
-    logging.info(f"Found {len(spk2int)} unique speakers in the provided set.")
-    logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
+    logger.info(f"Found {len(spk2int)} unique speakers in the provided set.")
+    logger.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
 def broadcast_spk2int(args, accelerator):
@@ -909,7 +909,7 @@ def broadcast_spk2int(args, accelerator):
     return spk2int
 
 def build_train_dl(args, spk2int): 
-    logging.info("Building train dataloader with training spk2int...")
+    logger.info("Building train dataloader with training spk2int...")
     train_dataset = AlimeetingDiarDataset(
         wav_dir=args.train_wav_dir,
         textgrid_dir=args.train_textgrid_dir,
@@ -943,7 +943,7 @@ def build_train_dl(args, spk2int):
     return train_dl
 
 def build_train_dl_with_local_spk2int(args,): 
-    logging.info("Building train dataloader with training spk2int...")
+    logger.info("Building train dataloader with training spk2int...")
     train_dataset = AlimeetingDiarDataset(
         wav_dir=args.train_wav_dir,
         textgrid_dir=args.train_textgrid_dir,
@@ -963,7 +963,7 @@ def build_train_dl_with_local_spk2int(args,):
         for spk_ids in spk_ids_list:
             all_spk.update([s for s in spk_ids if s is not None])
         spk2int = {spk: i for i, spk in enumerate(sorted(list(all_spk)))}
-        logging.info(f"train set spk2int len: {len(spk2int)} in fn build_train_dl_with_local_spk2int")
+        logger.info(f"train set spk2int len: {len(spk2int)} in fn build_train_dl_with_local_spk2int")
         max_spks_in_batch = labels.shape[1]
         spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
         for i, spk_id_sample in enumerate(spk_ids_list):
@@ -983,7 +983,7 @@ def build_train_dl_with_local_spk2int(args,):
     return train_dl
 
 def build_valid_dl(args, spk2int): 
-    logging.info("Building valid dataloader with training spk2int...")
+    logger.info("Building valid dataloader with training spk2int...")
     valid_dataset = AlimeetingDiarDataset(
         wav_dir=args.valid_wav_dir,
         textgrid_dir=args.valid_textgrid_dir,
@@ -1017,7 +1017,7 @@ def build_valid_dl(args, spk2int):
     return valid_dl
 
 def build_valid_dl_with_local_spk2int(args): 
-    logging.info("Building valid dataloader with training spk2int...")
+    logger.info("Building valid dataloader with training spk2int...")
     valid_dataset = AlimeetingDiarDataset(
         wav_dir=args.valid_wav_dir,
         textgrid_dir=args.valid_textgrid_dir,
@@ -1056,7 +1056,7 @@ def build_valid_dl_with_local_spk2int(args):
     return valid_dl
 
 def build_test_dl(args, spk2int):
-    logging.info("Building test dataloader with training spk2int...")
+    logger.info("Building test dataloader with training spk2int...")
     test_dataset = AlimeetingDiarDataset(
         wav_dir=args.test_wav_dir,
         textgrid_dir=args.test_textgrid_dir,
@@ -1184,11 +1184,11 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
     
     # 如果启用缓存且缓存文件存在，直接加载
     if use_cache and os.path.exists(cache_file):
-        logging.info(f"从缓存加载数据: {cache_file}")
+        logger.info(f"从缓存加载数据: {cache_file}")
         with open(cache_file, 'rb') as f:
             return pickle.load(f)
     
-    logging.info("开始加速处理spktochunks...")
+    logger.info("开始加速处理spktochunks...")
     
     # 第一步：解析JSON文件，收集所有需要处理的音频文件
     audio_tasks = []
@@ -1226,9 +1226,9 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                         speaker_count += 1
                         
                     except json.JSONDecodeError as e:
-                        logging.warning(f"第{line_num}行JSON解析失败: {e}")
+                        logger.warning(f"第{line_num}行JSON解析失败: {e}")
     
-    logging.info(f"收集到 {len(audio_tasks)} 个音频处理任务，涉及 {speaker_count} 个说话人")
+    logger.info(f"收集到 {len(audio_tasks)} 个音频处理任务，涉及 {speaker_count} 个说话人")
     
     # 第二步：并行处理音频文件
     @lru_cache(maxsize=1000)  # 缓存最近处理的1000个音频文件
@@ -1240,7 +1240,7 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
             
             # 检查文件是否存在
             if not os.path.exists(wav_path):
-                logging.warning(f"音频文件不存在: {wav_path}")
+                logger.warning(f"音频文件不存在: {wav_path}")
                 return None
             
             # 读取音频文件
@@ -1253,14 +1253,14 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
             return speech_chunks
             
         except Exception as e:
-            logging.warning(f"处理音频文件失败 {wav_path}: {e}")
+            logger.warning(f"处理音频文件失败 {wav_path}: {e}")
             return None
     
     # 使用线程池并行处理
     spk2chunks = defaultdict(list)
     max_workers = min(8, os.cpu_count() or 4)  # 限制线程数
     
-    logging.info(f"使用 {max_workers} 个线程并行处理音频文件...")
+    logger.info(f"使用 {max_workers} 个线程并行处理音频文件...")
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # 提交所有任务
@@ -1287,16 +1287,16 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                 
                 # 每处理100个文件输出一次进度
                 if completed_count % 100 == 0:
-                    logging.info(f"已处理 {completed_count}/{len(audio_tasks)} 个音频文件")
+                    logger.info(f"已处理 {completed_count}/{len(audio_tasks)} 个音频文件")
                     
             except Exception as e:
-                logging.error(f"处理任务失败: {e}")
+                logger.error(f"处理任务失败: {e}")
     
-    logging.info(f"处理完成！共处理了 {len(spk2chunks)} 个说话人的数据")
+    logger.info(f"处理完成！共处理了 {len(spk2chunks)} 个说话人的数据")
     
     # 保存缓存
     if use_cache:
-        logging.info(f"保存缓存到: {cache_file}")
+        logger.info(f"保存缓存到: {cache_file}")
         with open(cache_file, 'wb') as f:
             pickle.dump(spk2chunks, f)
     
@@ -1310,7 +1310,7 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
     import os
     from collections import defaultdict
     
-    logging.info("使用懒加载模式处理spktochunks...")
+    logger.info("使用懒加载模式处理spktochunks...")
     
     # 由于SimuDiarMixer需要完整的数据结构，我们实际上还是需要预加载
     # 但我们可以使用更高效的方式
@@ -1356,7 +1356,7 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
                                 return speech_chunks
                             except Exception as e:
-                                logging.warning(f"处理音频文件失败 {wav_path}: {e}")
+                                logger.warning(f"处理音频文件失败 {wav_path}: {e}")
                                 return None
                         
                         # 并行处理当前说话人的所有音频文件
@@ -1372,12 +1372,12 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                                     spk2chunks[spk_id].append(result)
                         
                         speaker_count += 1
-                        logging.info(f"处理完成说话人 {spk_id}，包含 {len(spk2chunks[spk_id])} 个音频文件")
+                        logger.info(f"处理完成说话人 {spk_id}，包含 {len(spk2chunks[spk_id])} 个音频文件")
                         
                     except json.JSONDecodeError as e:
-                        logging.warning(f"第{line_num}行JSON解析失败: {e}")
+                        logger.warning(f"第{line_num}行JSON解析失败: {e}")
     
-    logging.info(f"懒加载版本处理完成，共处理了 {speaker_count} 个说话人")
+    logger.info(f"懒加载版本处理完成，共处理了 {speaker_count} 个说话人")
     return spk2chunks
 #    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
 #    spk2chunks = defaultdict(list)
@@ -1418,7 +1418,7 @@ def build_global_spk2int(args):
                     if tier.name.strip():
                         spk_ids.add(tier.name[-9:]) # 保证和AlimeetingDiarDataset一致
             except Exception as e:
-                logging.warning(f"Could not process {tg_file}: {e}")
+                logger.warning(f"Could not process {tg_file}: {e}")
 
     # 2. simu dataset speaker i.e. we use voxceleb2 audio to simulate mix audio, so I use speakers of voxceleb2.
     utt2spk = f"{args.voxceleb2_dataset_dir}/utt2spk"
@@ -1430,8 +1430,8 @@ def build_global_spk2int(args):
 
 
     spk2int = {spk: i for i, spk in enumerate(sorted(list(spk_ids)))}
-    logging.info(f"Found {len(spk2int)} unique speakers in the provided set.")
-    logging.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
+    logger.info(f"Found {len(spk2int)} unique speakers in the provided set.")
+    logger.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
 def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=None, max_files_per_speaker=None):
@@ -1445,24 +1445,24 @@ def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=
         max_speakers: 最大处理说话人数量（用于测试）
         max_files_per_speaker: 每个说话人最大文件数量（用于测试）
     """
-    logging.info("Building simu data train dataloader with training spk2int...")
+    logger.info("Building simu data train dataloader with training spk2int...")
     
     # 选择使用哪个版本的spktochunks函数
     if use_fast_version:
         if hasattr(args, 'use_lazy_loading') and args.use_lazy_loading:
             try:
-                logging.info("尝试使用懒加载版本")
+                logger.info("尝试使用懒加载版本")
                 spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
-                logging.info("懒加载版本初始化成功")
+                logger.info("懒加载版本初始化成功")
             except Exception as e:
-                logging.warning(f"懒加载版本失败，回退到加速版本: {e}")
-                logging.info("使用加速版本")
+                logger.warning(f"懒加载版本失败，回退到加速版本: {e}")
+                logger.info("使用加速版本")
                 spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
         else:
-            logging.info("使用加速版本")
+            logger.info("使用加速版本")
             spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
     else:
-        logging.info("使用原始版本")
+        logger.info("使用原始版本")
         spk2chunks = spktochunks(args)
     
     train_dataset = SimuDiarMixer(
@@ -1530,7 +1530,7 @@ def main():
 
     # 构建global spk2int (用真实的训练集和验证集和模拟的训练集)
     spk2int = build_global_spk2int(args)
-    logging.info(f"spk2int: {spk2int}")
+    logger.info(f"spk2int: {spk2int}")
     params.n_all_speakers = len(spk2int)
     
     
@@ -1565,8 +1565,8 @@ def main():
     gradient_accumulation = 1
     # Note: scale_window is not used in the current code, but kept for reference
     scale_window = max(int(2**14 / accelerator.num_processes / gradient_accumulation), 1)
-    logging.info(f"The scale window is set to {scale_window}.")
-    logging.info(f"params: {params}")
+    logger.info(f"The scale window is set to {scale_window}.")
+    logger.info(f"params: {params}")
     # Model
     model = SSNDModel(
         speaker_pretrain_model_path=params.speaker_pretrain_model_path,
@@ -1599,9 +1599,9 @@ def main():
     #with torch.no_grad():
     #    model.det_decoder.out_proj.bias.fill_(0.0)
 
-    logging.info(f"model: {model}")
+    logger.info(f"model: {model}")
     num_param = sum([p.numel() for p in model.parameters()])
-    logging.info(f"Number of model parameters: {num_param/1e6} M")
+    logger.info(f"Number of model parameters: {num_param/1e6} M")
 
     assert params.save_every_n >= params.average_period
     model_avg: Optional[nn.Module] = None
@@ -1638,8 +1638,8 @@ def main():
     )
     # logging.info(f"After accelerator: model: {model}")
     scaler: Optional[GradScaler] = None
-    logging.info(f"start training from epoch {params.start_epoch}")
-    logging.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
+    logger.info(f"start training from epoch {params.start_epoch}")
+    logger.info(f"Train set grouped total_num_itrs = {len(train_dl)}")
 
     # fix_random_seed(params.seed) # fairseq1 seed=1337 # this may be not correct at here.
     #extrator_frozen_steps = 100000  # 前10000步冻结extrator
@@ -1674,7 +1674,7 @@ def main():
         #    logging.info(f"[Unfreeze] extractor解冻 at step {params.batch_idx_train}")
     if writer:
         writer.close()
-    logging.info("Done!")
+    logger.info("Done!")
     if accelerator.num_processes > 1:
         torch.distributed.barrier()
         dist.destroy_process_group()
