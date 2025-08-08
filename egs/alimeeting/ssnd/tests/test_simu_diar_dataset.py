@@ -172,7 +172,7 @@ def test_wo_feat_wo_aug():
                 # in ms ->(/1000) in second ->(*16000) in sample points
                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
                 if spk_id in spk2chunks:
-                    spk2chunks[spk_id].append(speech_chunks)
+                    spk2chunks[spk_id].extend(speech_chunks)
                 else:
                     spk2chunks[spk_id] = speech_chunks
         return spk2chunks
@@ -699,7 +699,7 @@ def test_wo_feat_wo_aug_mix_gen():
                 # in ms ->(/1000) in second ->(*16000) in sample points
                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
                 if spk_id in spk2chunks:
-                    spk2chunks[spk_id].append(speech_chunks)
+                    spk2chunks[spk_id].extend(speech_chunks)
                 else:
                     spk2chunks[spk_id] = speech_chunks
         return spk2chunks
@@ -756,7 +756,7 @@ def test_wo_feat_w_aug_mix_gen():
                 # in ms ->(/1000) in second ->(*16000) in sample points
                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
                 if spk_id in spk2chunks:
-                    spk2chunks[spk_id].append(speech_chunks)
+                    spk2chunks[spk_id].extend(speech_chunks)
                 else:
                     spk2chunks[spk_id] = speech_chunks
         return spk2chunks

@@ -1355,7 +1355,7 @@ def spktochunks(args):
                             # in ms ->(/1000) in second ->(*16000) in sample points
                             speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
                             if spk_id in spk2chunks:
-                                spk2chunks[spk_id].append(speech_chunks)
+                                spk2chunks[spk_id].extend(speech_chunks)
                             else:
                                 spk2chunks[spk_id] = speech_chunks
                     except json.JSONDecodeError as e:
@@ -1542,7 +1542,7 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None):
             try:
                 result = future.result()
                 if result is not None:
-                    spk2chunks[result['spk_id']].append(result['chunks'])
+                    spk2chunks[result['spk_id']].extend(result['chunks'])
             except Exception as e:
                 logger.error(f"处理任务失败: {e}")
     
@@ -1588,7 +1588,6 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                             time_stamps = time_stamps[:max_files_per_speaker]
                         
                         # 串行处理，避免内存爆炸
-                        spk_chunks = []
                         for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
                             try:
                                 if not os.path.exists(wav_path):
@@ -1600,7 +1599,7 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                                     wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
                                 
                                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-                                spk_chunks.append(speech_chunks)
+                                spk2chunks[spk_id].extend(speech_chunks)
                                 
                                 # 主动释放内存
                                 del wav
@@ -1608,8 +1607,6 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                             except Exception as e:
                                 logger.warning(f"处理音频文件失败 {wav_path}: {e}")
                                 continue
-                        
-                        spk2chunks[spk_id].extend(spk_chunks)
                         speaker_count += 1
                         
                         # 每处理10个说话人就强制垃圾回收
@@ -1692,7 +1689,7 @@ def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None)
                                     wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
                                 
                                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-                                spk2chunks[spk_id].append(speech_chunks)
+                                spk2chunks[spk_id].extend(speech_chunks)
                                 
                                 # 立即释放音频数据
                                 del wav, speech_chunks
