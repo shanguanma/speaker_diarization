@@ -7,7 +7,7 @@ from typing import List, Tuple, Dict, Callable
 from scipy import signal
 import random
 import glob
-
+import time
 class SimuDiarMixer:
     def __init__(self,
                  spk2chunks: Dict[str, List[np.ndarray]],
@@ -32,6 +32,7 @@ class SimuDiarMixer:
         min_silence, max_silence: 静音片段长度范围（秒）
         target_overlap: 目标重叠率（帧级别多于1人说话的帧占比）
         """
+        
         self.spk2chunks = spk2chunks
         self.sr = sample_rate
         self.frame_length = frame_length

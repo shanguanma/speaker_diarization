@@ -1137,7 +1137,7 @@ if [ ${stage} -le 19 ] && [ ${stop_stage} -ge 19 ];then
 
  python ssnd/remove_silent_and_get_spk2chunks.py\
 	 --voxceleb2-dataset-dir  /maduo/datasets/voxceleb2/vox2_dev/\
-	 --out-text /maduo/datasets/voxceleb2/vox2_dev/train.json
+	 --out-text /maduo/datasets/voxceleb2/vox2_dev/train.jsonl_gzip
 fi
 # 
 if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
@@ -1166,7 +1166,7 @@ if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
    standard_bce_loss=true
    train_stage=1
    voxceleb2_dataset_dir=/maduo/datasets/voxceleb2/vox2_dev
-   voxceleb2_spk2chunks_json=$voxceleb2_dataset_dir/train.json
+   voxceleb2_spk2chunks_json=$voxceleb2_dataset_dir/train.jsonl_gzip
    #exp_dir=/maduo/exp/speaker_diarization/ssnd/ssnd_alimeeting_improved_lr1e-4_batch64_mask_prob_${mask_prob}_arcface_weight_${arcface_weight}_arcface_margin${arcface_margin}_arcface_scale${arcface_scale}_with_global_spk2int_max_speakers${max_speakers}_with_musan_rir_standard_bce_loss_${standard_bce_loss}_dropout0.05_weight_decay${weight_decay}_label_smoothing_${label_smoothing}_warmup4000_epoch20_train_stage1_voxceleb2
    exp_dir=/maduo/exp/speaker_diarization/ssnd/cam++_gsp_lr1e-4_batch64_standard_bce_loss_${standard_bce_loss}_train_stage1_voxceleb2
    mkdir -p $exp_dir

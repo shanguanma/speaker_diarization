@@ -30,6 +30,10 @@ from accelerate import Accelerator
 from accelerate.utils import GradScalerKwargs
 
 import logging
+import textgrid
+from tqdm import tqdm
+import json
+import pickle
 
 from utils import fix_random_seed
 from checkpoint import (
@@ -48,13 +52,11 @@ from utils import (
     str2bool,
     none_or_str,
 )
-import textgrid
 
 from ssnd_model import SSNDModel
 from alimeeting_diar_dataset import AlimeetingDiarDataset
 from simu_diar_dataset import SimuDiarMixer
 from funasr import AutoModel # pip install funasr # only for simu data
-import pickle
 
 logging.basicConfig(
     level=logging.INFO,
@@ -236,7 +238,9 @@ def get_parser():
     parser.add_argument("--extractor-dropout", type=float, default=0.0, help="apply dropout into output of extractor")
     parser.add_argument("--voxceleb2-dataset-dir", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/", help="voxceleb2 kaldi format data dir")
     parser.add_argument("--train-stage", type=int, default=1, help="use numbers to determine train stage")
-    parser.add_argument("--voxceleb2-spk2chunks-json", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/train.json", help="vad timestamp and spk_id  and wav_path")
+    parser.add_argument("--voxceleb2-spk2chunks-json", type=str, default="/maduo/datasets/voxceleb2/vox2_dev/train.jsonl_gzip", help="vad timestamp and spk_id  and wav_path")
+    
+    parser.add_argument("--compression-type", type=str, default="gzip", help="compression method type for vad json files.")
 
     add_finetune_arguments(parser)
     return parser
@@ -907,7 +911,10 @@ def build_train_dl(args, spk2int):
         train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        collate_fn=collate_fn_wrapper
+        collate_fn=collate_fn_wrapper,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )   
     return train_dl
 
@@ -944,7 +951,10 @@ def build_train_dl_with_local_spk2int(args,):
         train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        collate_fn=collate_fn_wrapper
+        collate_fn=collate_fn_wrapper,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )   
     return train_dl
 
@@ -975,7 +985,10 @@ def build_valid_dl(args, spk2int):
         valid_dataset,
         batch_size=args.batch_size,
         shuffle=False,
-        collate_fn=collate_fn_wrapper
+        collate_fn=collate_fn_wrapper,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     ) 
     return valid_dl
 
@@ -1011,7 +1024,10 @@ def build_valid_dl_with_local_spk2int(args):
         valid_dataset,
         batch_size=args.batch_size,
         shuffle=False,
-        collate_fn=collate_fn_wrapper
+        collate_fn=collate_fn_wrapper,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     ) 
     return valid_dl
 
@@ -1041,7 +1057,10 @@ def build_test_dl(args, spk2int):
         test_dataset,
         batch_size=args.batch_size,
         shuffle=False,
-        collate_fn=collate_fn_wrapper
+        collate_fn=collate_fn_wrapper,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
     )
     return test_dl
 #def vad_func(wav,sr):
@@ -1089,10 +1108,10 @@ def build_test_dl(args, spk2int):
 #                spk2chunks[spk_id] = speech_chunks
 #
 def spktochunks(args):
-    import tqdm import tqdm
-    if compression_type == "gzip":
+    #import tqdm import tqdm
+    if args.compression_type == "gzip":
         spk2chunks = defaultdict(list)
-        with gzip.open(file_path, "rt", encoding='utf-8') as f:
+        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if line:  # 跳过空行
@@ -1100,7 +1119,7 @@ def spktochunks(args):
                         data = json.loads(line)
                         spk_id = data["spk_id"]
                         wav_paths = data["wav_paths"]
-                        time_stamps = data["result"]
+                        time_stamps = data["results"]
                         assert len(wav_paths) == len(time_stamps), f"len(wav_paths): {len(wav_paths)} vs len(time_stamps): {len(time_stamps)}"
                         for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
                             wav, sr = sf.read(wav_path)
@@ -1115,7 +1134,7 @@ def spktochunks(args):
                                 spk2chunks[spk_id] = speech_chunks
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
-        return spk2chunks
+    return spk2chunks
 #    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
 #    spk2chunks = defaultdict(list)
 #    for line in tqdm(lines, desc=f"lines: "):
@@ -1203,7 +1222,11 @@ def build_simu_data_train_dl(args, spk2int):
         train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        collate_fn=collate_fn_wrapper
+        collate_fn=collate_fn_wrapper,
+        num_workers=4,  # 建议：4~8，避免超过CPU核心数
+        pin_memory=True,
+        persistent_workers=True  # 避免每epoch重建进程
+
     )
     return train_dl
 
