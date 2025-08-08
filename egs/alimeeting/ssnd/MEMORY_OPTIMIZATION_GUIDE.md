@@ -12,8 +12,8 @@
 
 - `--fast-max-memory-mb`: 最大内存限制（MB），默认0表示自动检测
 - `--memory-usage-ratio`: 自动内存检测时使用的内存比例（0.0-1.0），默认0.6表示60%
-- `--fast-batch-size`: 批处理大小（说话人数量），默认5
-- `--fast-sub-batch-size`: 子批次大小（音频文件数量），默认50
+- `--fast-batch-size`: 批处理大小（说话人数量），默认2
+- `--fast-sub-batch-size`: 子批次大小（音频文件数量），默认20
 - `--strict-memory-check`: 是否启用严格的内存检查，默认False
 
 ### 2. 智能内存管理
@@ -105,22 +105,22 @@ INFO [train_accelerate_ddp.py:1470] 子批次 1 完成，当前内存: 8192.5 MB
 ```bash
 # 自动内存管理（推荐，适合所有机器）
 python train_accelerate_ddp.py \
-    --fast-batch-size 5 \
-    --fast-sub-batch-size 50 \
+    --fast-batch-size 2 \
+    --fast-sub-batch-size 20 \
     --strict-memory-check False
 
 # 使用70%内存（适合大内存机器）
 python train_accelerate_ddp.py \
     --memory-usage-ratio 0.7 \
-    --fast-batch-size 8 \
-    --fast-sub-batch-size 80 \
+    --fast-batch-size 3 \
+    --fast-sub-batch-size 30 \
     --strict-memory-check False
 
 # 使用50%内存（适合内存受限的机器）
 python train_accelerate_ddp.py \
     --memory-usage-ratio 0.5 \
-    --fast-batch-size 3 \
-    --fast-sub-batch-size 30 \
+    --fast-batch-size 1 \
+    --fast-sub-batch-size 10 \
     --strict-memory-check False
 
 # 保守配置（适合内存较小的机器）

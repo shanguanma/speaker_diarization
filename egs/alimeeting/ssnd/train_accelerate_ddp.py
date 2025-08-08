@@ -265,10 +265,10 @@ def get_parser():
     parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
     parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（内存优化）")
     parser.add_argument("--use-memory-safe", type=str2bool, default=False, help="是否使用超级内存安全模式（避免OOM）")
-    parser.add_argument("--fast-batch-size", type=int, default=5, help="加速版本的批处理大小（控制内存使用）")
+    parser.add_argument("--fast-batch-size", type=int, default=2, help="加速版本的批处理大小（控制内存使用）")
     parser.add_argument("--fast-max-memory-mb", type=int, default=0, help="加速版本的最大内存限制（MB），0表示自动检测并使用可用内存的指定百分比")
-    parser.add_argument("--memory-usage-ratio", type=float, default=0.6, help="自动内存检测时使用的内存比例（0.0-1.0），默认0.6表示60%")
-    parser.add_argument("--fast-sub-batch-size", type=int, default=50, help="子批次大小（每个子批次处理的音频文件数量）")
+    parser.add_argument("--memory-usage-ratio", type=float, default=0.5, help="自动内存检测时使用的内存比例（0.0-1.0），默认0.5表示50%")
+    parser.add_argument("--fast-sub-batch-size", type=int, default=20, help="子批次大小（每个子批次处理的音频文件数量）")
     parser.add_argument("--strict-memory-check", type=str2bool, default=False, help="是否启用严格的内存检查（True时会跳过超限的批次）")
     parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
     parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
@@ -1414,7 +1414,7 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
             logger.info(f"使用用户指定的内存限制: {max_memory_mb} MB")
         else:
             # 使用可配置的内存比例
-            memory_ratio = getattr(args, 'memory_usage_ratio', 0.6)
+            memory_ratio = getattr(args, 'memory_usage_ratio', 0.5)
             memory_ratio = max(0.1, min(0.9, memory_ratio))  # 限制在10%-90%之间
             
             # 使用可用内存的指定比例，但不超过总内存的指定比例
@@ -1434,7 +1434,7 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
     # 按说话人批量处理，避免一次性加载所有任务
     spk2chunks = defaultdict(list)
     speaker_count = 0
-    batch_size = getattr(args, 'fast_batch_size', 5)  # 减少默认批处理大小，避免内存溢出
+    batch_size = getattr(args, 'fast_batch_size', 2)  # 进一步减少默认批处理大小，避免内存溢出
     logger.info(f"使用批处理大小: {batch_size} 个说话人/批")
     
     if args.compression_type == "gzip":
@@ -1522,7 +1522,7 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
     
     # 如果任务数量过多，分批处理以避免内存溢出
     if sub_batch_size is None:
-        sub_batch_size = 50  # 默认每个子批次最多处理50个音频文件
+        sub_batch_size = 20  # 减少默认子批次大小，避免内存溢出
     sub_batches = [all_tasks[i:i + sub_batch_size] 
                    for i in range(0, len(all_tasks), sub_batch_size)]
     
@@ -1537,14 +1537,22 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
             if not os.path.exists(wav_path):
                 return None
             
+            # 读取音频文件
             wav, sr = sf.read(wav_path)
             if sr != 16000:
                 wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
             
-            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+            # 处理音频片段
+            speech_chunks = []
+            for s, e in time_stamp_list:
+                chunk = wav[int(s*16):int(e*16)].copy()  # 使用copy避免引用原数组
+                speech_chunks.append(chunk)
             
             # 立即释放wav数据
             del wav
+            
+            # 强制垃圾回收
+            gc.collect()
             
             return {
                 'spk_id': task['spk_id'],
@@ -1556,23 +1564,34 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
             return None
     
     # 使用较少的线程以控制内存
-    max_workers = min(2, os.cpu_count() or 1)  # 减少线程数
+    max_workers = min(1, os.cpu_count() or 1)  # 进一步减少线程数，避免内存竞争
+    
+    # 动态调整子批次大小
+    current_sub_batch_size = sub_batch_size
     
     # 逐个处理子批次
     for sub_batch_idx, sub_batch in enumerate(sub_batches):
         # 检查内存使用
         if process and max_memory_mb:
             current_memory = process.memory_info().rss / 1024 / 1024
-            if current_memory > max_memory_mb * 0.9:  # 提前在90%时进行垃圾回收
+            if current_memory > max_memory_mb * 0.8:  # 提前在80%时进行垃圾回收
                 logger.warning(f"子批次 {sub_batch_idx+1}/{len(sub_batches)} 前内存使用: {current_memory:.1f} MB，强制垃圾回收")
                 gc.collect()
                 current_memory = process.memory_info().rss / 1024 / 1024
-                if current_memory > max_memory_mb:
+                if current_memory > max_memory_mb * 0.95:  # 如果超过95%，强制跳过
+                    logger.error(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，跳过子批次 {sub_batch_idx+1}")
+                    continue  # 跳过这个子批次
+                elif current_memory > max_memory_mb:
                     if strict_memory_check:
                         logger.error(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，跳过子批次 {sub_batch_idx+1}")
                         continue  # 跳过这个子批次
                     else:
                         logger.warning(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，但继续处理子批次 {sub_batch_idx+1}")
+                        
+                        # 动态减少后续子批次大小
+                        if current_sub_batch_size > 5:
+                            current_sub_batch_size = max(5, current_sub_batch_size // 2)
+                            logger.info(f"动态调整子批次大小为: {current_sub_batch_size}")
         
         logger.info(f"处理子批次 {sub_batch_idx+1}/{len(sub_batches)}: {len(sub_batch)} 个音频文件")
         
@@ -1586,12 +1605,21 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
                     result = future.result()
                     if result is not None:
                         spk2chunks[result['spk_id']].extend(result['chunks'])
+                        # 立即释放结果数据
+                        del result['chunks']
                 except Exception as e:
                     logger.error(f"处理任务失败: {e}")
         
         # 每个子批次完成后立即清理
         del futures
         gc.collect()
+        
+        # 强制清理内存
+        import sys
+        if hasattr(sys, 'getrefcount'):
+            # 强制清理引用计数
+            for _ in range(3):
+                gc.collect()
         
         # 报告进度
         if process:
