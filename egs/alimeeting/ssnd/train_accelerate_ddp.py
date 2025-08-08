@@ -265,8 +265,11 @@ def get_parser():
     parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
     parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（内存优化）")
     parser.add_argument("--use-memory-safe", type=str2bool, default=False, help="是否使用超级内存安全模式（避免OOM）")
-    parser.add_argument("--fast-batch-size", type=int, default=20, help="加速版本的批处理大小（控制内存使用）")
-    parser.add_argument("--fast-max-memory-mb", type=int, default=6144, help="加速版本的最大内存限制（MB）")
+    parser.add_argument("--fast-batch-size", type=int, default=5, help="加速版本的批处理大小（控制内存使用）")
+    parser.add_argument("--fast-max-memory-mb", type=int, default=0, help="加速版本的最大内存限制（MB），0表示自动检测并使用可用内存的指定百分比")
+    parser.add_argument("--memory-usage-ratio", type=float, default=0.6, help="自动内存检测时使用的内存比例（0.0-1.0），默认0.6表示60%")
+    parser.add_argument("--fast-sub-batch-size", type=int, default=50, help="子批次大小（每个子批次处理的音频文件数量）")
+    parser.add_argument("--strict-memory-check", type=str2bool, default=False, help="是否启用严格的内存检查（True时会跳过超限的批次）")
     parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
     parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
     parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
@@ -1399,18 +1402,39 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
         import psutil
         process = psutil.Process()
         initial_memory = process.memory_info().rss / 1024 / 1024
+        
+        # 自动检测系统可用内存
+        system_memory = psutil.virtual_memory()
+        total_memory_mb = system_memory.total / 1024 / 1024
+        available_memory_mb = system_memory.available / 1024 / 1024
+        
+        # 如果用户没有指定内存限制，自动使用可用内存的指定百分比
+        if hasattr(args, 'fast_max_memory_mb') and args.fast_max_memory_mb > 0:
+            max_memory_mb = args.fast_max_memory_mb
+            logger.info(f"使用用户指定的内存限制: {max_memory_mb} MB")
+        else:
+            # 使用可配置的内存比例
+            memory_ratio = getattr(args, 'memory_usage_ratio', 0.6)
+            memory_ratio = max(0.1, min(0.9, memory_ratio))  # 限制在10%-90%之间
+            
+            # 使用可用内存的指定比例，但不超过总内存的指定比例
+            max_memory_mb = min(available_memory_mb * memory_ratio, total_memory_mb * memory_ratio)
+            max_memory_mb = int(max_memory_mb)  # 转换为整数
+            logger.info(f"自动检测系统内存: 总计 {total_memory_mb:.0f} MB, 可用 {available_memory_mb:.0f} MB")
+            logger.info(f"自动设置内存限制: {max_memory_mb} MB (可用内存的{memory_ratio*100:.0f}%)")
+        
         logger.info(f"初始内存使用: {initial_memory:.1f} MB")
-        max_memory_mb = getattr(args, 'fast_max_memory_mb', 6144)  # 可配置的内存限制
-        logger.info(f"设置内存限制: {max_memory_mb} MB")
+        
     except ImportError:
-        logger.warning("psutil未安装，无法监控内存")
+        logger.warning("psutil未安装，无法自动检测内存，使用默认值")
         process = None
-        max_memory_mb = None
+        max_memory_mb = 6144  # 默认6GB
+        logger.info(f"使用默认内存限制: {max_memory_mb} MB")
     
     # 按说话人批量处理，避免一次性加载所有任务
     spk2chunks = defaultdict(list)
     speaker_count = 0
-    batch_size = getattr(args, 'fast_batch_size', 20)  # 可配置的批处理大小
+    batch_size = getattr(args, 'fast_batch_size', 5)  # 减少默认批处理大小，避免内存溢出
     logger.info(f"使用批处理大小: {batch_size} 个说话人/批")
     
     if args.compression_type == "gzip":
@@ -1451,7 +1475,9 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                         
                         # 当批次达到指定大小时，处理这一批
                         if len(current_batch) >= batch_size:
-                            process_batch(current_batch, spk2chunks, process, max_memory_mb)
+                            sub_batch_size = getattr(args, 'fast_sub_batch_size', 50)
+                            strict_memory_check = getattr(args, 'strict_memory_check', False)
+                            process_batch(current_batch, spk2chunks, process, max_memory_mb, sub_batch_size, strict_memory_check)
                             current_batch = []
                             gc.collect()  # 强制垃圾回收
                         
@@ -1460,7 +1486,9 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
             
             # 处理最后一批
             if current_batch:
-                process_batch(current_batch, spk2chunks, process, max_memory_mb)
+                sub_batch_size = getattr(args, 'fast_sub_batch_size', 50)
+                strict_memory_check = getattr(args, 'strict_memory_check', False)
+                process_batch(current_batch, spk2chunks, process, max_memory_mb, sub_batch_size, strict_memory_check)
                 current_batch = []
                 gc.collect()
     
@@ -1479,22 +1507,11 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
     
     return spk2chunks
 
-def process_batch(batch, spk2chunks, process=None, max_memory_mb=None):
+def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch_size=None, strict_memory_check=False):
     """处理一批说话人的音频数据"""
     import os
     import gc
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    
-    # 检查内存使用
-    if process and max_memory_mb:
-        current_memory = process.memory_info().rss / 1024 / 1024
-        if current_memory > max_memory_mb:
-            logger.warning(f"内存使用超过限制 {current_memory:.1f} MB > {max_memory_mb} MB，强制垃圾回收")
-            gc.collect()
-            current_memory = process.memory_info().rss / 1024 / 1024
-            if current_memory > max_memory_mb:
-                logger.error(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，跳过当前批次")
-                return
     
     # 收集当前批次的所有任务
     all_tasks = []
@@ -1502,6 +1519,14 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None):
         all_tasks.extend(speaker_tasks)
     
     logger.info(f"处理批次: {len(batch)} 个说话人，{len(all_tasks)} 个音频文件")
+    
+    # 如果任务数量过多，分批处理以避免内存溢出
+    if sub_batch_size is None:
+        sub_batch_size = 50  # 默认每个子批次最多处理50个音频文件
+    sub_batches = [all_tasks[i:i + sub_batch_size] 
+                   for i in range(0, len(all_tasks), sub_batch_size)]
+    
+    logger.info(f"将 {len(all_tasks)} 个任务分成 {len(sub_batches)} 个子批次处理")
     
     def process_audio_file_simple(task):
         """简化的音频处理函数，减少内存使用"""
@@ -1531,23 +1556,50 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None):
             return None
     
     # 使用较少的线程以控制内存
-    max_workers = min(4, os.cpu_count() or 2)
+    max_workers = min(2, os.cpu_count() or 1)  # 减少线程数
     
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 提交任务
-        futures = [executor.submit(process_audio_file_simple, task) for task in all_tasks]
+    # 逐个处理子批次
+    for sub_batch_idx, sub_batch in enumerate(sub_batches):
+        # 检查内存使用
+        if process and max_memory_mb:
+            current_memory = process.memory_info().rss / 1024 / 1024
+            if current_memory > max_memory_mb * 0.9:  # 提前在90%时进行垃圾回收
+                logger.warning(f"子批次 {sub_batch_idx+1}/{len(sub_batches)} 前内存使用: {current_memory:.1f} MB，强制垃圾回收")
+                gc.collect()
+                current_memory = process.memory_info().rss / 1024 / 1024
+                if current_memory > max_memory_mb:
+                    if strict_memory_check:
+                        logger.error(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，跳过子批次 {sub_batch_idx+1}")
+                        continue  # 跳过这个子批次
+                    else:
+                        logger.warning(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，但继续处理子批次 {sub_batch_idx+1}")
         
-        # 收集结果
-        for future in as_completed(futures):
-            try:
-                result = future.result()
-                if result is not None:
-                    spk2chunks[result['spk_id']].extend(result['chunks'])
-            except Exception as e:
-                logger.error(f"处理任务失败: {e}")
+        logger.info(f"处理子批次 {sub_batch_idx+1}/{len(sub_batches)}: {len(sub_batch)} 个音频文件")
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # 提交任务
+            futures = [executor.submit(process_audio_file_simple, task) for task in sub_batch]
+            
+            # 收集结果
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    if result is not None:
+                        spk2chunks[result['spk_id']].extend(result['chunks'])
+                except Exception as e:
+                    logger.error(f"处理任务失败: {e}")
+        
+        # 每个子批次完成后立即清理
+        del futures
+        gc.collect()
+        
+        # 报告进度
+        if process:
+            current_memory = process.memory_info().rss / 1024 / 1024
+            logger.info(f"子批次 {sub_batch_idx+1} 完成，当前内存: {current_memory:.1f} MB")
     
     # 批次处理完成后立即清理
-    del all_tasks, futures
+    del all_tasks, sub_batches
     gc.collect()
 
 def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
@@ -1640,11 +1692,22 @@ def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None)
     # 监控内存使用
     process = psutil.Process()
     initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+    
+    # 自动检测系统可用内存
+    system_memory = psutil.virtual_memory()
+    total_memory_mb = system_memory.total / 1024 / 1024
+    available_memory_mb = system_memory.available / 1024 / 1024
+    
+    # 使用可用内存的40%（比fast版本更保守）
+    max_memory_mb = min(available_memory_mb * 0.4, total_memory_mb * 0.4)
+    max_memory_mb = int(max_memory_mb)  # 转换为整数
+    
+    logger.info(f"自动检测系统内存: 总计 {total_memory_mb:.0f} MB, 可用 {available_memory_mb:.0f} MB")
+    logger.info(f"内存安全模式设置内存限制: {max_memory_mb} MB (可用内存的40%)")
     logger.info(f"初始内存使用: {initial_memory:.1f} MB")
     
     spk2chunks = defaultdict(list)
     speaker_count = 0
-    max_memory_mb = 4096  # 4GB 内存限制
     
     if args.compression_type == "gzip":
         with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
