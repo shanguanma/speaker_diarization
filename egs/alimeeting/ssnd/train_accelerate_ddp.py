@@ -262,7 +262,8 @@ def get_parser():
     
     # 加速处理相关参数
     parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
-    parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（节省内存但可能稍慢）")
+    parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（内存优化）")
+    parser.add_argument("--use-memory-safe", type=str2bool, default=False, help="是否使用超级内存安全模式（避免OOM）")
     parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
     parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
     parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
@@ -1305,16 +1306,16 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
 
 def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
     """
-    懒加载版本的spktochunks函数
-    由于兼容性问题，这个版本实际上会预加载所有数据，但提供更好的内存管理
+    内存优化版本的spktochunks函数
+    使用串行处理和内存管理来避免OOM
     """
     import os
+    import gc
     from collections import defaultdict
     
-    logger.info("使用懒加载模式处理spktochunks...")
+    logger.info("使用内存优化模式处理spktochunks...")
     
-    # 由于SimuDiarMixer需要完整的数据结构，我们实际上还是需要预加载
-    # 但我们可以使用更高效的方式
+    # 使用更保守的内存管理策略
     spk2chunks = defaultdict(list)
     speaker_count = 0
     
@@ -1340,46 +1341,141 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                             wav_paths = wav_paths[:max_files_per_speaker]
                             time_stamps = time_stamps[:max_files_per_speaker]
                         
-                        # 使用并行处理来加速
-                        from concurrent.futures import ThreadPoolExecutor, as_completed
-                        import functools
-                        
-                        def process_audio_file(wav_path, time_stamp_list):
+                        # 串行处理，避免内存爆炸
+                        spk_chunks = []
+                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
                             try:
                                 if not os.path.exists(wav_path):
-                                    logging.warning(f"音频文件不存在: {wav_path}")
-                                    return None
+                                    logger.warning(f"音频文件不存在: {wav_path}")
+                                    continue
                                 
                                 wav, sr = sf.read(wav_path)
                                 if sr != 16000:
                                     wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
                                 
                                 speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-                                return speech_chunks
+                                spk_chunks.append(speech_chunks)
+                                
+                                # 主动释放内存
+                                del wav
+                                
                             except Exception as e:
                                 logger.warning(f"处理音频文件失败 {wav_path}: {e}")
-                                return None
+                                continue
                         
-                        # 并行处理当前说话人的所有音频文件
-                        with ThreadPoolExecutor(max_workers=min(4, len(wav_paths))) as executor:
-                            future_to_path = {
-                                executor.submit(process_audio_file, wav_path, time_stamp_list): wav_path
-                                for wav_path, time_stamp_list in zip(wav_paths, time_stamps)
-                            }
-                            
-                            for future in as_completed(future_to_path):
-                                result = future.result()
-                                if result is not None:
-                                    spk2chunks[spk_id].append(result)
-                        
+                        spk2chunks[spk_id].extend(spk_chunks)
                         speaker_count += 1
-                        logger.info(f"处理完成说话人 {spk_id}，包含 {len(spk2chunks[spk_id])} 个音频文件")
+                        
+                        # 每处理10个说话人就强制垃圾回收
+                        if speaker_count % 10 == 0:
+                            gc.collect()
+                            logger.info(f"已处理 {speaker_count} 个说话人，当前说话人 {spk_id} 包含 {len(spk_chunks)} 个音频文件")
                         
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
+                    except Exception as e:
+                        logger.error(f"处理说话人 {spk_id} 时发生错误: {e}")
+                        continue
     
-    logger.info(f"懒加载版本处理完成，共处理了 {speaker_count} 个说话人")
+    # 最终垃圾回收
+    gc.collect()
+    logger.info(f"内存优化版本处理完成，共处理了 {speaker_count} 个说话人")
     return spk2chunks
+
+def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None):
+    """
+    超级内存安全版本的spktochunks函数
+    专门用于内存非常受限的环境，会牺牲一些性能来确保不OOM
+    """
+    import os
+    import gc
+    import psutil
+    from collections import defaultdict
+    
+    logger.info("使用超级内存安全模式处理spktochunks...")
+    
+    # 监控内存使用
+    process = psutil.Process()
+    initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+    logger.info(f"初始内存使用: {initial_memory:.1f} MB")
+    
+    spk2chunks = defaultdict(list)
+    speaker_count = 0
+    max_memory_mb = 4096  # 4GB 内存限制
+    
+    if args.compression_type == "gzip":
+        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if line:
+                    try:
+                        # 检查内存使用
+                        current_memory = process.memory_info().rss / 1024 / 1024
+                        if current_memory > max_memory_mb:
+                            logger.warning(f"内存使用超过限制 {current_memory:.1f} MB > {max_memory_mb} MB，强制垃圾回收")
+                            gc.collect()
+                            current_memory = process.memory_info().rss / 1024 / 1024
+                            if current_memory > max_memory_mb:
+                                logger.error(f"垃圾回收后内存仍然超限 {current_memory:.1f} MB，停止处理")
+                                break
+                        
+                        data = json.loads(line)
+                        spk_id = data["spk_id"]
+                        
+                        # 限制说话人数量
+                        if max_speakers and speaker_count >= max_speakers:
+                            break
+                        
+                        wav_paths = data["wav_paths"]
+                        time_stamps = data["results"]
+                        assert len(wav_paths) == len(time_stamps)
+                        
+                        # 限制每个说话人的文件数量
+                        if max_files_per_speaker:
+                            wav_paths = wav_paths[:max_files_per_speaker]
+                            time_stamps = time_stamps[:max_files_per_speaker]
+                        
+                        # 串行处理，每个文件立即释放
+                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+                            try:
+                                if not os.path.exists(wav_path):
+                                    continue
+                                
+                                wav, sr = sf.read(wav_path)
+                                if sr != 16000:
+                                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                                
+                                speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                                spk2chunks[spk_id].append(speech_chunks)
+                                
+                                # 立即释放音频数据
+                                del wav, speech_chunks
+                                
+                            except Exception as e:
+                                logger.warning(f"处理音频文件失败 {wav_path}: {e}")
+                                continue
+                        
+                        speaker_count += 1
+                        
+                        # 每处理5个说话人就检查内存和垃圾回收
+                        if speaker_count % 5 == 0:
+                            gc.collect()
+                            current_memory = process.memory_info().rss / 1024 / 1024
+                            logger.info(f"已处理 {speaker_count} 个说话人，当前内存: {current_memory:.1f} MB")
+                        
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"第{line_num}行JSON解析失败: {e}")
+                    except Exception as e:
+                        logger.error(f"处理说话人时发生错误: {e}")
+                        continue
+    
+    # 最终清理
+    gc.collect()
+    final_memory = process.memory_info().rss / 1024 / 1024
+    logger.info(f"内存安全版本处理完成，共处理了 {speaker_count} 个说话人")
+    logger.info(f"最终内存使用: {final_memory:.1f} MB (增加: {final_memory - initial_memory:.1f} MB)")
+    return spk2chunks
+
 #    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
 #    spk2chunks = defaultdict(list)
 #    for line in tqdm(lines, desc=f"lines: "):
@@ -1450,7 +1546,22 @@ def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=
     
     # 选择使用哪个版本的spktochunks函数
     if use_fast_version:
-        if hasattr(args, 'use_lazy_loading') and args.use_lazy_loading:
+        if hasattr(args, 'use_memory_safe') and args.use_memory_safe:
+            try:
+                logger.info("使用超级内存安全版本")
+                spk2chunks = spktochunks_memory_safe(args, max_speakers, max_files_per_speaker)
+                logger.info("内存安全版本初始化成功")
+            except Exception as e:
+                logger.warning(f"内存安全版本失败，回退到懒加载版本: {e}")
+                try:
+                    logger.info("尝试使用懒加载版本")
+                    spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
+                    logger.info("懒加载版本初始化成功")
+                except Exception as e2:
+                    logger.warning(f"懒加载版本也失败，回退到加速版本: {e2}")
+                    logger.info("使用加速版本")
+                    spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
+        elif hasattr(args, 'use_lazy_loading') and args.use_lazy_loading:
             try:
                 logger.info("尝试使用懒加载版本")
                 spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
