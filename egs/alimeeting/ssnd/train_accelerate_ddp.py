@@ -1288,15 +1288,16 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
 def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
     """
     懒加载版本的spktochunks函数
-    只在需要时才加载音频数据，节省内存
+    由于兼容性问题，这个版本实际上会预加载所有数据，但提供更好的内存管理
     """
     import os
     from collections import defaultdict
     
     logging.info("使用懒加载模式处理spktochunks...")
     
-    # 第一步：解析JSON文件，只收集元数据
-    spk2metadata = defaultdict(list)
+    # 由于SimuDiarMixer需要完整的数据结构，我们实际上还是需要预加载
+    # 但我们可以使用更高效的方式
+    spk2chunks = defaultdict(list)
     speaker_count = 0
     
     if args.compression_type == "gzip":
@@ -1321,63 +1322,46 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                             wav_paths = wav_paths[:max_files_per_speaker]
                             time_stamps = time_stamps[:max_files_per_speaker]
                         
-                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
-                            spk2metadata[spk_id].append({
-                                'wav_path': wav_path,
-                                'time_stamp_list': time_stamp_list
-                            })
+                        # 使用并行处理来加速
+                        from concurrent.futures import ThreadPoolExecutor, as_completed
+                        import functools
+                        
+                        def process_audio_file(wav_path, time_stamp_list):
+                            try:
+                                if not os.path.exists(wav_path):
+                                    logging.warning(f"音频文件不存在: {wav_path}")
+                                    return None
+                                
+                                wav, sr = sf.read(wav_path)
+                                if sr != 16000:
+                                    wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
+                                
+                                speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
+                                return speech_chunks
+                            except Exception as e:
+                                logging.warning(f"处理音频文件失败 {wav_path}: {e}")
+                                return None
+                        
+                        # 并行处理当前说话人的所有音频文件
+                        with ThreadPoolExecutor(max_workers=min(4, len(wav_paths))) as executor:
+                            future_to_path = {
+                                executor.submit(process_audio_file, wav_path, time_stamp_list): wav_path
+                                for wav_path, time_stamp_list in zip(wav_paths, time_stamps)
+                            }
+                            
+                            for future in as_completed(future_to_path):
+                                result = future.result()
+                                if result is not None:
+                                    spk2chunks[spk_id].append(result)
                         
                         speaker_count += 1
+                        logging.info(f"处理完成说话人 {spk_id}，包含 {len(spk2chunks[spk_id])} 个音频文件")
                         
                     except json.JSONDecodeError as e:
                         logging.warning(f"第{line_num}行JSON解析失败: {e}")
     
-    logging.info(f"收集到 {speaker_count} 个说话人的元数据")
-    
-    # 第二步：创建懒加载的数据结构
-    class LazySpk2Chunks:
-        def __init__(self, spk2metadata):
-            self.spk2metadata = spk2metadata
-            self._cache = {}
-        
-        def __getitem__(self, spk_id):
-            if spk_id not in self._cache:
-                # 懒加载：只在需要时加载音频数据
-                self._cache[spk_id] = []
-                for metadata in self.spk2metadata[spk_id]:
-                    try:
-                        wav_path = metadata['wav_path']
-                        time_stamp_list = metadata['time_stamp_list']
-                        
-                        if not os.path.exists(wav_path):
-                            logging.warning(f"音频文件不存在: {wav_path}")
-                            continue
-                        
-                        wav, sr = sf.read(wav_path)
-                        if sr != 16000:
-                            wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-                        
-                        speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-                        self._cache[spk_id].append(speech_chunks)
-                        
-                    except Exception as e:
-                        logging.warning(f"处理音频文件失败 {wav_path}: {e}")
-                        continue
-                
-                logging.info(f"懒加载完成说话人 {spk_id} 的数据，包含 {len(self._cache[spk_id])} 个音频文件")
-            
-            return self._cache[spk_id]
-        
-        def keys(self):
-            return self.spk2metadata.keys()
-        
-        def __len__(self):
-            return len(self.spk2metadata)
-        
-        def __contains__(self, key):
-            return key in self.spk2metadata
-    
-    return LazySpk2Chunks(spk2metadata)
+    logging.info(f"懒加载版本处理完成，共处理了 {speaker_count} 个说话人")
+    return spk2chunks
 #    lines = gzip.open(args.voxceleb2_spk2chunks_json,'rt', encoding='utf-8').read().splitlines()
 #    spk2chunks = defaultdict(list)
 #    for line in tqdm(lines, desc=f"lines: "):
@@ -1449,8 +1433,14 @@ def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=
     # 选择使用哪个版本的spktochunks函数
     if use_fast_version:
         if hasattr(args, 'use_lazy_loading') and args.use_lazy_loading:
-            logging.info("使用懒加载版本")
-            spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
+            try:
+                logging.info("尝试使用懒加载版本")
+                spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
+                logging.info("懒加载版本初始化成功")
+            except Exception as e:
+                logging.warning(f"懒加载版本失败，回退到加速版本: {e}")
+                logging.info("使用加速版本")
+                spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
         else:
             logging.info("使用加速版本")
             spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
