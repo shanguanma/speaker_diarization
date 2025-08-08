@@ -58,11 +58,28 @@ from alimeeting_diar_dataset import AlimeetingDiarDataset
 from simu_diar_dataset import SimuDiarMixer
 from funasr import AutoModel # pip install funasr # only for simu data
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
-)
+#logging.basicConfig(
+#    level=logging.INFO,
+#    format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s",
+#)
 
+# 设置日志
+def setup_logging():
+    """设置日志配置"""
+    # 强制重新配置日志
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s',
+        force=True,
+        handlers=[
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    
+    return logging.getLogger(__name__)
+
+# 初始化日志
+logger = setup_logging()
 def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
