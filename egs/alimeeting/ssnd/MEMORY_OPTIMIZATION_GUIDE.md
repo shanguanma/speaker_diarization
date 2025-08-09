@@ -71,8 +71,27 @@ python train_accelerate_ddp.py \
 - `False`（推荐）：即使内存超限也继续处理，只是发出警告
 - `True`：内存超限时跳过处理，可能导致数据丢失
 
-### 4. 监控内存使用
+### 4. 进度监控和日志
 
+#### 总体进度显示
+系统会显示详细的处理进度，包括：
+- 已处理说话人数量和总进度百分比
+- 已用时间和预计剩余时间
+- 当前批次和子批次的处理进度
+- 实时内存使用情况
+
+#### 进度日志示例
+```
+INFO [train_accelerate_ddp.py:1420] 总共需要处理 5994 个说话人
+INFO [train_accelerate_ddp.py:1450] 进度: 10/5994 (0.2%) - 已用时间: 0.1分钟 - 预计剩余: 45.2分钟
+INFO [train_accelerate_ddp.py:1521] 处理批次: 2 个说话人，156 个音频文件
+INFO [train_accelerate_ddp.py:1529] 将 156 个任务分成 8 个子批次处理
+INFO [train_accelerate_ddp.py:1577] 处理子批次 1/8: 20 个音频文件
+INFO [train_accelerate_ddp.py:1599] 子批次 1/8 完成，耗时: 5.2秒，当前内存: 1845.3 MB
+INFO [train_accelerate_ddp.py:1605] 批次进度: 5/8 (62.5%) - 预计剩余: 2.1分钟
+```
+
+#### 内存使用监控
 在训练过程中，注意观察日志中的内存使用情况：
 
 ```

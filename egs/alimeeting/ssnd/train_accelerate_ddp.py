@@ -1338,9 +1338,25 @@ def build_test_dl(args, spk2int):
 #
 def spktochunks(args):
     """原始版本的spktochunks函数"""
+    import time
+    
+    logger.info("开始处理原始版本spktochunks...")
+    start_time = time.time()
+    
     if args.compression_type == "gzip":
         spk2chunks = defaultdict(list)
+        
+        # 统计总行数
+        logger.info("正在统计总行数...")
+        total_lines = 0
         with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    total_lines += 1
+        logger.info(f"总共需要处理 {total_lines} 个说话人")
+        
+        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+            processed_lines = 0
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if line:  # 跳过空行
@@ -1361,8 +1377,42 @@ def spktochunks(args):
                                 spk2chunks[spk_id].extend(speech_chunks)
                             else:
                                 spk2chunks[spk_id] = speech_chunks
+                        
+                        processed_lines += 1
+                        
+                        # 显示进度
+                        if processed_lines % 50 == 0 or processed_lines == total_lines:
+                            elapsed_time = time.time() - start_time
+                            progress = (processed_lines / total_lines) * 100
+                            if processed_lines > 0:
+                                avg_time_per_line = elapsed_time / processed_lines
+                                remaining_lines = total_lines - processed_lines
+                                eta_seconds = remaining_lines * avg_time_per_line
+                                eta_minutes = eta_seconds / 60
+                                eta_hours = eta_minutes / 60
+                                
+                                if eta_hours >= 1:
+                                    eta_str = f"{eta_hours:.1f}小时"
+                                elif eta_minutes >= 1:
+                                    eta_str = f"{eta_minutes:.1f}分钟"
+                                else:
+                                    eta_str = f"{eta_seconds:.0f}秒"
+                                
+                                logger.info(f"原始版本进度: {processed_lines}/{total_lines} ({progress:.1f}%) - 已用时间: {elapsed_time/60:.1f}分钟 - 预计剩余: {eta_str}")
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
+    
+    # 计算总耗时
+    total_time = time.time() - start_time
+    total_minutes = total_time / 60
+    total_hours = total_minutes / 60
+    
+    if total_hours >= 1:
+        time_str = f"{total_hours:.1f}小时"
+    else:
+        time_str = f"{total_minutes:.1f}分钟"
+    
+    logger.info(f"原始版本处理完成，共处理了 {len(spk2chunks)} 个说话人，总耗时: {time_str}")
     return spk2chunks
 
 def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_cache=None):
@@ -1379,6 +1429,7 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
     import os
     import gc
     import pickle
+    import time
     from concurrent.futures import ThreadPoolExecutor, as_completed
     from functools import lru_cache
     
@@ -1396,6 +1447,9 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
             return pickle.load(f)
     
     logger.info("开始内存优化的加速处理spktochunks...")
+    
+    # 记录开始时间
+    start_time = time.time()
     
     # 内存监控
     try:
@@ -1437,9 +1491,19 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
     batch_size = getattr(args, 'fast_batch_size', 2)  # 进一步减少默认批处理大小，避免内存溢出
     logger.info(f"使用批处理大小: {batch_size} 个说话人/批")
     
+    # 统计总行数用于进度显示
+    logger.info("正在统计总行数...")
+    total_lines = 0
+    with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+        for line in f:
+            if line.strip():
+                total_lines += 1
+    logger.info(f"总共需要处理 {total_lines} 个说话人")
+    
     if args.compression_type == "gzip":
         with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
             current_batch = []
+            processed_lines = 0
             
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
@@ -1472,6 +1536,27 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                         
                         current_batch.append((spk_id, speaker_tasks))
                         speaker_count += 1
+                        processed_lines += 1
+                        
+                        # 显示进度
+                        if processed_lines % 10 == 0 or processed_lines == total_lines:
+                            elapsed_time = time.time() - start_time
+                            progress = (processed_lines / total_lines) * 100
+                            if processed_lines > 0:
+                                avg_time_per_line = elapsed_time / processed_lines
+                                remaining_lines = total_lines - processed_lines
+                                eta_seconds = remaining_lines * avg_time_per_line
+                                eta_minutes = eta_seconds / 60
+                                eta_hours = eta_minutes / 60
+                                
+                                if eta_hours >= 1:
+                                    eta_str = f"{eta_hours:.1f}小时"
+                                elif eta_minutes >= 1:
+                                    eta_str = f"{eta_minutes:.1f}分钟"
+                                else:
+                                    eta_str = f"{eta_seconds:.0f}秒"
+                                
+                                logger.info(f"进度: {processed_lines}/{total_lines} ({progress:.1f}%) - 已用时间: {elapsed_time/60:.1f}分钟 - 预计剩余: {eta_str}")
                         
                         # 当批次达到指定大小时，处理这一批
                         if len(current_batch) >= batch_size:
@@ -1492,7 +1577,18 @@ def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_ca
                 current_batch = []
                 gc.collect()
     
+    # 计算总耗时
+    total_time = time.time() - start_time
+    total_minutes = total_time / 60
+    total_hours = total_minutes / 60
+    
+    if total_hours >= 1:
+        time_str = f"{total_hours:.1f}小时"
+    else:
+        time_str = f"{total_minutes:.1f}分钟"
+    
     logger.info(f"处理完成！共处理了 {len(spk2chunks)} 个说话人的数据")
+    logger.info(f"总耗时: {time_str} ({total_time:.1f}秒)")
     
     # 保存缓存
     if use_cache:
@@ -1511,7 +1607,11 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
     """处理一批说话人的音频数据"""
     import os
     import gc
+    import time
     from concurrent.futures import ThreadPoolExecutor, as_completed
+    
+    # 记录批次开始时间
+    batch_start_time = time.time()
     
     # 收集当前批次的所有任务
     all_tasks = []
@@ -1571,6 +1671,7 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
     
     # 逐个处理子批次
     for sub_batch_idx, sub_batch in enumerate(sub_batches):
+        sub_batch_start_time = time.time()
         # 检查内存使用
         if process and max_memory_mb:
             current_memory = process.memory_info().rss / 1024 / 1024
@@ -1622,11 +1723,31 @@ def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch
                 gc.collect()
         
         # 报告进度
+        sub_batch_time = time.time() - sub_batch_start_time
         if process:
             current_memory = process.memory_info().rss / 1024 / 1024
-            logger.info(f"子批次 {sub_batch_idx+1} 完成，当前内存: {current_memory:.1f} MB")
+            logger.info(f"子批次 {sub_batch_idx+1}/{len(sub_batches)} 完成，耗时: {sub_batch_time:.1f}秒，当前内存: {current_memory:.1f} MB")
+        
+        # 显示子批次进度
+        if (sub_batch_idx + 1) % 5 == 0 or (sub_batch_idx + 1) == len(sub_batches):
+            elapsed_time = time.time() - batch_start_time
+            progress = ((sub_batch_idx + 1) / len(sub_batches)) * 100
+            if sub_batch_idx > 0:
+                avg_time_per_sub_batch = elapsed_time / (sub_batch_idx + 1)
+                remaining_sub_batches = len(sub_batches) - (sub_batch_idx + 1)
+                eta_seconds = remaining_sub_batches * avg_time_per_sub_batch
+                eta_minutes = eta_seconds / 60
+                
+                if eta_minutes >= 1:
+                    eta_str = f"{eta_minutes:.1f}分钟"
+                else:
+                    eta_str = f"{eta_seconds:.0f}秒"
+                
+                logger.info(f"批次进度: {sub_batch_idx+1}/{len(sub_batches)} ({progress:.1f}%) - 预计剩余: {eta_str}")
     
     # 批次处理完成后立即清理
+    batch_total_time = time.time() - batch_start_time
+    logger.info(f"批次处理完成，总耗时: {batch_total_time:.1f}秒")
     del all_tasks, sub_batches
     gc.collect()
 
@@ -1637,9 +1758,13 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
     """
     import os
     import gc
+    import time
     from collections import defaultdict
     
     logger.info("使用内存优化模式处理spktochunks...")
+    
+    # 记录开始时间
+    start_time = time.time()
     
     # 使用更保守的内存管理策略
     spk2chunks = defaultdict(list)
@@ -1692,7 +1817,9 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
                         # 每处理10个说话人就强制垃圾回收
                         if speaker_count % 10 == 0:
                             gc.collect()
-                            logger.info(f"已处理 {speaker_count} 个说话人，当前说话人 {spk_id} 包含 {len(spk_chunks)} 个音频文件")
+                            elapsed_time = time.time() - start_time
+                            progress = (speaker_count / max_speakers * 100) if max_speakers else 0
+                            logger.info(f"已处理 {speaker_count} 个说话人，当前说话人 {spk_id} 包含 {len(spk2chunks[spk_id])} 个音频文件，已用时间: {elapsed_time/60:.1f}分钟")
                         
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
@@ -1702,7 +1829,9 @@ def spktochunks_lazy(args, max_speakers=None, max_files_per_speaker=None):
     
     # 最终垃圾回收
     gc.collect()
-    logger.info(f"内存优化版本处理完成，共处理了 {speaker_count} 个说话人")
+    total_time = time.time() - start_time
+    total_minutes = total_time / 60
+    logger.info(f"内存优化版本处理完成，共处理了 {speaker_count} 个说话人，总耗时: {total_minutes:.1f}分钟")
     return spk2chunks
 
 def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None):
@@ -1712,6 +1841,7 @@ def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None)
     """
     import os
     import gc
+    import time
     import psutil
     from collections import defaultdict
     
@@ -1733,6 +1863,9 @@ def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None)
     logger.info(f"自动检测系统内存: 总计 {total_memory_mb:.0f} MB, 可用 {available_memory_mb:.0f} MB")
     logger.info(f"内存安全模式设置内存限制: {max_memory_mb} MB (可用内存的40%)")
     logger.info(f"初始内存使用: {initial_memory:.1f} MB")
+    
+    # 记录开始时间
+    start_time = time.time()
     
     spk2chunks = defaultdict(list)
     speaker_count = 0
@@ -1795,7 +1928,9 @@ def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None)
                         if speaker_count % 5 == 0:
                             gc.collect()
                             current_memory = process.memory_info().rss / 1024 / 1024
-                            logger.info(f"已处理 {speaker_count} 个说话人，当前内存: {current_memory:.1f} MB")
+                            elapsed_time = time.time() - start_time
+                            progress = (speaker_count / max_speakers * 100) if max_speakers else 0
+                            logger.info(f"已处理 {speaker_count} 个说话人，当前内存: {current_memory:.1f} MB，已用时间: {elapsed_time/60:.1f}分钟")
                         
                     except json.JSONDecodeError as e:
                         logger.warning(f"第{line_num}行JSON解析失败: {e}")
@@ -1806,7 +1941,9 @@ def spktochunks_memory_safe(args, max_speakers=None, max_files_per_speaker=None)
     # 最终清理
     gc.collect()
     final_memory = process.memory_info().rss / 1024 / 1024
-    logger.info(f"内存安全版本处理完成，共处理了 {speaker_count} 个说话人")
+    total_time = time.time() - start_time
+    total_minutes = total_time / 60
+    logger.info(f"内存安全版本处理完成，共处理了 {speaker_count} 个说话人，总耗时: {total_minutes:.1f}分钟")
     logger.info(f"最终内存使用: {final_memory:.1f} MB (增加: {final_memory - initial_memory:.1f} MB)")
     return spk2chunks
 
