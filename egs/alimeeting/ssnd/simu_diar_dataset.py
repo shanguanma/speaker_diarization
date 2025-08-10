@@ -836,35 +836,6 @@ class SimuDiarMixer:
                                     break  # 找到目标说话人后退出循环
                             except json.JSONDecodeError:
                                 continue
-            else:
-                # 处理普通文本文件
-                with open(self.voxceleb2_spk2chunks_json, "r_path, time_stamp_list in zip(wav_paths, time_stamps):
-                                            try:
-                                                if not os.path.exists(wav_path):
-                                                    continue
-                                                
-                                                wav, sr = sf.read(wav_path)
-                                                if sr != self.sr:
-                                                    wav = librosa.resample(wav, orig_sr=sr, target_sr=self.sr)
-                                                
-                                                # 提取VAD后的音频片段
-                                                for start, end in time_stamp_list:
-                                                    start_frame = int(start * self.sr)
-                                                    end_frame = int(end * self.sr)
-                                                    if start_frame < end_frame and start_frame < len(wav):
-                                                        chunk = wav[start_frame:min(end_frame, len(wav))]
-                                                        if len(chunk) > 0:
-                                                            chunks.append(chunk)
-                                                
-                                                # 释放内存
-                                                del wav
-                                                
-                                            except Exception as e:
-                                                logger.warning(f"处理音频文件失败 {wav_path}: {e}")
-                                                continue
-                                    break  # 找到目标说话人后退出循环
-                            except json.JSONDecodeError:
-                                continue
             
             # 缓存结果
             self._speaker_cache[spk_id] = chunks
