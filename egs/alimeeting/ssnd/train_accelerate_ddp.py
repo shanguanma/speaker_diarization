@@ -273,6 +273,9 @@ def get_parser():
     parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
     parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
     parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
+    
+    # 懒加载模拟数据相关参数
+    parser.add_argument("--use-lazy-simu", type=str2bool, default=False, help="是否启用懒加载模拟数据模式（跳过spktochunks预处理）")
 
     add_finetune_arguments(parser)
     return parser
@@ -2014,6 +2017,47 @@ def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=
         max_files_per_speaker: 每个说话人最大文件数量（用于测试）
     """
     logger.info("Building simu data train dataloader with training spk2int...")
+    
+    # 检查是否启用懒加载模拟数据模式
+    if hasattr(args, 'use_lazy_simu') and args.use_lazy_simu:
+        logger.info("启用懒加载模拟数据模式，跳过spktochunks预处理")
+        train_dataset = SimuDiarMixer(
+            spk2chunks=None,  # 懒加载模式下不需要预先加载
+            voxceleb2_spk2chunks_json=args.voxceleb2_spk2chunks_json,
+            sample_rate=16000,
+            frame_length=0.025, # 25ms
+            frame_shift=0.04, # 25fps(1s audio 25 labels, 8s audio 200 labels) to match vad_out_len, vad_out_len=200
+            num_mel_bins=80,
+            max_mix_len=8.0, # 8s
+            min_silence=0.0,
+            max_silence=4.0,
+            min_speakers=1,
+            max_speakers=3,
+            target_overlap=0.2,
+            musan_path=args.musan_path,
+            rir_path=args.rir_path,
+            noise_ratio=args.noise_ratio,
+        )
+        vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
+        def collate_fn_wrapper(batch):
+            wavs, labels, spk_ids_list, fbanks, labels_len = train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
+            max_spks_in_batch = labels.shape[1] # b,spks,vad_out_len
+            spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
+            for i, spk_id_sample in enumerate(spk_ids_list):
+                for j, spk_id in enumerate(spk_id_sample):
+                    if spk_id and spk_id in spk2int:
+                        spk_label_indices[i, j] = spk2int[spk_id]
+            return fbanks, labels, spk_label_indices, labels_len
+        train_dl = DataLoader(
+            train_dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            collate_fn=collate_fn_wrapper,
+            num_workers=4,  # 建议：4~8，避免超过CPU核心数
+            pin_memory=True,
+            persistent_workers=True  # 避免每epoch重建进程
+        )
+        return train_dl
     
     # 选择使用哪个版本的spktochunks函数
     if use_fast_version:

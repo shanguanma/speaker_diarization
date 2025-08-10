@@ -8,9 +8,17 @@ from scipy import signal
 import random
 import glob
 import time
+import json
+import gzip
+import logging
+
+# 设置日志
+logger = logging.getLogger(__name__)
+
 class SimuDiarMixer:
     def __init__(self,
-                 spk2chunks: Dict[str, List[np.ndarray]],
+                 spk2chunks: Dict[str, List[np.ndarray]] = None,
+                 voxceleb2_spk2chunks_json: str = None,
                  sample_rate: int = 16000,
                  frame_length: float = 0.025, # 25ms
                  frame_shift: float = 0.04, # 40ms only for preparing label,0.04s means 25 frames in 1s, means 1s has 25 labels, means downsample rate is 4.
@@ -26,7 +34,8 @@ class SimuDiarMixer:
                  noise_ratio: float = 0.8,
                  ):
         """
-        spk2chunks: {spk_id: [vad后片段, ...]}
+        spk2chunks: {spk_id: [vad后片段, ...]} (可选，用于传统模式)
+        voxceleb2_spk2chunks_json: VAD文件路径 (可选，用于懒加载模式)
         sample_rate: 采样率
         max_mix_len: 混合音频总时长（秒）
         min_silence, max_silence: 静音片段长度范围（秒）
@@ -34,6 +43,7 @@ class SimuDiarMixer:
         """
         
         self.spk2chunks = spk2chunks
+        self.voxceleb2_spk2chunks_json = voxceleb2_spk2chunks_json
         self.sr = sample_rate
         self.frame_length = frame_length
         self.num_mel_bins = num_mel_bins
@@ -49,8 +59,39 @@ class SimuDiarMixer:
         self.rir_path = rir_path
         self.noise_ratio = noise_ratio
         
+        # 懒加载模式相关
+        self.lazy_mode = voxceleb2_spk2chunks_json is not None
+        if self.lazy_mode:
+            self._speaker_cache = {}  # 缓存已加载的说话人数据
+            self._speaker_list = None  # 说话人列表缓存
+            logger.info(f"启用懒加载模式，VAD文件: {voxceleb2_spk2chunks_json}")
+        else:
+            logger.info("使用传统模式，需要预先加载spk2chunks")
+        
+        # 音频增强相关
+        if self.musan_path is not None:
+            if os.path.exists(self.musan_path):
+                logger.info(f"启用噪声增强，MUSAN路径: {self.musan_path}")
+            else:
+                logger.warning(f"MUSAN路径不存在: {self.musan_path}")
+                self.musan_path = None
+        
+        if self.rir_path is not None:
+            if os.path.exists(self.rir_path):
+                logger.info(f"启用混响增强，RIR路径: {self.rir_path}")
+            else:
+                logger.warning(f"RIR路径不存在: {self.rir_path}")
+                self.rir_path = None
+        
+        if self.musan_path is not None or self.rir_path is not None:
+            logger.info(f"音频增强概率: {self.noise_ratio:.2f}")
+        
         # 计算数据集大小，用于PyTorch DataLoader
-        self.dataset_size = max(1000, len(spk2chunks) * 10)  # 每个epoch随机生成样本
+        if self.lazy_mode:
+            # 懒加载模式下，数据集大小基于VAD文件中的说话人数量
+            self.dataset_size = max(1000, self._get_speaker_count() * 10)
+        else:
+            self.dataset_size = max(1000, len(spk2chunks) * 10)  # 每个epoch随机生成样本
         
     def __len__(self):
         """返回数据集大小"""
@@ -59,10 +100,118 @@ class SimuDiarMixer:
     def __getitem__(self, idx):
         """获取数据样本"""
         # 忽略idx，每次都随机生成新样本
-        mix, label, spk_ids = self.sample()
+        if self.lazy_mode:
+            mix, label, spk_ids = self.sample_lazy()
+        else:
+            mix, label, spk_ids = self.sample()
+        
+        # 应用音频增强（加噪和/或加混响）
+        mix = self.apply_audio_augmentation(mix)
+        
         # 添加数据来源标识：1表示模拟数据
         data_source = 1  # 0: real data, 1: simulated data
         return mix, label, spk_ids, data_source
+
+    def apply_audio_augmentation(self, mix, force_augment=False):
+        """
+        对音频进行加噪和/或加混响增强
+        Args:
+            mix: np.ndarray [T] - 输入的混合音频
+            force_augment: bool - 是否强制应用增强（忽略noise_ratio）
+        Returns:
+            np.ndarray [T] - 增强后的音频
+        """
+        if self.musan_path is None and self.rir_path is None:
+            return mix
+        
+        # 根据noise_ratio决定是否进行增强，除非强制增强
+        if not force_augment and np.random.random() > self.noise_ratio:
+            return mix
+        
+        try:
+            # 加载增强资源
+            noisesnr, numnoise, noiselist, rir_files, noisetypes = self.load_musan_or_rirs(self.musan_path, self.rir_path)
+            
+            # 检查资源是否可用
+            if (self.musan_path is not None and (noiselist is None or len(noiselist) == 0)) or \
+               (self.rir_path is not None and (rir_files is None or len(rir_files) == 0)):
+                logger.warning("增强资源不可用，跳过音频增强")
+                return mix
+            
+            # 转换为2D格式，因为add_noise和add_reverb需要2D数据
+            mix_2d = np.expand_dims(np.array(mix), axis=0)  # (1, T)
+            
+            # 加噪
+            if self.musan_path is not None and noiselist is not None and len(noiselist) > 0:
+                ntypes = random.choice(noisetypes)  # 随机选择噪声类型
+                mix_2d = self.add_noise(mix_2d, noiselist, noisesnr, ntypes, numnoise)
+            
+            # 加混响
+            if self.rir_path is not None and rir_files is not None and len(rir_files) > 0:
+                mix_2d = self.add_reverb(mix_2d, rir_files)
+            
+            # 转换回1D格式
+            mix_augmented = np.squeeze(mix_2d, axis=0)  # (T)
+            
+            return mix_augmented
+            
+        except Exception as e:
+            logger.error(f"音频增强过程中发生错误: {e}")
+            logger.warning("跳过音频增强，返回原始音频")
+            return mix
+
+    def is_augmentation_available(self):
+        """
+        检查音频增强是否可用
+        Returns:
+            bool: 如果增强资源可用返回True，否则返回False
+        """
+        if self.musan_path is None and self.rir_path is None:
+            return False
+        
+        try:
+            noisesnr, numnoise, noiselist, rir_files, noisetypes = self.load_musan_or_rirs(self.musan_path, self.rir_path)
+            
+            musan_available = (self.musan_path is not None and 
+                              noiselist is not None and 
+                              len(noiselist) > 0)
+            
+            rir_available = (self.rir_path is not None and 
+                            rir_files is not None and 
+                            len(rir_files) > 0)
+            
+            return musan_available or rir_available
+        except Exception:
+            return False
+    
+    def get_augmentation_info(self):
+        """
+        获取音频增强的详细信息
+        Returns:
+            dict: 包含增强配置信息的字典
+        """
+        info = {
+            'musan_path': self.musan_path,
+            'rir_path': self.rir_path,
+            'noise_ratio': self.noise_ratio,
+            'augmentation_available': self.is_augmentation_available()
+        }
+        
+        if self.is_augmentation_available():
+            try:
+                noisesnr, numnoise, noiselist, rir_files, noisetypes = self.load_musan_or_rirs(self.musan_path, self.rir_path)
+                
+                if self.musan_path is not None and noiselist is not None:
+                    info['musan_categories'] = list(noiselist.keys())
+                    info['musan_file_counts'] = {k: len(v) for k, v in noiselist.items()}
+                
+                if self.rir_path is not None and rir_files is not None:
+                    info['rir_file_count'] = len(rir_files)
+                    
+            except Exception as e:
+                info['error'] = str(e)
+        
+        return info
 
     def load_musan_or_rirs(self, musan_path, rir_path):
         # add noise and rir augment
@@ -134,37 +283,23 @@ class SimuDiarMixer:
         noise = np.sum(np.concatenate(noises, axis=0), axis=0, keepdims=True)
         return noise[:, :length] + audio
 
-    def sample_post(self):
+    def sample_post(self, mix=None, label=None, spk_ids=None, force_augment=False):
         """
-        对sample()输出的mix进行加噪和/或加混响，保证长度不变。
-        - mix: np.ndarray [T]
-        - label: np.ndarray [N, T]
-        - spk_ids: list
-        - add_noise: bool，是否加噪
-        - add_reverb: bool，是否加混响
+        对音频进行加噪和/或加混响，保证长度不变。
+        Args:
+            mix: np.ndarray [T] - 输入的混合音频，如果为None则调用self.sample()
+            label: np.ndarray [N, T] - 活动标签，如果为None则调用self.sample()
+            spk_ids: list - 说话人ID列表，如果为None则调用self.sample()
+            force_augment: bool - 是否强制应用增强（忽略noise_ratio）
         返回: (mix_new, label, spk_ids)
         """
-        mix, label,spk_ids = self.sample()
+        if mix is None or label is None or spk_ids is None:
+            mix, label, spk_ids = self.sample()
         
-        noisesnr, numnoise, noiselist, rir_files, noisetypes = self.load_musan_or_rirs(self.musan_path, self.rir_path)
-        if self.rir_path is not None or self.musan_path is not None:
-            add_noise = np.random.choice(2, p=[1 - self.noise_ratio, self.noise_ratio])
-            if add_noise == 1:
-                if self.rir_path is not None and self.musan_path is not None:
-                    mix =  np.expand_dims(np.array(mix), axis=0) #(1,T)
-                    # add_noise and add_reverb required 2d data
-                    ntypes = random.choice(noisetypes) # choice one from  ["noise", "speech", "music"]
-                    mix = self.add_noise(mix, noiselist, noisesnr, ntypes, numnoise)
-                    mix = self.add_reverb(mix,rir_files)
-                elif self.rir_path is not None:
-                    mix =  np.expand_dims(np.array(mix), axis=0) #(1,T)
-                    mix = self.add_reverb(mix, rir_files)
-                elif self.musan_path is not None:
-                    mix =  np.expand_dims(np.array(mix), axis=0) #(1,T)
-                    ntypes = random.choice(noisetypes) # choice one from  ["noise", "speech", "music"]
-                    mix = self.add_noise(mix, noiselist, noisesnr, ntypes, numnoise)
-                mix = np.squeeze(mix,axis=0) #(1,T) ->(T)
-        return mix, label, spk_ids
+        # 应用音频增强
+        mix_augmented = self.apply_audio_augmentation(mix, force_augment)
+        
+        return mix_augmented, label, spk_ids
             
     def _find_silence_regions(self, active, min_len=1, value=0):
         # active: 0/1 array, value: 0(静音) or 1(有声/重叠)
@@ -415,20 +550,211 @@ class SimuDiarMixer:
         used_spk_ids = [spk for spk, m in zip(spk_ids, active_spk_mask) if m]
         return timeline, label_mat, used_spk_ids
         
+    def sample_lazy(self) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+        """
+        懒加载版本的采样函数，实时处理VAD文件和原始音频
+        返回: (混合音频, 活动标签, spk_ids)
+        """
+        if not self.lazy_mode:
+            raise ValueError("此函数仅在懒加载模式下可用")
+        
+        sr = self.sr
+        total_len = int(self.max_mix_len * sr)
+        
+        # 随机选择说话人数量
+        n_spk = np.random.randint(self.min_speakers, min(self.max_speakers, self._get_speaker_count()) + 1)
+        
+        # 随机选择说话人
+        available_speakers = list(range(self._get_speaker_count()))
+        spk_ids = list(np.random.choice(available_speakers, n_spk, replace=False))
+        
+        # 加载主说话人数据
+        main_spk = spk_ids[0]
+        main_chunks = self._load_speaker_data(main_spk)
+        if not main_chunks:
+            # 如果主说话人没有数据，随机选择另一个
+            for spk in spk_ids[1:]:
+                chunks = self._load_speaker_data(spk)
+                if chunks:
+                    main_spk = spk
+                    main_spk_idx = spk_ids.index(spk)
+                    spk_ids[0], spk_ids[main_spk_idx] = spk_ids[main_spk_idx], spk_ids[0]
+                    main_chunks = chunks
+                    break
+        
+        if not main_chunks:
+            # 如果所有说话人都没有数据，返回静音
+            logger.warning("所有选择的说话人都没有有效数据，返回静音")
+            timeline = np.zeros(total_len, dtype=np.float32)
+            label_mat = np.zeros((n_spk, total_len), dtype=np.float32)
+            return timeline, label_mat, [str(spk) for spk in spk_ids]
+        
+        # 随机打乱主说话人的片段
+        np.random.shuffle(main_chunks)
+        
+        # 初始化时间线和标签矩阵
+        timeline = np.zeros(total_len, dtype=np.float32)
+        label_mat = np.zeros((n_spk, total_len), dtype=np.float32)
+        t = 0
+        
+        # 1. 主说话人顺序排布片段，静音区间严格切割
+        for chunk in main_chunks:
+            chunk_len = min(len(chunk), total_len - t)
+            if chunk_len <= 0:
+                break
+            timeline[t:t+chunk_len] += chunk[:chunk_len]
+            label_mat[0, t:t+chunk_len] = 1  # 主说话人在索引0
+            t += chunk_len
+            if t >= total_len:
+                break
+            remain = int(sr * np.random.uniform(self.min_silence, self.max_silence))
+            t = min(t + remain, total_len)
+        
+        # 2. 其他说话人片段插入，优先重叠区，后静音区
+        target_overlap_frames = int(self.target_overlap * total_len)
+        
+        for i, spk in enumerate(spk_ids[1:], 1):  # 从索引1开始，跳过主说话人
+            chunks = self._load_speaker_data(spk)
+            if not chunks:
+                continue
+                
+            np.random.shuffle(chunks)
+            for chunk in chunks:
+                # 优先重叠区
+                active = (label_mat.sum(axis=0) > 0).astype(int)
+                overlap_regions = self._find_silence_regions(active, min_len=1, value=1)
+                candidate_starts = []
+                for start, end in overlap_regions:
+                    region_len = end - start
+                    insert_len = min(len(chunk), region_len)
+                    if insert_len > 0:
+                        candidate_starts.append((start, insert_len))
+                
+                np.random.shuffle(candidate_starts)
+                inserted = False
+                
+                for start, insert_len in candidate_starts:
+                    end = start + insert_len
+                    if label_mat[i, start:end].sum() > 0:
+                        continue
+                    
+                    # 计算插入后重叠帧数
+                    overlap_mask = (label_mat.sum(axis=0) > 0).astype(int)
+                    chunk_mask = np.zeros(total_len, dtype=int)
+                    chunk_mask[start:end] = 1
+                    overlap_incr = ((overlap_mask + chunk_mask) > 1).sum() - (overlap_mask > 1).sum()
+                    current_overlap = (label_mat.sum(axis=0) > 1).sum()
+                    
+                    if current_overlap + overlap_incr > target_overlap_frames:
+                        remain = target_overlap_frames - current_overlap
+                        if remain > 0:
+                            for l in range(remain, 0, -1):
+                                if start + l > total_len:
+                                    continue
+                                test_mask = np.zeros(total_len, dtype=int)
+                                test_mask[start:start+l] = 1
+                                test_incr = ((overlap_mask + test_mask) > 1).sum() - (overlap_mask > 1).sum()
+                                if current_overlap + test_incr <= target_overlap_frames:
+                                    label_mat[i, start:start+l] = 1
+                                    timeline[start:start+l] += chunk[:l]
+                                    inserted = True
+                                    break
+                        break
+                    else:
+                        label_mat[i, start:end] = 1
+                        timeline[start:end] += chunk[:end-start]
+                        inserted = True
+                        break
+                
+                if inserted and (label_mat.sum(axis=0) > 1).sum() >= target_overlap_frames:
+                    break
+            
+            # 如果重叠率已达标，尝试填补静音区
+            if (label_mat.sum(axis=0) > 1).sum() >= target_overlap_frames:
+                for chunk in chunks:
+                    active = (label_mat.sum(axis=0) > 0).astype(int)
+                    silence_regions = self._find_silence_regions(active, min_len=1, value=0)
+                    silence_regions = [r for r in silence_regions if (r[1]-r[0]) > 0]
+                    if not silence_regions:
+                        break
+                    region = silence_regions[np.random.randint(len(silence_regions))]
+                    region_len = region[1] - region[0]
+                    insert_len = min(len(chunk), region_len, int(self.max_silence * sr))
+                    if insert_len <= 0:
+                        continue
+                    start = region[0]
+                    end = start + insert_len
+                    if label_mat[i, start:end].sum() > 0:
+                        continue
+                    label_mat[i, start:end] = 1
+                    timeline[start:end] += chunk[:insert_len]
+        
+        # 3. 最后强制切割所有静音区间为max_silence
+        active = (label_mat.sum(axis=0) > 0).astype(int)
+        silence_regions = self._find_silence_regions(active, min_len=1)
+        for start, end in silence_regions:
+            region_len = end - start
+            if region_len > int(self.max_silence * sr):
+                for s in range(start, end, int(self.max_silence * sr)):
+                    e = min(s + int(self.max_silence * sr), end)
+                    if e - s > int(self.max_silence * sr):
+                        timeline[s+int(self.max_silence*sr):e] += np.random.normal(0, 1e-6, e-s-int(self.max_silence*sr))
+        
+        # 归一化音频
+        if np.max(np.abs(timeline)) > 0:
+            timeline = timeline / (np.max(np.abs(timeline)) + 1e-8)
+        
+        # 只保留有活动的说话人
+        active_spk_mask = (label_mat.sum(axis=1) > 0)
+        label_mat = label_mat[active_spk_mask]
+        used_spk_ids = [str(spk) for spk, m in zip(spk_ids, active_spk_mask) if m]
+        
+        return timeline, label_mat, used_spk_ids
+        
 # 用法示例：
 # vad_func = ... # 你的VAD函数
 # spk2wav = {'spk1': [...], ...}
 # spk2chunks = {spk: [vad_func(wav, sr) for wav in wavs] for spk, wavs in spk2wav.items()}
+
+# 1. 基本用法（无音频增强）
 # mixer = SimuDiarMixer(spk2chunks, sample_rate=16000, max_mix_len=30.0, min_silence=0.0, max_silence=4.0, target_overlap=0.2)
 # mix, label, spk_ids = mixer.sample()
 
-# 用法示例：
-# 假设你有spk2wav = {'spk1': ['a.wav', ...], ...}
-# 以及vad_func(wav, sr) -> [(start, end), ...]
-# 你可以用pyannote.audio/pipeline, webrtcvad, funasr等实现vad_func
-#
-# def vad_func(wav, sr):
-#     ... # 返回[(start, end), ...]，单位秒
-#
-# dataset = SimuDiarDataset(spk2wav, vad_func)
-# mix, labels = dataset.sample() 
+# 2. 启用音频增强（加噪和混响）
+# mixer = SimuDiarMixer(
+#     spk2chunks, 
+#     sample_rate=16000, 
+#     max_mix_len=30.0, 
+#     min_silence=0.0, 
+#     max_silence=4.0, 
+#     target_overlap=0.2,
+#     musan_path="/path/to/musan",  # MUSAN数据集路径
+#     rir_path="/path/to/rirs",     # RIR数据集路径
+#     noise_ratio=0.8               # 80%的概率应用增强
+# )
+
+# 3. 检查增强资源状态
+# info = mixer.get_augmentation_info()
+# print(f"增强可用: {info['augmentation_available']}")
+# if info['augmentation_available']:
+#     print(f"MUSAN类别: {info.get('musan_categories', [])}")
+#     print(f"RIR文件数: {info.get('rir_file_count', 0)}")
+
+# 4. 强制应用增强（忽略noise_ratio）
+# mix, label, spk_ids = mixer.sample_post(force_augment=True)
+
+# 5. 在PyTorch DataLoader中使用
+# from torch.utils.data import DataLoader
+# dataset = SimuDiarMixer(...)
+# dataloader = DataLoader(dataset, batch_size=8, collate_fn=dataset.collate_fn)
+# for batch in dataloader:
+#     wavs, labels, spk_ids_list, fbanks, labels_len, data_sources = batch
+#     # 处理批次数据...
+
+# 6. 懒加载模式（从VAD文件加载）
+# mixer = SimuDiarMixer(
+#     voxceleb2_spk2chunks_json="/path/to/vad_data.json",
+#     musan_path="/path/to/musan",
+#     rir_path="/path/to/rirs",
+#     noise_ratio=0.8
+# ) 
