@@ -711,6 +711,192 @@ class SimuDiarMixer:
         
         return timeline, label_mat, used_spk_ids
         
+    def _get_speaker_count(self) -> int:
+        """
+        从VAD文件中获取说话人总数
+        返回: 说话人数量
+        """
+        if not self.lazy_mode:
+            raise ValueError("此函数仅在懒加载模式下可用")
+        
+        if self._speaker_list is None:
+            self._speaker_list = self._load_speaker_list()
+        
+        return len(self._speaker_list)
+    
+    def _load_speaker_list(self) -> List[str]:
+        """
+        从VAD文件中加载说话人列表
+        返回: 说话人ID列表
+        """
+        if not self.lazy_mode:
+            raise ValueError("此函数仅在懒加载模式下可用")
+        
+        speaker_list = []
+        
+        try:
+            if self.voxceleb2_spk2chunks_json.endswith('.gz') or self.voxceleb2_spk2chunks_json.endswith('.jsonl_gzip'):
+                # 处理gzip压缩文件（包括.jsonl_gzip格式）
+                import gzip
+                with gzip.open(self.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            try:
+                                data = json.loads(line)
+                                spk_id = data.get("spk_id")
+                                if spk_id:
+                                    speaker_list.append(spk_id)
+                            except json.JSONDecodeError:
+                                continue
+            else:
+                # 处理普通文本文件
+                with open(self.voxceleb2_spk2chunks_json, "r", encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            try:
+                                data = json.loads(line)
+                                spk_id = data.get("spk_id")
+                                if spk_id:
+                                    speaker_list.append(spk_id)
+                            except json.JSONDecodeError:
+                                continue
+            
+            logger.info(f"从VAD文件加载了 {len(speaker_list)} 个说话人")
+            return speaker_list
+            
+        except Exception as e:
+            logger.error(f"加载说话人列表失败: {e}")
+            return []
+    
+    def _load_speaker_data(self, spk_idx: int) -> List[np.ndarray]:
+        """
+        加载指定索引的说话人数据
+        Args:
+            spk_idx: 说话人在列表中的索引
+        返回: 音频片段列表
+        """
+        if not self.lazy_mode:
+            raise ValueError("此函数仅在懒加载模式下可用")
+        
+        if self._speaker_list is None:
+            self._speaker_list = self._load_speaker_list()
+        
+        if spk_idx >= len(self._speaker_list):
+            logger.warning(f"说话人索引 {spk_idx} 超出范围，最大索引: {len(self._speaker_list) - 1}")
+            return []
+        
+        spk_id = self._speaker_list[spk_idx]
+        
+        # 检查缓存
+        if spk_id in self._speaker_cache:
+            return self._speaker_cache[spk_id]
+        
+        # 从VAD文件加载数据
+        chunks = []
+        try:
+            if self.voxceleb2_spk2chunks_json.endswith('.gz') or self.voxceleb2_spk2chunks_json.endswith('.jsonl_gzip'):
+                import gzip
+                with gzip.open(self.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            try:
+                                data = json.loads(line)
+                                if data.get("spk_id") == spk_id:
+                                    wav_paths = data.get("wav_paths", [])
+                                    time_stamps = data.get("results", [])
+                                    
+                                    if len(wav_paths) == len(time_stamps):
+                                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
+                                            try:
+                                                if not os.path.exists(wav_path):
+                                                    continue
+                                                
+                                                wav, sr = sf.read(wav_path)
+                                                if sr != self.sr:
+                                                    wav = librosa.resample(wav, orig_sr=sr, target_sr=self.sr)
+                                                
+                                                # 提取VAD后的音频片段
+                                                for start, end in time_stamp_list:
+                                                    start_frame = int(start * self.sr)
+                                                    end_frame = int(end * self.sr)
+                                                    if start_frame < end_frame and start_frame < len(wav):
+                                                        chunk = wav[start_frame:min(end_frame, len(wav))]
+                                                        if len(chunk) > 0:
+                                                            chunks.append(chunk)
+                                                
+                                                # 释放内存
+                                                del wav
+                                                
+                                            except Exception as e:
+                                                logger.warning(f"处理音频文件失败 {wav_path}: {e}")
+                                                continue
+                                    break  # 找到目标说话人后退出循环
+                            except json.JSONDecodeError:
+                                continue
+            else:
+                # 处理普通文本文件
+                with open(self.voxceleb2_spk2chunks_json, "r_path, time_stamp_list in zip(wav_paths, time_stamps):
+                                            try:
+                                                if not os.path.exists(wav_path):
+                                                    continue
+                                                
+                                                wav, sr = sf.read(wav_path)
+                                                if sr != self.sr:
+                                                    wav = librosa.resample(wav, orig_sr=sr, target_sr=self.sr)
+                                                
+                                                # 提取VAD后的音频片段
+                                                for start, end in time_stamp_list:
+                                                    start_frame = int(start * self.sr)
+                                                    end_frame = int(end * self.sr)
+                                                    if start_frame < end_frame and start_frame < len(wav):
+                                                        chunk = wav[start_frame:min(end_frame, len(wav))]
+                                                        if len(chunk) > 0:
+                                                            chunks.append(chunk)
+                                                
+                                                # 释放内存
+                                                del wav
+                                                
+                                            except Exception as e:
+                                                logger.warning(f"处理音频文件失败 {wav_path}: {e}")
+                                                continue
+                                    break  # 找到目标说话人后退出循环
+                            except json.JSONDecodeError:
+                                continue
+            
+            # 缓存结果
+            self._speaker_cache[spk_id] = chunks
+            logger.debug(f"加载说话人 {spk_id} 数据完成，共 {len(chunks)} 个音频片段")
+            return chunks
+            
+        except Exception as e:
+            logger.error(f"加载说话人 {spk_id} 数据失败: {e}")
+            return []
+
+    def clear_cache(self):
+        """
+        清理说话人数据缓存，释放内存
+        """
+        if hasattr(self, '_speaker_cache'):
+            self._speaker_cache.clear()
+        if hasattr(self, '_speaker_list'):
+            self._speaker_list = None
+        logger.info("已清理说话人数据缓存")
+    
+    def get_cache_info(self) -> Dict[str, int]:
+        """
+        获取缓存信息
+        返回: 包含缓存状态的字典
+        """
+        cache_info = {
+            'cached_speakers': len(self._speaker_cache) if hasattr(self, '_speaker_cache') else 0,
+            'total_speakers': len(self._speaker_list) if hasattr(self, '_speaker_list') and self._speaker_list else 0,
+            'lazy_mode': self.lazy_mode
+        }
+        return cache_info
+
 # 用法示例：
 # vad_func = ... # 你的VAD函数
 # spk2wav = {'spk1': [...], ...}

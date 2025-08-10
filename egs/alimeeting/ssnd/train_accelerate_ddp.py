@@ -262,20 +262,20 @@ def get_parser():
     parser.add_argument("--compression-type", type=str, default="gzip", help="compression method type for vad json files.")
     
     # 加速处理相关参数
-    parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
-    parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（内存优化）")
-    parser.add_argument("--use-memory-safe", type=str2bool, default=False, help="是否使用超级内存安全模式（避免OOM）")
-    parser.add_argument("--fast-batch-size", type=int, default=2, help="加速版本的批处理大小（控制内存使用）")
-    parser.add_argument("--fast-max-memory-mb", type=int, default=0, help="加速版本的最大内存限制（MB），0表示自动检测并使用可用内存的指定百分比")
-    parser.add_argument("--memory-usage-ratio", type=float, default=0.5, help="自动内存检测时使用的内存比例（0.0-1.0），默认0.5表示50%")
-    parser.add_argument("--fast-sub-batch-size", type=int, default=20, help="子批次大小（每个子批次处理的音频文件数量）")
-    parser.add_argument("--strict-memory-check", type=str2bool, default=False, help="是否启用严格的内存检查（True时会跳过超限的批次）")
-    parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
-    parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
-    parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
+    # parser.add_argument("--use-fast-spktochunks", type=str2bool, default=True, help="是否使用加速版本的spktochunks函数")
+    # parser.add_argument("--use-lazy-loading", type=str2bool, default=False, help="是否使用懒加载模式（内存优化）")
+    # parser.add_argument("--use-memory-safe", type=str2bool, default=False, help="是否使用超级内存安全模式（避免OOM）")
+    # parser.add_argument("--fast-batch-size", type=int, default=2, help="加速版本的批处理大小（控制内存使用）")
+    # parser.add_argument("--fast-max-memory-mb", type=int, default=0, help="加速版本的最大内存限制（MB），0表示自动检测并使用可用内存的指定百分比")
+    # parser.add_argument("--memory-usage-ratio", type=float, default=0.5, help="自动内存检测时使用的内存比例（0.0-1.0），默认0.5表示50%")
+    # parser.add_argument("--fast-sub-batch-size", type=int, default=20, help="子批次大小（每个子批次处理的音频文件数量）")
+    # parser.add_argument("--strict-memory-check", type=str2bool, default=False, help="是否启用严格的内存检查（True时会跳过超限的批次）")
+    # parser.add_argument("--max-speakers-test", type=int, default=None, help="测试时限制最大说话人数量")
+    # parser.add_argument("--max-files-per-speaker-test", type=int, default=None, help="测试时限制每个说话人的最大文件数量")
+    # parser.add_argument("--disable-cache", type=str2bool, default=False, help="禁用缓存功能")
     
     # 懒加载模拟数据相关参数
-    parser.add_argument("--use-lazy-simu", type=str2bool, default=False, help="是否启用懒加载模拟数据模式（跳过spktochunks预处理）")
+    # parser.add_argument("--use-lazy-simu", type=str2bool, default=False, help="是否启用懒加载模拟数据模式（跳过spktochunks预处理）")
 
     add_finetune_arguments(parser)
     return parser
@@ -1339,272 +1339,11 @@ def build_test_dl(args, spk2int):
 #            else:
 #                spk2chunks[spk_id] = speech_chunks
 #
-def spktochunks(args):
-    """原始版本的spktochunks函数"""
-    import time
-    
-    logger.info("开始处理原始版本spktochunks...")
-    start_time = time.time()
-    
-    if args.compression_type == "gzip":
-        spk2chunks = defaultdict(list)
-        
-        # 统计总行数
-        logger.info("正在统计总行数...")
-        total_lines = 0
-        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    total_lines += 1
-        logger.info(f"总共需要处理 {total_lines} 个说话人")
-        
-        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
-            processed_lines = 0
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if line:  # 跳过空行
-                    try:
-                        data = json.loads(line)
-                        spk_id = data["spk_id"]
-                        wav_paths = data["wav_paths"]
-                        time_stamps = data["results"]
-                        assert len(wav_paths) == len(time_stamps), f"len(wav_paths): {len(wav_paths)} vs len(time_stamps): {len(time_stamps)}"
-                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
-                            wav, sr = sf.read(wav_path)
-                            if sr != 16000:
-                                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-                            # time_stamp_list is start /end , its unit is millisecond
-                            # in ms ->(/1000) in second ->(*16000) in sample points
-                            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-                            if spk_id in spk2chunks:
-                                spk2chunks[spk_id].extend(speech_chunks)
-                            else:
-                                spk2chunks[spk_id] = speech_chunks
-                        
-                        processed_lines += 1
-                        
-                        # 显示进度
-                        if processed_lines % 50 == 0 or processed_lines == total_lines:
-                            elapsed_time = time.time() - start_time
-                            progress = (processed_lines / total_lines) * 100
-                            if processed_lines > 0:
-                                avg_time_per_line = elapsed_time / processed_lines
-                                remaining_lines = total_lines - processed_lines
-                                eta_seconds = remaining_lines * avg_time_per_line
-                                eta_minutes = eta_seconds / 60
-                                eta_hours = eta_minutes / 60
-                                
-                                if eta_hours >= 1:
-                                    eta_str = f"{eta_hours:.1f}小时"
-                                elif eta_minutes >= 1:
-                                    eta_str = f"{eta_minutes:.1f}分钟"
-                                else:
-                                    eta_str = f"{eta_seconds:.0f}秒"
-                                
-                                logger.info(f"原始版本进度: {processed_lines}/{total_lines} ({progress:.1f}%) - 已用时间: {elapsed_time/60:.1f}分钟 - 预计剩余: {eta_str}")
-                    except json.JSONDecodeError as e:
-                        logger.warning(f"第{line_num}行JSON解析失败: {e}")
-    
-    # 计算总耗时
-    total_time = time.time() - start_time
-    total_minutes = total_time / 60
-    total_hours = total_minutes / 60
-    
-    if total_hours >= 1:
-        time_str = f"{total_hours:.1f}小时"
-    else:
-        time_str = f"{total_minutes:.1f}分钟"
-    
-    logger.info(f"原始版本处理完成，共处理了 {len(spk2chunks)} 个说话人，总耗时: {time_str}")
-    return spk2chunks
+# def spktochunks(args):
+#     """原始版本的spktochunks函数 - 已移除"""
 
-def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_cache=None):
-    """
-    内存优化的加速版本spktochunks函数
-    使用批量处理和内存监控避免OOM
-    
-    Args:
-        args: 参数对象
-        max_speakers: 最大处理说话人数量（用于测试）
-        max_files_per_speaker: 每个说话人最大文件数量（用于测试）
-        use_cache: 是否使用缓存
-    """
-    import os
-    import gc
-    import pickle
-    import time
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    from functools import lru_cache
-    
-    # 缓存文件路径
-    cache_file = f"{args.voxceleb2_spk2chunks_json}.cache"
-    
-    # 确定是否使用缓存
-    if use_cache is None:
-        use_cache = not getattr(args, 'disable_cache', False)
-    
-    # 如果启用缓存且缓存文件存在，直接加载
-    if use_cache and os.path.exists(cache_file):
-        logger.info(f"从缓存加载数据: {cache_file}")
-        with open(cache_file, 'rb') as f:
-            return pickle.load(f)
-    
-    logger.info("开始内存优化的加速处理spktochunks...")
-    
-    # 记录开始时间
-    start_time = time.time()
-    
-    # 内存监控
-    try:
-        import psutil
-        process = psutil.Process()
-        initial_memory = process.memory_info().rss / 1024 / 1024
-        
-        # 自动检测系统可用内存
-        system_memory = psutil.virtual_memory()
-        total_memory_mb = system_memory.total / 1024 / 1024
-        available_memory_mb = system_memory.available / 1024 / 1024
-        
-        # 如果用户没有指定内存限制，自动使用可用内存的指定百分比
-        if hasattr(args, 'fast_max_memory_mb') and args.fast_max_memory_mb > 0:
-            max_memory_mb = args.fast_max_memory_mb
-            logger.info(f"使用用户指定的内存限制: {max_memory_mb} MB")
-        else:
-            # 使用可配置的内存比例
-            memory_ratio = getattr(args, 'memory_usage_ratio', 0.5)
-            memory_ratio = max(0.1, min(0.9, memory_ratio))  # 限制在10%-90%之间
-            
-            # 使用可用内存的指定比例，但不超过总内存的指定比例
-            max_memory_mb = min(available_memory_mb * memory_ratio, total_memory_mb * memory_ratio)
-            max_memory_mb = int(max_memory_mb)  # 转换为整数
-            logger.info(f"自动检测系统内存: 总计 {total_memory_mb:.0f} MB, 可用 {available_memory_mb:.0f} MB")
-            logger.info(f"自动设置内存限制: {max_memory_mb} MB (可用内存的{memory_ratio*100:.0f}%)")
-        
-        logger.info(f"初始内存使用: {initial_memory:.1f} MB")
-        
-    except ImportError:
-        logger.warning("psutil未安装，无法自动检测内存，使用默认值")
-        process = None
-        max_memory_mb = 6144  # 默认6GB
-        logger.info(f"使用默认内存限制: {max_memory_mb} MB")
-    
-    # 按说话人批量处理，避免一次性加载所有任务
-    spk2chunks = defaultdict(list)
-    speaker_count = 0
-    batch_size = getattr(args, 'fast_batch_size', 2)  # 进一步减少默认批处理大小，避免内存溢出
-    logger.info(f"使用批处理大小: {batch_size} 个说话人/批")
-    
-    # 统计总行数用于进度显示
-    logger.info("正在统计总行数...")
-    total_lines = 0
-    with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
-        for line in f:
-            if line.strip():
-                total_lines += 1
-    logger.info(f"总共需要处理 {total_lines} 个说话人")
-    
-    if args.compression_type == "gzip":
-        with gzip.open(args.voxceleb2_spk2chunks_json, "rt", encoding='utf-8') as f:
-            current_batch = []
-            processed_lines = 0
-            
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if line:
-                    try:
-                        data = json.loads(line)
-                        spk_id = data["spk_id"]
-                        
-                        # 限制说话人数量
-                        if max_speakers and speaker_count >= max_speakers:
-                            break
-                        
-                        wav_paths = data["wav_paths"]
-                        time_stamps = data["results"]
-                        assert len(wav_paths) == len(time_stamps)
-                        
-                        # 限制每个说话人的文件数量
-                        if max_files_per_speaker:
-                            wav_paths = wav_paths[:max_files_per_speaker]
-                            time_stamps = time_stamps[:max_files_per_speaker]
-                        
-                        # 收集当前说话人的任务
-                        speaker_tasks = []
-                        for wav_path, time_stamp_list in zip(wav_paths, time_stamps):
-                            speaker_tasks.append({
-                                'spk_id': spk_id,
-                                'wav_path': wav_path,
-                                'time_stamp_list': time_stamp_list
-                            })
-                        
-                        current_batch.append((spk_id, speaker_tasks))
-                        speaker_count += 1
-                        processed_lines += 1
-                        
-                        # 显示进度
-                        if processed_lines % 10 == 0 or processed_lines == total_lines:
-                            elapsed_time = time.time() - start_time
-                            progress = (processed_lines / total_lines) * 100
-                            if processed_lines > 0:
-                                avg_time_per_line = elapsed_time / processed_lines
-                                remaining_lines = total_lines - processed_lines
-                                eta_seconds = remaining_lines * avg_time_per_line
-                                eta_minutes = eta_seconds / 60
-                                eta_hours = eta_minutes / 60
-                                
-                                if eta_hours >= 1:
-                                    eta_str = f"{eta_hours:.1f}小时"
-                                elif eta_minutes >= 1:
-                                    eta_str = f"{eta_minutes:.1f}分钟"
-                                else:
-                                    eta_str = f"{eta_seconds:.0f}秒"
-                                
-                                logger.info(f"进度: {processed_lines}/{total_lines} ({progress:.1f}%) - 已用时间: {elapsed_time/60:.1f}分钟 - 预计剩余: {eta_str}")
-                        
-                        # 当批次达到指定大小时，处理这一批
-                        if len(current_batch) >= batch_size:
-                            sub_batch_size = getattr(args, 'fast_sub_batch_size', 50)
-                            strict_memory_check = getattr(args, 'strict_memory_check', False)
-                            process_batch(current_batch, spk2chunks, process, max_memory_mb, sub_batch_size, strict_memory_check)
-                            current_batch = []
-                            gc.collect()  # 强制垃圾回收
-                        
-                    except json.JSONDecodeError as e:
-                        logger.warning(f"第{line_num}行JSON解析失败: {e}")
-            
-            # 处理最后一批
-            if current_batch:
-                sub_batch_size = getattr(args, 'fast_sub_batch_size', 50)
-                strict_memory_check = getattr(args, 'strict_memory_check', False)
-                process_batch(current_batch, spk2chunks, process, max_memory_mb, sub_batch_size, strict_memory_check)
-                current_batch = []
-                gc.collect()
-    
-    # 计算总耗时
-    total_time = time.time() - start_time
-    total_minutes = total_time / 60
-    total_hours = total_minutes / 60
-    
-    if total_hours >= 1:
-        time_str = f"{total_hours:.1f}小时"
-    else:
-        time_str = f"{total_minutes:.1f}分钟"
-    
-    logger.info(f"处理完成！共处理了 {len(spk2chunks)} 个说话人的数据")
-    logger.info(f"总耗时: {time_str} ({total_time:.1f}秒)")
-    
-    # 保存缓存
-    if use_cache:
-        logger.info(f"保存缓存到: {cache_file}")
-        with open(cache_file, 'wb') as f:
-            pickle.dump(spk2chunks, f)
-    
-    # 最终内存统计
-    if process:
-        final_memory = process.memory_info().rss / 1024 / 1024
-        logger.info(f"最终内存使用: {final_memory:.1f} MB (增加: {final_memory - initial_memory:.1f} MB)")
-    
-    return spk2chunks
+# def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_cache=None):
+#     """内存优化的加速版本spktochunks函数 - 已移除"""
 
 def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch_size=None, strict_memory_check=False):
     """处理一批说话人的音频数据"""
