@@ -1208,9 +1208,7 @@ if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
     --train-stage $train_stage\
     --voxceleb2-dataset-dir $voxceleb2_dataset_dir\
     --voxceleb2-spk2chunks-json $voxceleb2_spk2chunks_json\
-    --use-fast-spktochunks True\
-    --fast-batch-size 10 \
-    --fast-max-memory-mb 4096
+    --use-lazy-simu True
 
 fi
 

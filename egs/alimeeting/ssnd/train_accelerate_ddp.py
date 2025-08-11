@@ -385,7 +385,11 @@ def compute_loss(
     batch: (fbanks, labels, spk_label_idx, labels_len)
     """
     with torch.set_grad_enabled(is_training):
-        fbanks, labels, spk_label_idx, labels_len = batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
+        
+        #fbanks, labels, spk_label_idx, labels_len, _= batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
+        fbanks, labels, spk_label_indices, labels_len, data_source = batch
+        #wavs, labels, spk_label_idx, fbanks, labels_len, data_sources = batch
+        print(f"labels shape: {labels.shape}, spk_label_indices shape: {spk_label_indices.shape}, fbanks shape: {fbanks.shape}, labels_len : {labels_len.shape}, data_sources: {data_sources.shape}")
         B, N, T = labels.shape
         
         # 应用label smoothing
@@ -1744,7 +1748,8 @@ def build_global_spk2int(args):
     logger.info(f"spk2int: {spk2int}, spk_ids: {spk_ids}")
     return spk2int
 
-def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=None, max_files_per_speaker=None):
+#def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=None, max_files_per_speaker=None):
+def build_simu_data_train_dl(args,spk2int):
     """
     构建模拟数据训练数据加载器
     
@@ -1779,14 +1784,14 @@ def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=
         )
         vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
         def collate_fn_wrapper(batch):
-            wavs, labels, spk_ids_list, fbanks, labels_len = train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
+            wavs, labels, spk_ids_list, fbanks, labels_len, data_source= train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
             max_spks_in_batch = labels.shape[1] # b,spks,vad_out_len
             spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
             for i, spk_id_sample in enumerate(spk_ids_list):
                 for j, spk_id in enumerate(spk_id_sample):
                     if spk_id and spk_id in spk2int:
                         spk_label_indices[i, j] = spk2int[spk_id]
-            return fbanks, labels, spk_label_indices, labels_len
+            return fbanks, labels, spk_label_indices, labels_len, data_source
         train_dl = DataLoader(
             train_dataset,
             batch_size=args.batch_size,
@@ -1798,76 +1803,6 @@ def build_simu_data_train_dl(args, spk2int, use_fast_version=True, max_speakers=
         )
         return train_dl
     
-    # # 选择使用哪个版本的spktochunks函数
-    # if use_fast_version:
-    #     if hasattr(args, 'use_memory_safe') and args.use_memory_safe:
-    #         try:
-    #             logger.info("使用超级内存安全版本")
-    #             spk2chunks = spktochunks_memory_safe(args, max_speakers, max_files_per_speaker)
-    #             logger.info("内存安全版本初始化成功")
-    #         except Exception as e:
-    #             logger.warning(f"内存安全版本失败，回退到懒加载版本: {e}")
-    #             try:
-    #                 logger.info("尝试使用懒加载版本")
-    #                 spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
-    #                 logger.info("懒加载版本初始化成功")
-    #             except Exception as e2:
-    #                 logger.warning(f"懒加载版本也失败，回退到加速版本: {e2}")
-    #                 logger.info("使用加速版本")
-    #                 spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
-    #     elif hasattr(args, 'use_lazy_loading') and args.use_lazy_loading:
-    #         try:
-    #             logger.info("尝试使用懒加载版本")
-    #             spk2chunks = spktochunks_lazy(args, max_speakers, max_files_per_speaker)
-    #             logger.info("懒加载版本初始化成功")
-    #         except Exception as e:
-    #             logger.warning(f"懒加载版本失败，回退到加速版本: {e}")
-    #             logger.info("使用加速版本")
-    #             spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
-    #     else:
-    #         logger.info("使用加速版本")
-    #         spk2chunks = spktochunks_fast(args, max_speakers, max_files_per_speaker)
-    # else:
-    #     logger.info("使用原始版本")
-    #     spk2chunks = spktochunks(args)
-    
-    # train_dataset = SimuDiarMixer(
-    #     spk2chunks=spk2chunks,
-    #     sample_rate=16000,
-    #     frame_length=0.025, # 25ms
-    #     frame_shift=0.04, # 25fps(1s audio 25 labels, 8s audio 200 labels) to match vad_out_len, vad_out_len=200
-    #     num_mel_bins=80,
-    #     max_mix_len=8.0, # 8s
-    #     min_silence=0.0,
-    #     max_silence=4.0,
-    #     min_speakers=1,
-    #     max_speakers=3,
-    #     target_overlap=0.2,
-    #     musan_path=args.musan_path,
-    #     rir_path=args.rir_path,
-    #     noise_ratio=args.noise_ratio,
-    # )
-    # vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
-    # def collate_fn_wrapper(batch):
-    #     wavs, labels, spk_ids_list, fbanks, labels_len = train_dataset.collate_fn(batch, vad_out_len=vad_out_len)
-    #     max_spks_in_batch = labels.shape[1] # b,spks,vad_out_len
-    #     spk_label_indices = torch.full((len(spk_ids_list), max_spks_in_batch), -1, dtype=torch.long)
-    #     for i, spk_id_sample in enumerate(spk_ids_list):
-    #         for j, spk_id in enumerate(spk_id_sample):
-    #             if spk_id and spk_id in spk2int:
-    #                 spk_label_indices[i, j] = spk2int[spk_id]
-    #     return fbanks, labels, spk_label_indices, labels_len
-    # train_dl = DataLoader(
-    #     train_dataset,
-    #     batch_size=args.batch_size,
-    #     shuffle=True,
-    #     collate_fn=collate_fn_wrapper,
-    #     num_workers=4,  # 建议：4~8，避免超过CPU核心数
-    #     pin_memory=True,
-    #     persistent_workers=True  # 避免每epoch重建进程
-
-    # )
-    # return train_dl
 
 def main():
     parser = get_parser()
@@ -1905,18 +1840,18 @@ def main():
         # using simulated training set as trainset, dev set of alimeeting as devset.
         train_dl_simu = build_simu_data_train_dl(
             args, spk2int, 
-            use_fast_version=args.use_fast_spktochunks,
-            max_speakers=args.max_speakers_test,
-            max_files_per_speaker=args.max_files_per_speaker_test
+            #use_fast_version=args.use_fast_spktochunks,
+            #max_speakers=args.max_speakers_test,
+            #max_files_per_speaker=args.max_files_per_speaker_test
         )
         valid_dl = build_valid_dl(args, spk2int)
     elif args.train_stage==2:
         # using 80% simulated training set as trainset and 20% train set of alimeeting as trainset, dev set of alimeeting as devset.
         train_dl_simu = build_simu_data_train_dl(
             args, spk2int,
-            use_fast_version=args.use_fast_spktochunks,
-            max_speakers=args.max_speakers_test,
-            max_files_per_speaker=args.max_files_per_speaker_test
+            #use_fast_version=args.use_fast_spktochunks,
+            #max_speakers=args.max_speakers_test,
+            #max_files_per_speaker=args.max_files_per_speaker_test
         )
         train_dl = build_train_dl(args, spk2int)
         valid_dl = build_valid_dl(args, spk2int)
