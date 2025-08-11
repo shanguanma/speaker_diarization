@@ -32,6 +32,7 @@ class SimuDiarMixer:
                  musan_path: str = None,
                  rir_path: str = None,
                  noise_ratio: float = 0.8,
+                 downsample_factor: int = 4, # downsample rate is 4 , only for preparing label, because we hope that 1s has 25 labels, fbank is 1s 100 labels(frames), 
                  ):
         """
         spk2chunks: {spk_id: [vad后片段, ...]} (可选，用于传统模式)
@@ -58,7 +59,7 @@ class SimuDiarMixer:
         self.musan_path = musan_path
         self.rir_path = rir_path
         self.noise_ratio = noise_ratio
-        
+        self.downsample_factor = downsample_factor  
         # 懒加载模式相关
         self.lazy_mode = voxceleb2_spk2chunks_json is not None
         if self.lazy_mode:
@@ -101,7 +102,9 @@ class SimuDiarMixer:
         """获取数据样本"""
         # 忽略idx，每次都随机生成新样本
         if self.lazy_mode:
+            # i.e.mix shape: (128000,), label shape: (3, 128000), spk_ids: ['5038', '3787', '5660']
             mix, label, spk_ids = self.sample_lazy()
+            #print(f"mix shape: {mix.shape}, label shape: {label.shape}, spk_ids: {spk_ids}")
         else:
             mix, label, spk_ids = self.sample()
         
@@ -245,24 +248,26 @@ class SimuDiarMixer:
         return noisesnr, numnoise, noiselist, rir_files, noisetypes
 
     def add_reverb(self, audio, rir_files):
-        rir_file = random.choice(rir_files)
-        print(f"rir_file: {rir_file}")
-        rir, _ = sf.read(rir_file)
-        print(f"rir shape: {rir.shape}")
+        rir_file = random.choice(rir_files) # rir wav path str
+        #print(f"rir_file: {rir_file}")  
+        rir, _ = sf.read(rir_file) # (223104,) 
+        #print(f"rir shape: {rir.shape}")
         if len(rir.shape)>1:
              # it is multi channel, (samples, num_channels)
             rir = rir[:,0]
 
         rir = np.expand_dims(rir.astype(float), 0)
-        rir = rir / np.sqrt(np.sum(rir**2))
-        print(f"rir shape: {rir.shape}, audio shape: {audio.shape}")
+        rir = rir / np.sqrt(np.sum(rir**2)) #
+        #i.e. rir shape: (1, 369980), audio shape: (1, 128000)
+        #print(f"rir shape: {rir.shape}, audio shape: {audio.shape}")
         return signal.convolve(audio, rir, mode="full")[:, :audio.shape[1]]
 
     def add_noise(self, audio, noiselist, noisesnr, noisetype, numnoise):
         #clean_db = 10 * np.log10(max(1e-4, np.mean(audio**2)))
         clean_db = 10 * np.log10(1e-4 + np.mean(audio**2))
+        # i.e. noiselist_cat: ['/maduo/datasets/musan/noise/free-sound/noise-free-sound-0493.wav'], its len: 1
         noiselist_cat = random.sample(noiselist[noisetype], random.randint(numnoise[noisetype][0], numnoise[noisetype][1]))
-        print(f"noiselist_cat: {noiselist_cat}, its len: {len(noiselist_cat)}")
+        #print(f"noiselist_cat: {noiselist_cat}, its len: {len(noiselist_cat)}")
         noises = []
         length = audio.shape[1]
         for noise in noiselist_cat:
@@ -352,6 +357,59 @@ class SimuDiarMixer:
         fbank = (fbank - fbank.mean(dim=0)) / fbank.std(dim=0).clamp(min=1e-8)
         return fbank
 
+#    def collate_fn(self, batch, vad_out_len=200):
+#        # batch: list of (mix, label, spk_ids, data_source)
+#        max_len = max([len(x[0]) for x in batch])
+#        # 先提取所有fbank帧数，确定max_frames
+#        fbanks = []
+#        fbank_lens = []
+#        for mix, _, _, _ in batch:
+#            fbank = self.extract_fbank(mix)
+#            fbanks.append(fbank)
+#            fbank_lens.append(fbank.shape[0])
+#        max_frames = max(fbank_lens)
+#        max_spks = max([x[1].shape[0] for x in batch])
+#        wavs = []
+#        labels = []
+#        spk_ids_list = []
+#        fbanks_pad = []
+#        labels_len = []
+#        data_sources = []
+#        for (mix, label, spk_ids, data_source), fbank in zip(batch, fbanks):
+#            pad_wav = np.pad(mix, (0, max_len - len(mix)), 'constant')
+#            wavs.append(pad_wav)
+#            pad_spk_ids = list(spk_ids) + [None] * (max_spks - len(spk_ids))
+#            spk_ids_list.append(pad_spk_ids)
+#            # fbank pad
+#            pad_fbank = np.pad(fbank, ((0, max_frames - fbank.shape[0]), (0, 0)), 'constant')
+#            fbanks_pad.append(pad_fbank)
+#            # label对齐到fbank帧(这里的fbank 帧的帧移是40ms 也就是考虑了fbank 特征送入ResNetExtractor 后输出是下采样4倍的 )
+#            N, T_sample = label.shape
+#            T_fbank = fbank.shape[0]
+#            aligned_label = np.zeros((N, T_fbank), dtype=np.float32)
+#            win_length = int(self.frame_length * self.sr)
+#            hop_length = int(self.frame_shift * self.sr)
+#            for n in range(N):
+#                for t in range(int(T_fbank/4)):
+#                    start = t * hop_length
+#                    end = min(start + win_length, T_sample)
+#                    aligned_label[n, t] = label[n, start:end].max()
+#            pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
+#            pad_label[:aligned_label.shape[0], :aligned_label.shape[1]] = aligned_label
+#            labels.append(pad_label)
+#            data_sources.append(data_source)
+#
+#            labels_len.append(min(label.shape[1], vad_out_len) if label.ndim > 1 else 0)
+#        import torch
+#        wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
+#        labels = torch.tensor(np.stack(labels), dtype=torch.float32)
+#        fbanks = torch.tensor(np.stack(fbanks_pad), dtype=torch.float32)
+#        labels_len = torch.tensor(labels_len, dtype=torch.int32)
+#        data_sources = torch.tensor(data_sources, dtype=torch.int32)
+#        
+#        return wavs, labels, spk_ids_list, fbanks, labels_len, data_sources
+   
+
     def collate_fn(self, batch, vad_out_len=200):
         # batch: list of (mix, label, spk_ids, data_source)
         max_len = max([len(x[0]) for x in batch])
@@ -380,30 +438,60 @@ class SimuDiarMixer:
             fbanks_pad.append(pad_fbank)
             # label对齐到fbank帧(这里的fbank 帧的帧移是40ms 也就是考虑了fbank 特征送入ResNetExtractor 后输出是下采样4倍的 )
             N, T_sample = label.shape
-            T_fbank = fbank.shape[0]
-            aligned_label = np.zeros((N, T_fbank), dtype=np.float32)
+            #T_fbank = fbank.shape[0]
+            #aligned_label = np.zeros((N, T_fbank), dtype=np.float32)
             win_length = int(self.frame_length * self.sr)
             hop_length = int(self.frame_shift * self.sr)
+            # 计算总帧数 (与FBANK特征提取逻辑一致)
+            num_frames = (T_sample - win_length) // hop_length + 1
+            # 初始化帧级标签
+            frame_label = np.zeros(N, num_frames, dtype=np.int32)
             for n in range(N):
-                for t in range(int(T_fbank/4)):
+                for t in range(int(num_frames)):
                     start = t * hop_length
                     end = min(start + win_length, T_sample)
-                    aligned_label[n, t] = label[n, start:end].max()
+                    frame_label[n, t] = 1 if np.any(label[n][start:end]) else 0
+           
+            # 标签下采样 (取每4帧的第1帧)
+            downsampled_label = frame_label[:,::self.downsample_factor]
             pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
-            pad_label[:aligned_label.shape[0], :aligned_label.shape[1]] = aligned_label
+            pad_label[:downsampled_label.shape[0], :downsampled_label.shape[1]] = downsampled_label
             labels.append(pad_label)
             data_sources.append(data_source)
 
-            labels_len.append(min(label.shape[1], vad_out_len) if label.ndim > 1 else 0)
+            labels_len.append(min(downsampled_label.shape[1], vad_out_len) if label.ndim > 1 else 0)
         import torch
         wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
         fbanks = torch.tensor(np.stack(fbanks_pad), dtype=torch.float32)
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
         data_sources = torch.tensor(data_sources, dtype=torch.int32)
-        
+
         return wavs, labels, spk_ids_list, fbanks, labels_len, data_sources
-    
+
+    # 标签处理函数
+    def process_labels(self,T_sample, labels, sample_rate, window_size, window_shift, downsample_factor):
+        # 计算帧参数
+        frame_length = int(self.frame_length * sample_rate)  # 400个采样点
+        frame_shift = int(self.frame_shift * sample_rate)  # 160个采样点
+        
+        total_samples= T_sample
+        # 计算总帧数 (与FBANK特征提取逻辑一致)
+        num_frames = (total_samples - frame_length) // frame_shift + 1
+        
+        # 初始化帧级标签
+        frame_labels = np.zeros(num_frames, dtype=np.int32)
+        
+        # 为每帧分配标签 (只要帧内有1就标记为1)
+        for i in range(num_frames):
+            start = i * frame_shift
+            end = start + frame_length
+            frame_labels[i] = 1 if np.any(labels[start:end]) else 0
+        
+        # 标签下采样 (取每4帧的第1帧)
+        downsampled_labels = frame_labels[::downsample_factor]
+        
+        return frame_labels, downsampled_labels
 
     def collate_fn_wo_feat(self, batch):
         # batch: list of (mix, label, spk_ids)
@@ -819,9 +907,9 @@ class SimuDiarMixer:
                                                     wav = librosa.resample(wav, orig_sr=sr, target_sr=self.sr)
                                                 
                                                 # 提取VAD后的音频片段
-                                                for start, end in time_stamp_list:
-                                                    start_frame = int(start * self.sr)
-                                                    end_frame = int(end * self.sr)
+                                                for start, end in time_stamp_list: # time_stamp_list is ms unit, start/1000 * 16000 = start *16
+                                                    start_frame = int(start * 16)
+                                                    end_frame = int(end * 16)
                                                     if start_frame < end_frame and start_frame < len(wav):
                                                         chunk = wav[start_frame:min(end_frame, len(wav))]
                                                         if len(chunk) > 0:
