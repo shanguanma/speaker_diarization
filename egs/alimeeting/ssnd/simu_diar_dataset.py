@@ -463,10 +463,11 @@ class SimuDiarMixer:
         import torch
         wavs = torch.tensor(np.stack(wavs), dtype=torch.float32)
         labels = torch.tensor(np.stack(labels), dtype=torch.float32)
+        
         fbanks = torch.tensor(np.stack(fbanks_pad), dtype=torch.float32)
         labels_len = torch.tensor(labels_len, dtype=torch.int32)
         data_sources = torch.tensor(data_sources, dtype=torch.int32)
-
+         
         return wavs, labels, spk_ids_list, fbanks, labels_len, data_sources
 
     # 标签处理函数
