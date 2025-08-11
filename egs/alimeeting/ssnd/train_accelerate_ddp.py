@@ -388,8 +388,11 @@ def compute_loss(
         
         #fbanks, labels, spk_label_idx, labels_len, _= batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
         fbanks, labels, spk_label_indices, labels_len, data_source = batch
-        #wavs, labels, spk_label_idx, fbanks, labels_len, data_sources = batch
-        print(f"labels shape: {labels.shape}, spk_label_indices shape: {spk_label_indices.shape}, fbanks shape: {fbanks.shape}, labels_len : {labels_len.shape}, data_sources: {data_sources.shape}")
+        print(f"labels shape: {labels.shape}")
+        print(f"spk_label_indices shape: {spk_label_idx.shape},")
+        print(f"fbanks shape: {fbanks.shape},")
+        print(f"labels_len : {labels_len.shape},")
+        print(f"data_sources: {data_source.shape}")
         B, N, T = labels.shape
         
         # 应用label smoothing
