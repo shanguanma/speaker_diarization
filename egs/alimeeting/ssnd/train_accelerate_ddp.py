@@ -387,9 +387,10 @@ def compute_loss(
     with torch.set_grad_enabled(is_training):
         
         #fbanks, labels, spk_label_idx, labels_len, _= batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
-        fbanks, labels, spk_label_indices, labels_len, data_source = batch
+        fbanks, labels, spk_label_idx, labels_len, data_source = batch # torch.Size([64, 798, 80]), labels shape: torch.Size([64, 3, 200]), spk_label_idx shape: torch.Size([64, 3]),     
+                                                                       # 
         print(f"labels shape: {labels.shape}")
-        print(f"spk_label_indices shape: {spk_label_idx.shape},")
+        print(f"spk_label_idx shape: {spk_label_idx.shape},")
         print(f"fbanks shape: {fbanks.shape},")
         print(f"labels_len : {labels_len.shape},")
         print(f"data_sources: {data_source.shape}")
@@ -1768,6 +1769,14 @@ def build_simu_data_train_dl(args,spk2int):
     # 检查是否启用懒加载模拟数据模式
     if hasattr(args, 'use_lazy_simu') and args.use_lazy_simu:
         logger.info("启用懒加载模拟数据模式，跳过spktochunks预处理")
+        
+        # 计算每个epoch的样本数量
+        samples_per_epoch = getattr(args, 'samples_per_epoch', None)
+        if samples_per_epoch is None:
+            # 如果没有指定，则基于batch_size和训练步数计算
+            # 假设每个epoch有1000步，可以根据实际情况调整
+            samples_per_epoch = getattr(args, 'steps_per_epoch', 1000) * args.batch_size
+        
         train_dataset = SimuDiarMixer(
             spk2chunks=None,  # 懒加载模式下不需要预先加载
             voxceleb2_spk2chunks_json=args.voxceleb2_spk2chunks_json,
@@ -1784,6 +1793,7 @@ def build_simu_data_train_dl(args,spk2int):
             musan_path=args.musan_path,
             rir_path=args.rir_path,
             noise_ratio=args.noise_ratio,
+            samples_per_epoch=samples_per_epoch,  # 添加每个epoch的样本数量
         )
         vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
         def collate_fn_wrapper(batch):
@@ -1795,14 +1805,16 @@ def build_simu_data_train_dl(args,spk2int):
                     if spk_id and spk_id in spk2int:
                         spk_label_indices[i, j] = spk2int[spk_id]
             return fbanks, labels, spk_label_indices, labels_len, data_source
+        
+        # 对于Iterable-style datasets，不需要shuffle，因为数据是动态生成的
         train_dl = DataLoader(
             train_dataset,
             batch_size=args.batch_size,
-            shuffle=True,
+            shuffle=False,  # Iterable-style datasets不需要shuffle
             collate_fn=collate_fn_wrapper,
-            num_workers=4,  # 建议：4~8，避免超过CPU核心数
+            num_workers=0,  # Iterable-style datasets建议使用单进程
             pin_memory=True,
-            persistent_workers=True  # 避免每epoch重建进程
+            persistent_workers=False  # Iterable-style datasets不需要persistent_workers
         )
         return train_dl
     

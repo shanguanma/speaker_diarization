@@ -11,7 +11,7 @@ import time
 import json
 import gzip
 import logging
-
+import math
 # 设置日志
 logger = logging.getLogger(__name__)
 
@@ -428,6 +428,7 @@ class SimuDiarMixer:
         fbanks_pad = []
         labels_len = []
         data_sources = []
+        max_labels_frame= math.ceil(max_frames/self.downsample_factor)  # math.ceil(798/4)=200
         for (mix, label, spk_ids, data_source), fbank in zip(batch, fbanks):
             pad_wav = np.pad(mix, (0, max_len - len(mix)), 'constant')
             wavs.append(pad_wav)
@@ -454,7 +455,7 @@ class SimuDiarMixer:
            
             # 标签下采样 (取每4帧的第1帧)
             downsampled_label = frame_label[:,::self.downsample_factor]
-            pad_label = np.zeros((max_spks, max_frames), dtype=np.float32)
+            pad_label = np.zeros((max_spks, max_labels_frame), dtype=np.float32)
             pad_label[:downsampled_label.shape[0], :downsampled_label.shape[1]] = downsampled_label
             labels.append(pad_label)
             data_sources.append(data_source)
