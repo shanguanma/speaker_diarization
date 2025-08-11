@@ -445,7 +445,7 @@ class SimuDiarMixer:
             # 计算总帧数 (与FBANK特征提取逻辑一致)
             num_frames = (T_sample - win_length) // hop_length + 1
             # 初始化帧级标签
-            frame_label = np.zeros(N, num_frames, dtype=np.int32)
+            frame_label = np.zeros((N, num_frames), dtype=np.int32)
             for n in range(N):
                 for t in range(int(num_frames)):
                     start = t * hop_length
