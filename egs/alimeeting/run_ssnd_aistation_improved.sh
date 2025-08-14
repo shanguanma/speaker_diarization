@@ -1208,7 +1208,12 @@ if [ ${stage} -le 20 ] && [ ${stop_stage} -ge 20 ];then
     --train-stage $train_stage\
     --voxceleb2-dataset-dir $voxceleb2_dataset_dir\
     --voxceleb2-spk2chunks-json $voxceleb2_spk2chunks_json\
-    --use-lazy-simu True
+    --use-lazy-simu True\
+    --num-workers 2 \
+    --dataloader-timeout 120 \
+    --prefetch-factor 2 \
+    --drop-last True \
+    --memory-efficient True
 
 fi
 

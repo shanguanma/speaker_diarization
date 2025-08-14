@@ -4,6 +4,9 @@ import copy
 import logging
 import warnings
 import gzip
+import os
+import gc
+import psutil
 from pathlib import Path
 from shutil import copyfile
 from typing import Any, Dict, Optional, Tuple, Union, List
@@ -82,6 +85,64 @@ def setup_logging():
 
 # 初始化日志
 logger = setup_logging()
+
+def monitor_memory_usage():
+    """监控当前内存使用情况"""
+    try:
+        process = psutil.Process()
+        memory_info = process.memory_info()
+        memory_mb = memory_info.rss / 1024 / 1024
+        
+        # 获取系统内存信息
+        system_memory = psutil.virtual_memory()
+        total_mb = system_memory.total / 1024 / 1024
+        available_mb = system_memory.available / 1024 / 1024
+        used_mb = system_memory.used / 1024 / 1024
+        
+        logger.info(f"内存使用: 进程 {memory_mb:.1f} MB, 系统总计 {total_mb:.0f} MB, 已用 {used_mb:.0f} MB, 可用 {available_mb:.0f} MB")
+        
+        # 如果内存使用率超过80%，发出警告
+        if memory_mb > total_mb * 0.8:
+            logger.warning(f"内存使用率过高: {memory_mb/total_mb*100:.1f}%")
+            # 强制垃圾回收
+            gc.collect()
+            
+        return memory_mb, available_mb
+    except Exception as e:
+        logger.warning(f"无法监控内存使用: {e}")
+        return None, None
+
+def safe_data_loading(dataloader, max_retries=3, retry_delay=5):
+    """安全的数据加载包装器，包含重试机制和错误处理"""
+    for attempt in range(max_retries):
+        try:
+            # 监控内存使用
+            monitor_memory_usage()
+            
+            # 尝试获取数据
+            for batch in dataloader:
+                yield batch
+                
+        except RuntimeError as e:
+            if "DataLoader worker" in str(e) and "killed" in str(e).lower():
+                logger.error(f"DataLoader worker进程被杀死 (尝试 {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    logger.info(f"等待 {retry_delay} 秒后重试...")
+                    import time
+                    time.sleep(retry_delay)
+                    # 强制垃圾回收
+                    gc.collect()
+                    continue
+                else:
+                    logger.error("达到最大重试次数，停止训练")
+                    raise
+            else:
+                raise
+        except Exception as e:
+            logger.error(f"数据加载过程中发生未知错误: {e}")
+            raise
+        break
+
 def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -276,6 +337,14 @@ def get_parser():
     
     # 懒加载模拟数据相关参数
     parser.add_argument("--use-lazy-simu", type=str2bool, default=False, help="是否启用懒加载模拟数据模式（跳过spktochunks预处理）")
+    
+    # DataLoader配置参数
+    parser.add_argument("--num-workers", type=int, default=2, help="DataLoader的worker进程数量，建议设置为2以减少内存使用")
+    parser.add_argument("--dataloader-timeout", type=int, default=60, help="DataLoader的超时时间（秒）")
+    parser.add_argument("--prefetch-factor", type=int, default=2, help="DataLoader的预取因子，减少内存使用")
+    parser.add_argument("--drop-last", type=str2bool, default=True, help="是否丢弃不完整的batch")
+    parser.add_argument("--disable-pin-memory", type=str2bool, default=False, help="是否禁用pin_memory以减少内存使用")
+    parser.add_argument("--memory-efficient", type=str2bool, default=True, help="是否启用内存优化模式")
 
     add_finetune_arguments(parser)
     return parser
@@ -389,11 +458,11 @@ def compute_loss(
         #fbanks, labels, spk_label_idx, labels_len, _= batch  # [B, T, F], [B, N, T], [B, N], [B], N is num of speakers,
         fbanks, labels, spk_label_idx, labels_len, data_source = batch # torch.Size([64, 798, 80]), labels shape: torch.Size([64, 3, 200]), spk_label_idx shape: torch.Size([64, 3]),     
                                                                        # 
-        print(f"labels shape: {labels.shape}")
-        print(f"spk_label_idx shape: {spk_label_idx.shape},")
-        print(f"fbanks shape: {fbanks.shape},")
-        print(f"labels_len : {labels_len.shape},")
-        print(f"data_sources: {data_source.shape}")
+        #print(f"labels shape: {labels.shape}")
+        #print(f"spk_label_idx shape: {spk_label_idx.shape},")
+        #print(f"fbanks shape: {fbanks.shape},")
+        #print(f"labels_len : {labels_len.shape},")
+        #print(f"data_sources: {data_source.shape}")
         B, N, T = labels.shape
         
         # 应用label smoothing
@@ -619,134 +688,147 @@ def train_one_epoch(
     tot_loss = MetricsTracker()
     train_batch_nums = []
  
-    for batch_idx, batch in enumerate(train_dl):
-        # 每个batch前判断是否需要冻结/解冻extrator
-        if  params.batch_idx_train < params.extrator_frozen_steps:
-            for p in model.module.extractor.speech_encoder.parameters():
-                p.requires_grad = False
-            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
-                logger.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
-        elif params.batch_idx_train >= params.extrator_frozen_steps:
-            for p in model.module.extractor.speech_encoder.parameters():
-                p.requires_grad = True
-            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
-                logger.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
-            #params['extrator_frozen'] = False
-        params.batch_idx_train += 1
-        batch_size = params.batch_size
+    # 使用安全的数据加载
+    try:
+        for batch_idx, batch in enumerate(safe_data_loading(train_dl)):
+            # 每个batch前判断是否需要冻结/解冻extrator
+            if  params.batch_idx_train < params.extrator_frozen_steps:
+                for p in model.module.extractor.speech_encoder.parameters():
+                    p.requires_grad = False
+                if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+                    logger.info(f"[Freeze] extractor speech encoder parameters at step {params.batch_idx_train}")
+            elif params.batch_idx_train >= params.extrator_frozen_steps:
+                for p in model.module.extractor.speech_encoder.parameters():
+                    p.requires_grad = True
+                if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+                    logger.info(f"[Unfreeze] extractor speech encoder unfreeze at step {params.batch_idx_train}")
+                #params['extrator_frozen'] = False
+            params.batch_idx_train += 1
+            batch_size = params.batch_size
 
-        optimizer.zero_grad()
-        train_batch_nums.append(batch_idx)
-        #batch_size = batch[0].shape[0]
-        #params.batch_idx_train += 1
-        
-        loss, loss_info = compute_loss(
-            model, batch, is_training=True, use_standard_bce=params.use_standard_bce, params=params
-        )
-        accelerator.backward(loss)  # instead of loss.backward()
+            optimizer.zero_grad()
+            train_batch_nums.append(batch_idx)
+            #batch_size = batch[0].shape[0]
+            #params.batch_idx_train += 1
+            
+            loss, loss_info = compute_loss(
+                model, batch, is_training=True, use_standard_bce=params.use_standard_bce, params=params
+            )
+            accelerator.backward(loss)  # instead of loss.backward()
 
-        # 应用梯度裁剪
-        grad_norm = None
-        if params.gradient_clip > 0:
-            if accelerator.sync_gradients:
-                grad_norm = accelerator.clip_grad_norm_(
-                    model.parameters(), max_norm=params.gradient_clip
+            # 应用梯度裁剪
+            grad_norm = None
+            if params.gradient_clip > 0:
+                if accelerator.sync_gradients:
+                    grad_norm = accelerator.clip_grad_norm_(
+                        model.parameters(), max_norm=params.gradient_clip
+                    )
+            #elif params.grad_clip:
+            #    if accelerator.sync_gradients:
+            #        grad_norm = accelerator.clip_grad_norm_(
+            #            model.parameters(), max_norm=1.0
+            #        )
+
+            optimizer.step()
+            scheduler.step()
+
+            # log to tensorboard
+            if writer and accelerator.is_main_process:
+                for key, value in loss_info.items():
+                    writer.add_scalar(f"train/{key}", value, params.batch_idx_train)
+                writer.add_scalar("train/lr", scheduler.get_last_lr()[0], params.batch_idx_train)
+                if grad_norm is not None:
+                    writer.add_scalar("train/grad_norm", grad_norm.item(), params.batch_idx_train)
+
+            ## average checkpoint
+            if (
+                params.train_on_average
+                and accelerator.is_main_process
+                and params.batch_idx_train > 0
+                and params.batch_idx_train % params.average_period == 0
+            ):
+                logger.info(
+                    f"Currently, model averaging is being used during the training process."
                 )
-        #elif params.grad_clip:
-        #    if accelerator.sync_gradients:
-        #        grad_norm = accelerator.clip_grad_norm_(
-        #            model.parameters(), max_norm=1.0
-        #        )
+                update_averaged_model(
+                    params=params,
+                    model_cur=model,
+                    model_avg=model_avg,
+                )
 
-        optimizer.step()
-        scheduler.step()
+            ## save and remove unuse checkpoint
+            if (
+                params.batch_idx_train > 0
+                and params.batch_idx_train % params.save_every_n == 0
+                and accelerator.is_main_process
+            ):
+                do_save_and_remove_once(
+                    params, model, model_avg, optimizer, scheduler, train_dl, scaler
+                )
+            if batch_idx % params.log_interval == 0:
+                ## To align with the numbers in fairseq iter
+                num_updates = 0
+                if params.cur_epoch == 1:
+                    num_updates = batch_idx
+                else:
+                    integer_multi_num = (
+                        len(train_dl) - len(train_dl) % params.log_interval
+                    )  # 3128 - 3128%500=3000
+                    num_updates = (params.cur_epoch - 1) * integer_multi_num + batch_idx
 
-        # log to tensorboard
-        if writer and accelerator.is_main_process:
-            for key, value in loss_info.items():
-                writer.add_scalar(f"train/{key}", value, params.batch_idx_train)
-            writer.add_scalar("train/lr", scheduler.get_last_lr()[0], params.batch_idx_train)
-            if grad_norm is not None:
-                writer.add_scalar("train/grad_norm", grad_norm.item(), params.batch_idx_train)
+                ## get grad_scale and lr
+                # grad_scale = scale_result.new_scale
+                grad_scale = ""
+                cur_lr = scheduler.get_last_lr()[0]
 
-        ## average checkpoint
-        if (
-            params.train_on_average
-            and accelerator.is_main_process
-            and params.batch_idx_train > 0
-            and params.batch_idx_train % params.average_period == 0
-        ):
-            logger.info(
-                f"Currently, model averaging is being used during the training process."
-            )
-            update_averaged_model(
-                params=params,
-                model_cur=model,
-                model_avg=model_avg,
-            )
-
-        ## save and remove unuse checkpoint
-        if (
-            params.batch_idx_train > 0
-            and params.batch_idx_train % params.save_every_n == 0
-            and accelerator.is_main_process
-        ):
-            do_save_and_remove_once(
-                params, model, model_avg, optimizer, scheduler, train_dl, scaler
-            )
-        if batch_idx % params.log_interval == 0:
-            ## To align with the numbers in fairseq iter
-            num_updates = 0
-            if params.cur_epoch == 1:
-                num_updates = batch_idx
-            else:
-                integer_multi_num = (
-                    len(train_dl) - len(train_dl) % params.log_interval
-                )  # 3128 - 3128%500=3000
-                num_updates = (params.cur_epoch - 1) * integer_multi_num + batch_idx
-
-            ## get grad_scale and lr
-            # grad_scale = scale_result.new_scale
-            grad_scale = ""
-            cur_lr = scheduler.get_last_lr()[0]
-
-            logger.info(
-                f"[Train] - Epoch {params.cur_epoch}, "
-                f"batch_idx_train: {params.batch_idx_train-1}, num_updates: {num_updates}, {loss_info}, "
-                f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
-                f"lr: {cur_lr}, "
-            )
-        # log end-of-epoch stats
-        if batch_idx == len(train_dl) - 1:
-            # grad_scale = scale_result.new_scale
-            grad_scale = ""
-            cur_lr = scheduler.get_last_lr()[0]
-            logger.info(
-                f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
-                f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
-                f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
-                f"lr: {cur_lr}, "
-            )
-        if batch_idx > 0 and batch_idx % params.valid_interval == 0:
-            logger.info("Computing validation loss")
-            # 计算当前训练集的DER
-            #current_train_der = tot_loss["DER"] / len(train_batch_nums) if len(train_batch_nums) > 0 else 0.0
-            valid_info = compute_validation_loss(
-                params=params,
-                model=model,
-                valid_dl=valid_dl,
-                batch_idx_train=params.batch_idx_train,
-                writer=writer,
-                #train_der=current_train_der,  # 传入训练集DER
-            )
-            model.train()
-            logger.info(
-                f"[Eval] - Epoch {params.cur_epoch}, batch_idx_train: {params.batch_idx_train-1}, "
-                f" validation: {valid_info}"
-            )
-            logger.info(
-                f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
-            )
+                logger.info(
+                    f"[Train] - Epoch {params.cur_epoch}, "
+                    f"batch_idx_train: {params.batch_idx_train-1}, num_updates: {num_updates}, {loss_info}, "
+                    f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
+                    f"lr: {cur_lr}, "
+                )
+            # log end-of-epoch stats
+            if batch_idx == len(train_dl) - 1:
+                # grad_scale = scale_result.new_scale
+                grad_scale = ""
+                cur_lr = scheduler.get_last_lr()[0]
+                logger.info(
+                    f"end of epoch {params.cur_epoch}, batch_idx: {batch_idx} "
+                    f"batch_idx_train: {params.batch_idx_train-1}, {loss_info}, "
+                    f"batch size: {batch_size}, grad_norm: {grad_norm}, grad_scale: {grad_scale}, "
+                    f"lr: {cur_lr}, "
+                )
+            if batch_idx > 0 and batch_idx % params.valid_interval == 0:
+                logger.info("Computing validation loss")
+                # 计算当前训练集的DER
+                #current_train_der = tot_loss["DER"] / len(train_batch_nums) if len(train_batch_nums) > 0 else 0.0
+                valid_info = compute_validation_loss(
+                    params=params,
+                    model=model,
+                    valid_dl=valid_dl,
+                    batch_idx_train=params.batch_idx_train,
+                    writer=writer,
+                    #train_der=current_train_der,  # 传入训练集DER
+                )
+                model.train()
+                logger.info(
+                    f"[Eval] - Epoch {params.cur_epoch}, batch_idx_train: {params.batch_idx_train-1}, "
+                    f" validation: {valid_info}"
+                )
+                logger.info(
+                    f"Maximum memory allocated so far is {torch.cuda.max_memory_allocated()//1000000}MB"
+                )
+                
+            # 定期监控内存使用
+            if batch_idx % 100 == 0:
+                monitor_memory_usage()
+                
+    except Exception as e:
+        logger.error(f"训练过程中发生错误: {e}")
+        # 强制垃圾回收
+        gc.collect()
+        raise
+    
     loss_value = tot_loss["loss"] / len(train_batch_nums)
     params.train_loss = loss_value
 
@@ -758,8 +840,7 @@ def train_one_epoch(
     if der_value < params.best_train_der:
         params.best_train_epoch = params.cur_epoch
         params.best_train_der = der_value
-    
-    
+
 def is_real(batch):
     return torch.any(batch[-1] == 0)
 
@@ -1147,14 +1228,32 @@ def build_train_dl(args, spk2int):
                 if spk_id and spk_id in spk2int:
                     spk_label_indices[i, j] = spk2int[spk_id]
         return fbanks, labels, spk_label_indices, labels_len
+    
+    # 根据内存优化模式调整配置
+    if hasattr(args, 'memory_efficient') and args.memory_efficient:
+        num_workers = min(args.num_workers, 2)  # 内存优化模式下最多2个worker
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 内存优化模式下禁用persistent_workers
+        prefetch_factor = min(args.prefetch_factor, 2)  # 限制预取因子
+    else:
+        num_workers = args.num_workers
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 默认禁用persistent_workers
+        prefetch_factor = args.prefetch_factor
+    
+    logger.info(f"Train DataLoader配置: num_workers={num_workers}, pin_memory={pin_memory}, persistent_workers={persistent_workers}, prefetch_factor={prefetch_factor}")
+    
     train_dl = DataLoader(
         train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
         collate_fn=collate_fn_wrapper,
-        num_workers=4,  # 建议：4~8，避免超过CPU核心数
-        pin_memory=True,
-        persistent_workers=True  # 避免每epoch重建进程
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        timeout=args.dataloader_timeout,
+        prefetch_factor=prefetch_factor,
+        drop_last=args.drop_last,
     )   
     return train_dl
 
@@ -1187,14 +1286,32 @@ def build_train_dl_with_local_spk2int(args,):
                 if spk_id and spk_id in spk2int:
                     spk_label_indices[i, j] = spk2int[spk_id]
         return fbanks, labels, spk_label_indices, labels_len
+    
+    # 根据内存优化模式调整配置
+    if hasattr(args, 'memory_efficient') and args.memory_efficient:
+        num_workers = min(args.num_workers, 2)  # 内存优化模式下最多2个worker
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 内存优化模式下禁用persistent_workers
+        prefetch_factor = min(args.prefetch_factor, 2)  # 限制预取因子
+    else:
+        num_workers = args.num_workers
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 默认禁用persistent_workers
+        prefetch_factor = args.prefetch_factor
+    
+    logger.info(f"Train DataLoader配置: num_workers={num_workers}, pin_memory={pin_memory}, persistent_workers={persistent_workers}, prefetch_factor={prefetch_factor}")
+    
     train_dl = DataLoader(
         train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
         collate_fn=collate_fn_wrapper,
-        num_workers=4,  # 建议：4~8，避免超过CPU核心数
-        pin_memory=True,
-        persistent_workers=True  # 避免每epoch重建进程
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        timeout=args.dataloader_timeout,
+        prefetch_factor=prefetch_factor,
+        drop_last=args.drop_last,
     )   
     return train_dl
 
@@ -1221,14 +1338,32 @@ def build_valid_dl(args, spk2int):
                 if spk_id and spk_id in spk2int:
                     spk_label_indices[i, j] = spk2int[spk_id]
         return fbanks, labels, spk_label_indices, labels_len
+    
+    # 根据内存优化模式调整配置
+    if hasattr(args, 'memory_efficient') and args.memory_efficient:
+        num_workers = min(args.num_workers, 2)  # 内存优化模式下最多2个worker
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 内存优化模式下禁用persistent_workers
+        prefetch_factor = min(args.prefetch_factor, 2)  # 限制预取因子
+    else:
+        num_workers = args.num_workers
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 默认禁用persistent_workers
+        prefetch_factor = args.prefetch_factor
+    
+    logger.info(f"Valid DataLoader配置: num_workers={num_workers}, pin_memory={pin_memory}, persistent_workers={persistent_workers}, prefetch_factor={prefetch_factor}")
+    
     valid_dl = DataLoader(
         valid_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         collate_fn=collate_fn_wrapper,
-        num_workers=4,  # 建议：4~8，避免超过CPU核心数
-        pin_memory=True,
-        persistent_workers=True  # 避免每epoch重建进程
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        timeout=args.dataloader_timeout,
+        prefetch_factor=prefetch_factor,
+        drop_last=args.drop_last,
     ) 
     return valid_dl
 
@@ -1260,14 +1395,32 @@ def build_valid_dl_with_local_spk2int(args):
                 if spk_id and spk_id in spk2int:
                     spk_label_indices[i, j] = spk2int[spk_id]
         return fbanks, labels, spk_label_indices, labels_len
+    
+    # 根据内存优化模式调整配置
+    if hasattr(args, 'memory_efficient') and args.memory_efficient:
+        num_workers = min(args.num_workers, 2)  # 内存优化模式下最多2个worker
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 内存优化模式下禁用persistent_workers
+        prefetch_factor = min(args.prefetch_factor, 2)  # 限制预取因子
+    else:
+        num_workers = args.num_workers
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 默认禁用persistent_workers
+        prefetch_factor = args.prefetch_factor
+    
+    logger.info(f"Valid DataLoader配置: num_workers={num_workers}, pin_memory={pin_memory}, persistent_workers={persistent_workers}, prefetch_factor={prefetch_factor}")
+    
     valid_dl = DataLoader(
         valid_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         collate_fn=collate_fn_wrapper,
-        num_workers=4,  # 建议：4~8，避免超过CPU核心数
-        pin_memory=True,
-        persistent_workers=True  # 避免每epoch重建进程
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        timeout=args.dataloader_timeout,
+        prefetch_factor=prefetch_factor,
+        drop_last=args.drop_last,
     ) 
     return valid_dl
 
@@ -1293,65 +1446,34 @@ def build_test_dl(args, spk2int):
                 if spk_id and spk_id in spk2int:
                     spk_label_indices[i, j] = spk2int[spk_id]
         return fbanks, labels, spk_label_indices, labels_len
+    
+    # 根据内存优化模式调整配置
+    if hasattr(args, 'memory_efficient') and args.memory_efficient:
+        num_workers = min(args.num_workers, 2)  # 内存优化模式下最多2个worker
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 内存优化模式下禁用persistent_workers
+        prefetch_factor = min(args.prefetch_factor, 2)  # 限制预取因子
+    else:
+        num_workers = args.num_workers
+        pin_memory = not args.disable_pin_memory
+        persistent_workers = False  # 默认禁用persistent_workers
+        prefetch_factor = args.prefetch_factor
+    
+    logger.info(f"Test DataLoader配置: num_workers={num_workers}, pin_memory={pin_memory}, persistent_workers={persistent_workers}, prefetch_factor={prefetch_factor}")
+    
     test_dl = DataLoader(
         test_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         collate_fn=collate_fn_wrapper,
-        num_workers=4,  # 建议：4~8，避免超过CPU核心数
-        pin_memory=True,
-        persistent_workers=True  # 避免每epoch重建进程
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        persistent_workers=persistent_workers,
+        timeout=args.dataloader_timeout,
+        prefetch_factor=prefetch_factor,
+        drop_last=args.drop_last,
     )
     return test_dl
-#def vad_func(wav,sr):
-#    fsmn_vad_model = AutoModel(model="fsmn-vad", model_revision="v2.0.4", disable_update=True)
-#    if wav.dtype != np.int16:
-#        wav = (wav * 32767).astype(np.int16)
-#        result = fsmn_vad_model.generate(wav, fs=sr)
-#        time_stamp = result[0]['value']
-#        return time_stamp # in ms
-#
-#def spktochunks(args):
-#    voxceleb2_dataset_dir=args.voxceleb2_dataset_dir
-#    wavscp =  f"{args.voxceleb2_dataset_dir}/wav.scp"
-#    spk2utt = f"{args.voxceleb2_dataset_dir}/spk2utt"
-#    spk2wav = defaultdict(list)
-#    wav2scp = {}
-#    with open(wavscp,'r')as fscp:
-#        for line in fscp:
-#            line = line.strip().split()
-#            key = line[0]
-#            wav2scp[key] = line[1]
-#
-#    with open(spk2utt, 'r')as fspk:
-#        for line in fspk:
-#            line = line.strip().split()
-#            key = line[0]
-#            paths = [wav2scp[i] for i in line[1:]]
-#            if key in spk2wav:
-#                spk2wav[key].append(paths)
-#            else:
-#                spk2wav[key] = paths
-#
-#    spk2chunks=defaultdict(list)
-#    for spk_id in spk2wav.keys():
-#        for wav_path in spk2wav[spk_id]:
-#            wav, sr = sf.read(wav_path)
-#            if sr != 16000:
-#                wav = librosa.resample(wav, orig_sr=sr, target_sr=16000)
-#            time_stamp_list = vad_func(wav,sr=16000)
-#            # in ms ->(/1000) in second ->(*16000) in sample points
-#            speech_chunks = [wav[int(s*16):int(e*16)] for s, e in time_stamp_list]
-#            if spk_id in spk2chunks:
-#                spk2chunks[spk_id].append(speech_chunks)
-#            else:
-#                spk2chunks[spk_id] = speech_chunks
-#
-# def spktochunks(args):
-#     """原始版本的spktochunks函数 - 已移除"""
-
-# def spktochunks_fast(args, max_speakers=None, max_files_per_speaker=None, use_cache=None):
-#     """内存优化的加速版本spktochunks函数 - 已移除"""
 
 def process_batch(batch, spk2chunks, process=None, max_memory_mb=None, sub_batch_size=None, strict_memory_check=False):
     """处理一批说话人的音频数据"""
@@ -1793,7 +1915,7 @@ def build_simu_data_train_dl(args,spk2int):
             musan_path=args.musan_path,
             rir_path=args.rir_path,
             noise_ratio=args.noise_ratio,
-            samples_per_epoch=samples_per_epoch,  # 添加每个epoch的样本数量
+            #samples_per_epoch=samples_per_epoch,  # 添加每个epoch的样本数量
         )
         vad_out_len = args.vad_out_len if hasattr(args, 'vad_out_len') else 200
         def collate_fn_wrapper(batch):
