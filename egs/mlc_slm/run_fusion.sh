@@ -4,7 +4,7 @@ stop_stage=1000
 . utils/parse_options.sh
 . path_for_dia_cuda11.8_py3111_aistation.sh
 
-
+hf_token=$1 # your huggingface token, because github reject displace it at script.
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ];then
    echo "using fire-red-asr :FireReadASR-AED-L model"
 
@@ -47,7 +47,7 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ];then
            --batch_size 4\
 	   --diarize \
 	   --min_speakers 2 --max_speakers 2\
-	   --hf_token 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\
+	   --hf_token $hf_token\
 	  --return_char_alignments 
  fi
 
@@ -61,7 +61,7 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ];then
            --batch_size 4\
            --diarize \
            --min_speakers 2 --max_speakers 2\
-           --hf_token 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
+           --hf_token $hf_token
 
 fi
 
@@ -142,7 +142,7 @@ if [ ${stage} -le 10 ] && [ ${stop_stage} -ge 10 ];then
 	   --language en\
            --diarize \
            --min_speakers 2 --max_speakers 2\
-           --hf_token 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\
+           --hf_token $hf_token\
 	   --output_dir  $dest_dir/English/$line
    done
   done
