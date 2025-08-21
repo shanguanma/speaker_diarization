@@ -60,7 +60,7 @@ class FusedWord:
     end_time: float
     speaker_id: str
     confidence: Optional[float] = None
-    fusion_method: str  # 'overlap' or 'distance'
+    fusion_method: str = "overlap"  # 'overlap' or 'distance'
 
 
 class ASRSpeakerFusion:
@@ -300,7 +300,6 @@ class ASRSpeakerFusion:
             'speaker_distribution': speaker_counts,
             'unique_speakers': len(speaker_counts)
         }
-#!/usr/bin/env python3
 
 
 def create_sample_data() -> Tuple[List[WordSegment], List[SpeakerSegment]]:
