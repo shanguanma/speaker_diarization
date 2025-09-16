@@ -11,7 +11,7 @@ import tqdm
 
 def merge_embed(args):
     # i.e. /maduo/model_hub/ts_vad/spk_embed/mlc_slm/SpeakerEmbedding/dev/English/American/cam++_en_zh_advanced_feature_dir/American_0517_007/1.pt
-    embedding_file_lists=glob.glob(f'{args.in_embed_dir}/*/*/*/*.pt', recursive=False)
+    embedding_file_lists=glob.glob(f'{args.in_embed_dir}/*/{args.embeded_feat_name}/*/*.pt', recursive=False)
     for embedding_file in embedding_file_lists:
         
         target_embedding_name=os.path.basename(embedding_file)
@@ -33,6 +33,7 @@ def get_args():
     parser=argparse.ArgumentParser()
     parser.add_argument('--in-embed-dir', type=str, default='/maduo/model_hub/ts_vad/spk_embed/mlc_slm/SpeakerEmbedding/dev/English')
     parser.add_argument('--out-embed-dir', type=str, default='/maduo/model_hub/ts_vad/spk_embed/mlc_slm/SpeakerEmbedding/dev/dev_english')
+    parser.add_argument("--embeded-feat-name", type=str, default="cam++_en_zh_advanced_feature_dir")
     args=parser.parse_args()
     return args
 if __name__ == "__main__":

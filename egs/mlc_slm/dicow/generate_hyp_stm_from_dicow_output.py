@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 dicow output the below format txt:
@@ -75,6 +75,8 @@ def convert_to_second(inp: str):
 
 def process(inp_dir: str, output: str):
     text_lists = glob.glob(f"{inp_dir}/*.txt", recursive=False)
+    print(f"text_lists: {text_lists}")
+    text_lists=[text for text in text_lists if "resampled" not in text]
     pattern = r"<\|([\d.]+)\|>"
     target = ""
     with open(output, "w") as fw:

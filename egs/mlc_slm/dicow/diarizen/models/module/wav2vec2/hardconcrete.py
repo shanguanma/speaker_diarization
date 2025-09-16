@@ -129,3 +129,25 @@ class HardConcrete(nn.Module):
 
     def __repr__(self) -> str:
         return "{}({})".format(self.__class__.__name__, self.extra_repr())
+
+if __name__ == "__main__":
+    limit_l: float = -0.1
+    limit_r: float = 1.1
+    temperature: float = 2 / 3
+    num_heads: int = 16
+    hard_concrete_for_heads = HardConcrete(
+                n_in=num_heads,
+                init_mean=0.01,
+                limit_l=limit_l,
+                limit_r=limit_r,
+                temperature=temperature,)
+    head_mask = hard_concrete_for_heads()
+    print(f"hard_concrete_for_heads: {hard_concrete_for_heads},head_mask: {head_mask}")
+    hard_concrete_for_layer = HardConcrete(
+                n_in=1,
+                init_mean=0.01,
+                limit_l=limit_l,
+                limit_r=limit_r,
+                temperature=temperature,)
+    layer_mask = hard_concrete_for_layer()
+    print(f"hard_concrete_for_layer: {hard_concrete_for_layer},layer_mask: {layer_mask}")

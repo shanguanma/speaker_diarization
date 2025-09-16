@@ -143,7 +143,8 @@ def find_wav_files(input_folder, file_pattern):
     """Find all WAV files in the input folder matching the pattern."""
     search_pattern = os.path.join(input_folder, file_pattern)
     wav_files = glob.glob(search_pattern)
-
+    # remove resample.wav
+    wav_files = [wav for wav in wav_files if "resampled" not in wav]
     if not wav_files:
         logging.info(
             f"No WAV files found matching pattern '{file_pattern}' in '{input_folder}'"
