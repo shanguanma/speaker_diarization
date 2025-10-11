@@ -140,9 +140,14 @@ def parse_arguments():
     parser.add_argument("--msdd-model-path", type=str, default="diar_msdd_telephonic", help="if it is name str , it will load nvidia nemo pretrained model, if it is model path, it will load a local model")
     parser.add_argument("--use-speaker-model-from-ckpt", type=str2bool, default=True, help="")
     parser.add_argument("--realign-with-punc", type=str2bool, default=True, help="Use the punctuation alignment model to realign speaker and txt") 
+    
+    parser.add_argument("--punct-model", type=str,default="kredor/punctuate-all", help="it is str or local model path")
+
     parser.add_argument("--align-model", type=str, default="MahmoudAshraf/mms-300m-1130-forced-aligner",
             help="""choice ssl ctc model from huggingface,i.e.:https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py""")
-    parser.add_argument("--local-files-only", type=str2bool, default=False, help="if local_files_only=True, args.align_model is local directory.")
+    parser.add_argument("--local-files-only", type=str2bool, default=False, help="if local_files_only=True, args.model_name(asr model) is local directory.")
+    parser.add_argument("--ctc-model-local-files-only", type=str2bool, default=False, help="if ctc_model_local_files_only=True, args.align_model is local directory.")
+
     args = parser.parse_args()
     return args
 
@@ -223,7 +228,7 @@ def gen_txt_with_ws(args,audio_path):
         )
 
     full_transcript = "".join(segment.text for segment in transcript_segments)
-
+    logging.info(f"whisper output full_trranscript: {full_transcript}, transcript_segments: {transcript_segments}")
     # clear gpu vram
     del whisper_model, whisper_pipeline
     torch.cuda.empty_cache()
@@ -235,6 +240,7 @@ def gen_txt_with_ws(args,audio_path):
         args.device,
         model_path=args.align_model,
         dtype=torch.float16 if args.device == "cuda" else torch.float32,
+        local_files_only=args.ctc_model_local_files_only,
     )
     if alignment_meta["tokenizer"] is None:
         dtype=torch.float16 if args.device == "cuda" else torch.float32,
@@ -295,10 +301,11 @@ def gen_txt_with_ws(args,audio_path):
     return wsm, info, speaker_ts
 
 
-def realign_with_punc(info, wsm):
+def realign_with_punc(info, wsm, args):
     if info.language in punct_model_langs:
         # restoring punctuation in the transcript to help realign the sentences
-        punct_model = PunctuationModel(model="kredor/punctuate-all")
+        #punct_model = PunctuationModel(model="kredor/punctuate-all")
+        punct_model = PunctuationModel(model=args.punct_model)
 
         words_list = list(map(lambda x: x["word"], wsm))
 
@@ -336,7 +343,7 @@ def process_single_audio(args,audio_path,verbose=True):
     wsm, info, speaker_ts = gen_txt_with_ws(args, audio_path)
     if args.realign_with_punc:
         logging.info(f"using punc to realign....")
-        wsm = realign_with_punc(info, wsm)
+        wsm = realign_with_punc(info, wsm, args)
 
     ssm = get_sentences_speaker_mapping(wsm, speaker_ts)
 

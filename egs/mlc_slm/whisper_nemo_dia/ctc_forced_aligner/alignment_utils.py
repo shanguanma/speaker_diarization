@@ -306,6 +306,7 @@ def load_alignment_model(
     model_path: str = "MahmoudAshraf/mms-300m-1130-forced-aligner",
     attn_implementation: str = None,
     dtype: torch.dtype = torch.float32,
+    local_files_only: bool = False,
 ):
     if attn_implementation is None:
         if version.parse(transformers_version) < version.parse("4.41.0"):
@@ -329,17 +330,19 @@ def load_alignment_model(
         tokenizer=None
         #align_dictionary:{'-': 0, '|': 1, 'e': 2, 't': 3, 'a': 4, 'o': 5, 'n': 6, 'i': 7, 'h': 8, 's': 9, 'r': 10, 'd': 11, 'l': 12, 'u': 13, 'm': 14, 'w': 15, 'c': 16, 'f': 17, 'g': 18, 'y': 19, 'p': 20, 'b': 21, 'v': 22, 'k': 23, "'": 24, 'x': 25, 'j': 26, 'q': 27, 'z': 28}
     else:
+        print(f"model_path: {model_path}, attn_implementation: {attn_implementation}, dtype: {dtype}")
         pipeline_type = "huggingface"
         model = (
             AutoModelForCTC.from_pretrained(
                 model_path,
                 attn_implementation=attn_implementation,
                 torch_dtype=dtype,
+                local_files_only=local_files_only,
             )
             .to(device)
             .eval()
         )
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path,local_files_only=local_files_only)
         dictionary = tokenizer.get_vocab()
         # align_dictionary:{'<blank>': 0, '<pad>': 1, '</s>': 2, '<unk>': 3, 'a': 4, 'i': 5, 'e': 6, 'n': 7, 'o': 8, 'u': 9, 't': 10, 's': 11, 'r': 12, 'm': 13, 'k': 14, 'l': 15, 'd': 16, 'g': 17, 'h': 18, 'y': 19, 'b': 20, 'p': 21, 'w': 22, 'c': 23, 'v': 24, 'j': 25, 'z': 26, 'f': 27, "'": 28, 'q': 29, 'x': 30}
         align_dictionary = {k.lower(): v for k, v in dictionary.items()}

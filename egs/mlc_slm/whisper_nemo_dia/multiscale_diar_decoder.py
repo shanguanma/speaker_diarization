@@ -46,6 +46,8 @@ def main(cfg):
     msdd_model = EncDecDiarLabelModel(cfg=cfg.model, trainer=trainer)
     trainer.fit(msdd_model)
 
+    # Manual same model by maduo
+    msdd_model.save_to(f"{cfg.exp_manager.exp_dir}/finetuned_msdd_model.nemo")
 
 if __name__ == '__main__':
     main()

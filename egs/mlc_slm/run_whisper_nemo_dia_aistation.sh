@@ -689,6 +689,153 @@ python  whisper_nemo_dia/multiscale_diar_decoder.py --config-path='conf/neural_d
   #+exp_manager.checkpoint_callback_params.save_last=true\
 fi
 
+if [ ${stage} -le 51 ] && [ ${stop_stage} -ge 51 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset_lr1e-3_emb_batch_size100_batch_size15/sample_train/2025-09-15_10-43-34/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_v2.py \
+              --whisper-model large-v2 \
+              --local-files-only False\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model MahmoudAshraf/mms-300m-1130-forced-aligner\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true
+   done
+fi
+
+if [ ${stage} -le 52 ] && [ ${stop_stage} -ge 52 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 53 ] && [ ${stop_stage} -ge 53 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 54 ] && [ ${stop_stage} -ge 54 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+#grep -r %tcpWER logs/run_whisper_nemo_dia_aistation_stage52-54.log
+#INFO %tcpWER: 99.40% [ 22585 / 22722, 11385 ins, 10132 del, 1068 sub ]
+#INFO %tcpWER: 71.76% [ 19527 / 27213, 8645 ins, 9675 del, 1207 sub ]
+#INFO %tcpWER: 91.82% [ 22476 / 24478, 10866 ins, 11026 del, 584 sub ]
+#INFO %tcpWER: 95.66% [ 16567 / 17318, 8182 ins, 8019 del, 366 sub ]
+#INFO %tcpWER: 73.48% [ 15113 / 20567, 6423 ins, 7695 del, 995 sub ]
+
+if [ ${stage} -le 55 ] && [ ${stop_stage} -ge 55 ];then
+exp_dir=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset_lr1e-3_emb_batch_size0_batch_size15
+mkdir -p $exp_dir
+train_temp_dir=$exp_dir/train_temp
+dev_temp_dir=$exp_dir/dev_temp
+export HYDRA_FULL_ERROR=1
+python  whisper_nemo_dia/multiscale_diar_decoder.py --config-path='conf/neural_diarizer' --config-name='msdd_5scl_15_05_50Povl_256x3x32x2.yaml' \
+  trainer.devices=2 \
+  trainer.max_epochs=10  \
+  num_workers=20\
+  trainer.strategy=ddp_find_unused_parameters_true\
+  model.diarizer.speaker_embeddings.model_path="titanet_large" \
+  model.train_ds.manifest_filepath="/maduo/datasets/mlc-slm/train/train_manifest.50step.json" \
+  model.validation_ds.manifest_filepath="/maduo/datasets/mlc-slm/dev/dev_manifest.50step.json" \
+  model.train_ds.emb_dir="$train_temp_dir" \
+  model.validation_ds.emb_dir="$dev_temp_dir" \
+  +model.train_ds.num_workers=4\
+  exp_manager.name='sample_train' \
+  exp_manager.exp_dir=$exp_dir\
+  model.emb_batch_size=0\
+  batch_size=15
+
+fi
+
+if [ ${stage} -le 56 ] && [ ${stop_stage} -ge 56 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size0_batch_size15_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset_lr1e-3_emb_batch_size0_batch_size15/sample_train/2025-09-17_14-17-00/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_v2.py \
+              --whisper-model large-v3 \
+              --local-files-only False\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model MahmoudAshraf/mms-300m-1130-forced-aligner\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true
+   done
+fi
+
+if [ ${stage} -le 57 ] && [ ${stop_stage} -ge 57 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size0_batch_size15_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 58 ] && [ ${stop_stage} -ge 58 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size0_batch_size15_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 59 ] && [ ${stop_stage} -ge 59 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
 
 
 if [ ${stage} -le 60 ] && [ ${stop_stage} -ge 60 ];then
@@ -776,8 +923,10 @@ fi
 if [ ${stage} -le 72 ] && [ ${stop_stage} -ge 72 ];then
    exp_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english
    ngpu=2  # number of GPUs to perform distributed training on.
+   local_files_dir="/maduo/model_hub/whisper-large-v3/"
    torchrun --nproc_per_node=${ngpu} whisper_nemo_dia/fine-tune_whisper_on_custom_dataset.py \
-	--model_name openai/whisper-large-v3 \
+	--model_name $local_files_dir \
+	--local_files_only true\
 	--language en \
 	--sampling_rate 16000 \
 	--num_proc 2 \
@@ -787,8 +936,8 @@ if [ ${stage} -le 72 ] && [ ${stop_stage} -ge 72 ];then
 	--train_batchsize 16 \
 	--gradient_accumulation_steps 2\
 	--eval_batchsize 8 \
-	--num_epochs 20 \
-	--resume_from_ckpt None \
+	--num_epochs 6 \
+	--resume_from_ckpt  $exp_dir/checkpoint-33790\
 	--output_dir $exp_dir \
 	--train_datasets /maduo/datasets/mlc-slm/train/train_asr  \
 	--eval_datasets  /maduo/datasets/mlc-slm/dev/dev_asr
@@ -798,10 +947,1438 @@ fi
 if [ ${stage} -le 73 ] && [ ${stop_stage} -ge 73 ];then
    # covert huggingface model format to ctranslate2 format
    #pip install transformers ctranslate2
+   
+#   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english
+#   cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-40548
+#   ct2-transformers-converter \
+#    --model $finetune_model_dir/checkpoint-40548\
+#    --output_dir $finetune_model_dir/checkpoint-40548/whisper-large-v3-ct2_ckpt-40548 \
+#    --copy_files preprocessor_config.json tokenizer_config.json vocab.json normalizer.json added_tokens.json\
+#    --quantization float16
+#
+
+   
    finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english
-    ct2-transformers-converter \
-    --model $finetune_model_dir\
-    --output_dir $finetune_model_dir/whisper-large-v3-ct2 \
-    --copy_files tokenizer_config.json \
+   cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-6758
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-6758\
+    --output_dir $finetune_model_dir/checkpoint-6758/whisper-large-v3-ct2_ckpt-6758 \
+    --copy_files preprocessor_config.json tokenizer_config.json vocab.json normalizer.json added_tokens.json\
     --quantization float16
+fi
+
+if [ ${stage} -le 74 ] && [ ${stop_stage} -ge 74 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_step6758_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english
+
+   asr_model_dir=$finetune_model_dir/checkpoint-6758/whisper-large-v3-ct2_ckpt-6758
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner/
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all/
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_v2.py \
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+ if [ ${stage} -le 75 ] && [ ${stop_stage} -ge 75 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_step6758_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 76 ] && [ ${stop_stage} -ge 76 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_step6758_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 77 ] && [ ${stop_stage} -ge 77 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_step6758_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+
+
+
+# compared with stage51-54, stage81-84 will use whisper large_v3 .
+if [ ${stage} -le 81 ] && [ ${stop_stage} -ge 81 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset_lr1e-3_emb_batch_size100_batch_size15/sample_train/2025-09-15_10-43-34/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_v2.py \
+              --whisper-model large-v3 \
+              --local-files-only False\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model MahmoudAshraf/mms-300m-1130-forced-aligner\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true
+   done
+fi
+
+if [ ${stage} -le 82 ] && [ ${stop_stage} -ge 82 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 83 ] && [ ${stop_stage} -ge 83 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 84 ] && [ ${stop_stage} -ge 84 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_lr1e-3_emb_batch_size100_batch_size15_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+
+
+
+# compared stage33, stage90 will use fireredAsr-llm-l as ASR model
+ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ];then
+   #input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_asr/
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_offical_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   asr_model_dir=/maduo/model_hub/FireRedASR-LLM-L
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner/
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all/
+   subset="American  Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_with_firered_llm-l.py  \
+              --whisper-model $asr_model_dir \
+              --local-files-only False\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+	      --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir\
+              --output-folder $output_dir\
+              --realign-with-punc true\
+	      --punct-model $punct_model
+   done
+
+ fi
+
+ # compared stage33, stage100 will use  FireRedASR-LLM-L_ft_on_mlc_slm_eng as ASR model
+ if [ ${stage} -le 100 ] && [ ${stop_stage} -ge 100 ];then
+   #input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_asr/
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   asr_model_dir=/maduo/model_hub/FireRedASR-LLM-L_ft_on_mlc_slm_eng
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner/
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all/
+   subset="American  Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_with_firered_llm-l.py  \
+              --whisper-model $asr_model_dir \
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+	      --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir\
+              --output-folder $output_dir\
+              --realign-with-punc true\
+	      --punct-model $punct_model
+   done
+
+ fi
+
+
+ if [ ${stage} -le 110 ] && [ ${stop_stage} -ge 110 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer_debug/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   #subset="American  Australian  British  Filipino  Indian"
+   
+   subset="American"
+   asr_model_dir=/maduo/model_hub/faster-whisper-large-v3
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner/
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all/
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_v2.py \
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+	      --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+	      --punct-model $punct_model
+   done
+fi
+# use vad model to get speech activate segments 
+if [ ${stage} -le 111 ] && [ ${stop_stage} -ge 111 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   #input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_asr/
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   asr_model_dir=/maduo/model_hub/FireRedASR-LLM-L_ft_on_mlc_slm_eng
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner/
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all/
+   subset="American Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_with_firered_llm-l.py  \
+              --whisper-model $asr_model_dir \
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+	      --use-vad true \
+              --vad-chunk-length 30.0 \
+              --vad-threshold 0.5\
+	      --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+
+   done
+
+ fi
+
+ if [ ${stage} -le 112 ] && [ ${stop_stage} -ge 112 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 113 ] && [ ${stop_stage} -ge 113 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 114 ] && [ ${stop_stage} -ge 114 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+#cat logs/run_whisper_nemo_dia_aistation_stage111-114.log
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 32.88% [ 7472 / 22722, 4051 ins, 1782 del, 1639 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 21.32% [ 5803 / 27213, 2216 ins, 2225 del, 1362 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 24.03% [ 5883 / 24478, 2800 ins, 1848 del, 1235 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 22.54% [ 3903 / 17318, 1800 ins, 1026 del, 1077 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_ft_on_mlc_slm_eng_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 20.34% [ 4183 / 20567, 1392 ins, 1380 del, 1411 sub ]
+
+
+
+ # use vad model to get speech activate segments
+if [ ${stage} -le 121 ] && [ ${stop_stage} -ge 121 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   #input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_asr/
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   asr_model_dir=/maduo/model_hub/FireRedASR-LLM-L
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner/
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all/
+   subset="American Australian  British  Filipino  Indian"
+   #subset="American"
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    python3 whisper_nemo_dia/diarize_with_firered_llm-l.py  \
+              --whisper-model $asr_model_dir \
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --use-vad true \
+              --vad-chunk-length 30.0 \
+              --vad-threshold 0.5\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+
+   done
+
+ fi
+
+ if [ ${stage} -le 122 ] && [ ${stop_stage} -ge 122 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 123 ] && [ ${stop_stage} -ge 123 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 124 ] && [ ${stop_stage} -ge 124 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+#  logs/run_whisper_nemo_dia_aistation_stage121-124.log
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 33.96% [ 7717 / 22722, 4067 ins, 1995 del, 1655 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 24.82% [ 6754 / 27213, 2593 ins, 2416 del, 1745 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 26.35% [ 6451 / 24478, 3015 ins, 2087 del, 1349 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 24.41% [ 4228 / 17318, 1852 ins, 1165 del, 1211 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/fireredasr_llm_l_and_silero-vad_v5_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 22.16% [ 4557 / 20567, 1423 ins, 1518 del, 1616 sub ]
+
+
+
+ if [ ${stage} -le 132 ] && [ ${stop_stage} -ge 132 ];then
+   exp_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+   ngpu=2  # number of GPUs to perform distributed training on.
+   local_files_dir="/maduo/model_hub/whisper-large-v3/"
+   export HF_ENDPOINT=https://hf-mirror.com
+   torchrun --nproc_per_node=${ngpu} whisper_nemo_dia/fine-tune_whisper_on_custom_dataset.py \
+        --model_name $local_files_dir \
+        --local_files_only true\
+        --language en \
+        --sampling_rate 16000 \
+        --num_proc 2 \
+        --train_strategy steps \
+        --learning_rate 1e-6\
+        --warmup 1000 \
+        --num_steps 5000\
+        --train_batchsize 16 \
+        --gradient_accumulation_steps 2\
+        --eval_batchsize 8 \
+        --num_epochs 1 \
+        --output_dir $exp_dir \
+        --train_datasets /maduo/datasets/mlc-slm/train/train_asr  \
+        --eval_datasets  /maduo/datasets/mlc-slm/dev/dev_asr\
+	#--resume_from_ckpt  $exp_dir/checkpoint-33790
+
+fi
+
+if [ ${stage} -le 133 ] && [ ${stop_stage} -ge 133 ];then
+
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+   cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-1000
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-1000\
+    --output_dir $finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000 \
+    --quantization float16
+
+   cp -r /maduo/model_hub/faster-whisper-large-v3/{config.json,configuration.json,preprocessor_config.json,tokenizer.json} $finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000
+fi
+
+if [ ${stage} -le 134 ] && [ ${stop_stage} -ge 134 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3 whisper_nemo_dia/diarize_v2_ft_whisper.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+
+if [ ${stage} -le 135 ] && [ ${stop_stage} -ge 135 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 136 ] && [ ${stop_stage} -ge 136 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 137 ] && [ ${stop_stage} -ge 137 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+
+# WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 49.47% [ 11241 / 22722, 3629 ins, 3909 del, 3703 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 40.25% [ 10954 / 27213, 2055 ins, 5087 del, 3812 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 43.19% [ 10572 / 24478, 2782 ins, 4700 del, 3090 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 39.20% [ 6788 / 17318, 1853 ins, 2777 del, 2158 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 39.84% [ 8193 / 20567, 1672 ins, 3871 del, 2650 sub ]
+
+
+if [ ${stage} -le 140 ] && [ ${stop_stage} -ge 140 ];then
+
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+   cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-2000
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-2000\
+    --output_dir $finetune_model_dir/checkpoint-2000/whisper-large-v3-ct2_ckpt-2000 \
+    --quantization float16
+
+   cp -r /maduo/model_hub/faster-whisper-large-v3/{config.json,configuration.json,preprocessor_config.json,tokenizer.json} $finetune_model_dir/checkpoint-2000/whisper-large-v3-ct2_ckpt-2000
+fi
+
+if [ ${stage} -le 141 ] && [ ${stop_stage} -ge 141 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-2000/whisper-large-v3-ct2_ckpt-2000
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3 whisper_nemo_dia/diarize_v2_ft_whisper.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+if [ ${stage} -le 142 ] && [ ${stop_stage} -ge 142 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 143 ] && [ ${stop_stage} -ge 143 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 144 ] && [ ${stop_stage} -ge 144 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+
+# WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 52.30% [ 11883 / 22722, 3564 ins, 4296 del, 4023 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 41.75% [ 11362 / 27213, 1840 ins, 5612 del, 3910 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 43.89% [ 10744 / 24478, 2573 ins, 5044 del, 3127 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 40.22% [ 6966 / 17318, 1764 ins, 2964 del, 2238 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_2000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 40.85% [ 8401 / 20567, 1577 ins, 4042 del, 2782 sub ]
+
+
+if [ ${stage} -le 145 ] && [ ${stop_stage} -ge 145 ];then
+
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+   cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-5000
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-5000\
+    --output_dir $finetune_model_dir/checkpoint-5000/whisper-large-v3-ct2_ckpt-5000 \
+    --quantization float16
+
+   cp -r /maduo/model_hub/faster-whisper-large-v3/{config.json,configuration.json,preprocessor_config.json,tokenizer.json} $finetune_model_dir/checkpoint-5000/whisper-large-v3-ct2_ckpt-5000
+fi
+
+if [ ${stage} -le 146 ] && [ ${stop_stage} -ge 146 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-6_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-5000/whisper-large-v3-ct2_ckpt-5000
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3 whisper_nemo_dia/diarize_v2_ft_whisper.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+if [ ${stage} -le 147 ] && [ ${stop_stage} -ge 147 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 148 ] && [ ${stop_stage} -ge 148 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 149 ] && [ ${stop_stage} -ge 149 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+# cat logs/run_whisper_nemo_dia_aistation_stage145-149.log
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 52.75% [ 11986 / 22722, 3510 ins, 4721 del, 3755 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 42.08% [ 11451 / 27213, 1855 ins, 5956 del, 3640 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 43.97% [ 10764 / 24478, 2529 ins, 5326 del, 2909 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 39.24% [ 6796 / 17318, 1763 ins, 3013 del, 2020 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-6_max_step5000_ckpt_5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 39.55% [ 8135 / 20567, 1488 ins, 4185 del, 2462 sub ]
+
+
+ if [ ${stage} -le 150 ] && [ ${stop_stage} -ge 150 ];then
+   exp_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+   ngpu=2  # number of GPUs to perform distributed training on.
+   local_files_dir="/maduo/model_hub/whisper-large-v3/"
+   export HF_ENDPOINT=https://hf-mirror.com
+   torchrun --nproc_per_node=${ngpu} whisper_nemo_dia/fine-tune_whisper_on_custom_dataset.py \
+        --model_name $local_files_dir \
+        --local_files_only true\
+        --language en \
+        --sampling_rate 16000 \
+        --num_proc 2 \
+        --train_strategy steps \
+        --learning_rate 1e-7\
+        --warmup 1000 \
+        --num_steps 5000\
+        --train_batchsize 16 \
+        --gradient_accumulation_steps 2\
+        --eval_batchsize 8 \
+        --num_epochs 1 \
+        --output_dir $exp_dir \
+        --train_datasets /maduo/datasets/mlc-slm/train/train_asr  \
+        --eval_datasets  /maduo/datasets/mlc-slm/dev/dev_asr\
+        #--resume_from_ckpt  $exp_dir/checkpoint-33790
+
+fi
+
+if [ ${stage} -le 151 ] && [ ${stop_stage} -ge 151 ];then
+
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+   cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-1000
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-1000\
+    --output_dir $finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000 \
+    --quantization float16
+
+   cp -r /maduo/model_hub/faster-whisper-large-v3/{config.json,configuration.json,preprocessor_config.json,tokenizer.json} $finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000
+fi
+
+if [ ${stage} -le 152 ] && [ ${stop_stage} -ge 152 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3 whisper_nemo_dia/diarize_v2_ft_whisper.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+
+if [ ${stage} -le 153 ] && [ ${stop_stage} -ge 153 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 154 ] && [ ${stop_stage} -ge 154 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 155 ] && [ ${stop_stage} -ge 155 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+ fi
+# WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 51.34% [ 11665 / 22722, 3388 ins, 4495 del, 3782 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 42.57% [ 11584 / 27213, 2051 ins, 5502 del, 4031 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 44.43% [ 10876 / 24478, 2577 ins, 5113 del, 3186 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 44.74% [ 7748 / 17318, 2050 ins, 3473 del, 2225 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 45.59% [ 9377 / 20567, 1589 ins, 4752 del, 3036 sub ]
+
+
+
+if [ ${stage} -le 157 ] && [ ${stop_stage} -ge 157 ];then
+
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+   #cp -r $finetune_model_dir/{tokenizer_config.json,vocab.json,normalizer.json,added_tokens.json,merges.txt} $finetune_model_dir/checkpoint-1000
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-1000\
+    --output_dir $finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000_debug \
+    --copy_files tokenizer_config.json preprocessor_config.json\
+    --quantization float16
+
+   #cp -r /maduo/model_hub/faster-whisper-large-v3/{config.json,configuration.json,preprocessor_config.json,tokenizer.json} $finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000
+fi
+
+
+
+
+if [ ${stage} -le 158 ] && [ ${stop_stage} -ge 158 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-1000/whisper-large-v3-ct2_ckpt-1000_debug
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3 whisper_nemo_dia/diarize_v2_ft_whisper.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+
+if [ ${stage} -le 159 ] && [ ${stop_stage} -ge 159 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 160 ] && [ ${stop_stage} -ge 160 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 161 ] && [ ${stop_stage} -ge 161 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+
+fi
+# cat logs/run_whisper_nemo_dia_aistation_stage158-161.log
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 62.66% [ 14238 / 22722, 2379 ins, 7668 del, 4191 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 64.69% [ 17604 / 27213, 1559 ins, 12068 del, 3977 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 59.51% [ 14566 / 24478, 2092 ins, 8967 del, 3507 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 56.42% [ 9771 / 17318, 1958 ins, 5454 del, 2359 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 55.04% [ 11320 / 20567, 1397 ins, 7003 del, 2920 sub ]
+
+
+if [ ${stage} -le 165 ] && [ ${stop_stage} -ge 165 ];then
+
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+   mkdir -p $finetune_model_dir/checkpoint-2000_tmp
+   cp -r $finetune_model_dir/checkpoint-2000/* $finetune_model_dir/checkpoint-2000_tmp/
+   cp -r $finetune_model_dir/{tokenizer_config.json,merges.txt,normalizer.json,added_tokens.json,vocab.json,special_tokens_map.json} $finetune_model_dir/checkpoint-2000_tmp
+   ct2-transformers-converter \
+    --model $finetune_model_dir/checkpoint-2000_tmp\
+    --output_dir $finetune_model_dir/checkpoint-2000_tmp/whisper-large-v3-ct2_ckpt-2000_debug \
+    --copy_files tokenizer_config.json preprocessor_config.json\
+    --quantization float16
+
+fi
+
+
+
+if [ ${stage} -le 166 ] && [ ${stop_stage} -ge 166 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-2000_tmp/whisper-large-v3-ct2_ckpt-2000_debug
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3 whisper_nemo_dia/diarize_v2_ft_whisper.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+
+if [ ${stage} -le 167 ] && [ ${stop_stage} -ge 167 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 168 ] && [ ${stop_stage} -ge 168 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 169 ] && [ ${stop_stage} -ge 169 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+
+fi
+# cat logs/run_whisper_nemo_dia_aistation_stage166-169.log
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 62.13% [ 14117 / 22722, 2654 ins, 7874 del, 3589 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 65.36% [ 17786 / 27213, 1546 ins, 12640 del, 3600 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 57.24% [ 14010 / 24478, 1996 ins, 8831 del, 3183 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 54.51% [ 9440 / 17318, 1787 ins, 5380 del, 2273 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-2000_debug_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 57.69% [ 11866 / 20567, 1210 ins, 7911 del, 2745 sub ]
+
+
+
+########
+# I use the sliding window method officially provided by transformers to use whisper to decode long audio
+if [ ${stage} -le 171 ] && [ ${stop_stage} -ge 171 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-1000_tmp
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3  whisper_nemo_dia/diarize_v2_ft_whisper_hf.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+
+if [ ${stage} -le 172 ] && [ ${stop_stage} -ge 172 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 173 ] && [ ${stop_stage} -ge 173 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 174 ] && [ ${stop_stage} -ge 174 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+
+fi
+
+#cat logs/run_whisper_nemo_dia_aistation_stage171-174_3.log
+#compute tcpwer
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 19891.40 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/American/hyp_tcpwer.json
+#INFO %tcpWER: 39.54% [ 8984 / 22722, 4311 ins, 2468 del, 2205 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 25.11% [ 6833 / 27213, 2361 ins, 2583 del, 1889 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 29.43% [ 7204 / 24478, 2956 ins, 2644 del, 1604 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 32.19% [ 5574 / 17318, 2077 ins, 2140 del, 1357 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 28.60% [ 5883 / 20567, 1606 ins, 2611 del, 1666 sub ]
+
+
+# whisper generate configure is not correct for mlc_slm english, it  will can't decode them.
+if [ ${stage} -le 178 ] && [ ${stop_stage} -ge 178 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-1000_tmp
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3  whisper_nemo_dia/diarize_v2_ft_whisper_hf_v2.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model
+   done
+fi
+
+
+if [ ${stage} -le 179 ] && [ ${stop_stage} -ge 179 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 180 ] && [ ${stop_stage} -ge 180 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 181 ] && [ ${stop_stage} -ge 181 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_v2_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+
+fi
+#####
+# it is correct way to infer until now when i use finetune whisper model. 
+#####
+# compared with stage171-174, stage185-188 will use vad model(silero_vad_v5) to remove silence segment.
+if [ ${stage} -le 185 ] && [ ${stop_stage} -ge 185 ];then
+   input_audio_dir=/maduo/datasets/mlc-slm/dev/dev_wav
+   output_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/sample_train.nemo
+   #finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/'sample_train--val_loss=0.0117-epoch=10-last.ckpt'
+   finetune_model=/maduo/exp/asr_sd/finetune_msdd_model_using_mlc_slm_english_subset/sample_train/2025-09-08_15-26-49/checkpoints/new_sample_train.nemo
+   use_speaker_model_from_ckpt=True
+   subset="American  Australian  British  Filipino  Indian"
+
+   #subset="American"
+   finetune_model_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-7_max_step5000
+
+   asr_model_dir=$finetune_model_dir/checkpoint-1000_tmp
+   align_model_local_dir=/maduo/model_hub/MahmoudAshraf/mms-300m-1130-forced-aligner
+   punct_model=/maduo/model_hub/models--kredor--punctuate-all
+
+   export HF_ENDPOINT=https://hf-mirror.com
+   export OC_CAUSE=1
+   for name in $subset;do
+    #python3 whisper_nemo_dia/diarize_v2.py \
+     python3  whisper_nemo_dia/diarize_v2_ft_whisper_hf_vad.py\
+              --whisper-model $asr_model_dir \
+              --local-files-only True\
+              --diarizer msdd\
+              --msdd-model-path $finetune_model\
+              --use-speaker-model-from-ckpt $use_speaker_model_from_ckpt\
+              --align-model $align_model_local_dir\
+              --ctc-model-local-files-only true\
+              --language en \
+              --input-folder  $input_audio_dir/$name\
+              --output-folder $output_dir/$name\
+              --realign-with-punc true\
+              --punct-model $punct_model\
+	      --use-vad true
+   done
+fi
+
+
+if [ ${stage} -le 186 ] && [ ${stop_stage} -ge 186 ];then
+  echo "generate srt files"
+  dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+  #subset="American"
+  subset="American  Australian  British  Filipino  Indian"
+  for line in $subset;do
+
+          find $dest_dir/$line -iname "*.srt" > $dest_dir/$line/srt_list.txt
+  done
+fi
+if [ ${stage} -le 187 ] && [ ${stop_stage} -ge 187 ];then
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+     input=$dest_dir/$line/srt_list.txt
+     output=$dest_dir/$line/hyp.stm
+     python3 whisper_nemo_dia/generate_hyp_stm_from_whisper_nemo_dia_output.py \
+             $input $output
+   done
+fi
+
+if [ ${stage} -le 188 ] && [ ${stop_stage} -ge 188 ];then
+   echo "compute tcpwer "
+   input_dir=/maduo/datasets/mlc-slm/dev/
+   dest_dir=/maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English
+   #subset="American"
+   subset="American  Australian  British  Filipino  Indian"
+   for line in $subset;do
+          meeteval-wer tcpwer -r  $input_dir/English/${line}_ref.stm -h $dest_dir/$line/hyp.stm --collar 5
+   done
+
+fi
+#cat logs/run_whisper_nemo_dia_aistation_stage185-188.log
+#INFO %tcpWER: 35.33% [ 8028 / 22722, 3940 ins, 2096 del, 1992 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18640.64 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Australian/hyp_tcpwer.json
+#INFO %tcpWER: 24.41% [ 6642 / 27213, 2232 ins, 2470 del, 1940 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 18446.00 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/British/hyp_tcpwer.json
+#INFO %tcpWER: 28.99% [ 7096 / 24478, 2959 ins, 2628 del, 1509 sub ]
+#WARNING Self-overlap detected in reference. Total overlap: 0.00 of 16923.94 (0.00%).
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Filipino/hyp_tcpwer.json
+#INFO %tcpWER: 30.14% [ 5220 / 17318, 2010 ins, 1997 del, 1213 sub ]
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer_per_reco.json
+#INFO Wrote: /maduo/exp/asr_sd/whisper_nemo_dia/whisper_large_v3_ft_mlc_slm_eng_1epoch_train_strategy_steps_lr_1e-7_max_step5000_ckpt-1000_hf_format_vad_mms-300m-1130-forced-aligner_with_punc_realign_with_ft_msdd_on_mlc_slm_english_msdd_diarization_infer/English/Indian/hyp_tcpwer.json
+#INFO %tcpWER: 28.68% [ 5899 / 20567, 1611 ins, 2658 del, 1630 sub ]
+
+
+
+
+
+if [ ${stage} -le 190 ] && [ ${stop_stage} -ge 190 ];then
+   exp_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_1e-5_max_step5000
+   ngpu=2  # number of GPUs to perform distributed training on.
+   local_files_dir="/maduo/model_hub/whisper-large-v3/"
+   export HF_ENDPOINT=https://hf-mirror.com
+   torchrun --nproc_per_node=${ngpu} whisper_nemo_dia/fine-tune_whisper_on_custom_dataset.py \
+        --model_name $local_files_dir \
+        --local_files_only true\
+        --language en \
+        --sampling_rate 16000 \
+        --num_proc 2 \
+        --train_strategy steps \
+        --learning_rate 1e-5\
+        --warmup 500 \
+        --num_steps 5000\
+        --train_batchsize 16 \
+        --gradient_accumulation_steps 8\
+        --eval_batchsize 8 \
+        --num_epochs 1 \
+        --output_dir $exp_dir \
+        --train_datasets /maduo/datasets/mlc-slm/train/train_asr  \
+        --eval_datasets  /maduo/datasets/mlc-slm/dev/dev_asr\
+        #--resume_from_ckpt  $exp_dir/checkpoint-33790
+fi
+
+if [ ${stage} -le 200 ] && [ ${stop_stage} -ge 200 ];then
+   exp_dir=/maduo/exp/asr_sd/whisper_nemo_dia/finetune_whisper_large_v3_on_mlc_slm_english_1epoch_train_strategy_steps_lr_5e-6_max_step5000
+   ngpu=2  # number of GPUs to perform distributed training on.
+   local_files_dir="/maduo/model_hub/whisper-large-v3/"
+   export HF_ENDPOINT=https://hf-mirror.com
+   torchrun --nproc_per_node=${ngpu} whisper_nemo_dia/fine-tune_whisper_on_custom_dataset_v2.py \
+        --model_name $local_files_dir \
+        --local_files_only true\
+        --language en \
+        --sampling_rate 16000 \
+        --num_proc 2 \
+        --train_strategy steps \
+        --learning_rate 5e-6\
+        --warmup 500 \
+        --num_steps 5000\
+        --train_batchsize 16 \
+        --gradient_accumulation_steps 8\
+        --eval_batchsize 8 \
+        --num_epochs 1 \
+        --output_dir $exp_dir \
+        --train_datasets /maduo/datasets/mlc-slm/train/train_asr  \
+        --eval_datasets  /maduo/datasets/mlc-slm/dev/dev_asr\
+        #--resume_from_ckpt  $exp_dir/checkpoint-33790
 fi

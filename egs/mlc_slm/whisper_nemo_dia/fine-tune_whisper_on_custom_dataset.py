@@ -9,6 +9,26 @@ from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 from transformers import WhisperFeatureExtractor, WhisperTokenizer, WhisperProcessor, WhisperForConditionalGeneration, Seq2SeqTrainingArguments, Seq2SeqTrainer
 # Note: This script requires transformers version '4.53.3'
 # 
+
+
+def str2bool(v):
+    """Used in argparse.ArgumentParser.add_argument to indicate
+    that a type is a bool type and user can enter
+
+        - yes, true, t, y, 1, to represent True
+        - no, false, f, n, 0, to represent False
+
+    See https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse  # noqa
+    """
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
 #######################     ARGUMENT PARSING        #########################
 
 parser = argparse.ArgumentParser(description='Fine-tuning script for Whisper Models of various sizes.')
@@ -19,6 +39,7 @@ parser.add_argument(
     default='openai/whisper-small', 
     help='Huggingface model name to fine-tune. Eg: openai/whisper-small'
 )
+parser.add_argument("--local_files_only", type=str2bool, default=False,help="if args.model_name is local files path, args.local_files_only is setting to True")
 parser.add_argument(
     '--language', 
     type=str, 
@@ -123,6 +144,7 @@ parser.add_argument('--gradient_accumulation_steps', type=int, default=1, help="
 
 args = parser.parse_args()
 
+
 if args.train_strategy not in ['steps', 'epoch']:
     raise ValueError('The train strategy should be either steps and epoch.')
 
@@ -143,11 +165,11 @@ normalizer = BasicTextNormalizer()
 
 
 #############################       MODEL LOADING       #####################################
+feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_name,local_files_only=args.local_files_only)
+tokenizer = WhisperTokenizer.from_pretrained(args.model_name, language=args.language, task="transcribe",local_files_only=args.local_files_only)
+processor = WhisperProcessor.from_pretrained(args.model_name, language=args.language, task="transcribe",local_files_only=args.local_files_only)
 
-feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_name)
-tokenizer = WhisperTokenizer.from_pretrained(args.model_name, language=args.language, task="transcribe")
-processor = WhisperProcessor.from_pretrained(args.model_name, language=args.language, task="transcribe")
-model = WhisperForConditionalGeneration.from_pretrained(args.model_name)
+model = WhisperForConditionalGeneration.from_pretrained(args.model_name,local_files_only=args.local_files_only)
 
 if model.config.decoder_start_token_id is None:
     raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
@@ -160,8 +182,8 @@ if freeze_encoder:
     model.model.encoder.gradient_checkpointing = False
 
 
-model.config.forced_decoder_ids = None
-model.config.suppress_tokens = []
+#model.config.forced_decoder_ids = None
+#model.config.suppress_tokens = []
 
 if gradient_checkpointing:
     model.config.use_cache = False
@@ -322,7 +344,8 @@ elif args.train_strategy == 'steps':
         save_total_limit=10,
         per_device_eval_batch_size=args.eval_batchsize,
         predict_with_generate=True,
-        generation_max_length=225,
+        #generation_max_length=225,
+        generation_max_length=448,
         logging_steps=500,
         report_to=["tensorboard"],
         load_best_model_at_end=True,
@@ -344,6 +367,14 @@ trainer = Seq2SeqTrainer(
 
 processor.save_pretrained(training_args.output_dir)
 
-print('TRAINING IN PROGRESS...')
-trainer.train()
-print('DONE TRAINING')
+
+# 修改训练部分
+if args.resume_from_ckpt:
+    print(f"Resuming from checkpoint: {args.resume_from_ckpt}")
+    trainer.train(resume_from_checkpoint=args.resume_from_ckpt)
+else:
+    print("Starting training from scratch")
+    trainer.train()
+#print('TRAINING IN PROGRESS...')
+#trainer.train()
+#print('DONE TRAINING')
